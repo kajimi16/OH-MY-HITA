@@ -1,12 +1,11 @@
 package com.stupidtree.hitax.ui.main.timetable.panel
 
+import com.stupidtree.hitax.HitaServices
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.stupidtree.component.data.SharedPreferenceBooleanLiveData
 import com.stupidtree.component.data.SharedPreferenceIntLiveData
-import com.stupidtree.hitax.data.repository.SubjectRepository
 import com.stupidtree.hitax.data.repository.EasSettingsRepository
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import com.stupidtree.hitax.data.repository.TimetableStyleRepository
 import com.stupidtree.hitax.data.repository.TimetableStyleRepository.Companion.KEY_COLOR_ENABLE
 import com.stupidtree.hitax.data.repository.TimetableStyleRepository.Companion.KEY_DRAW_BG_LINE
@@ -17,8 +16,8 @@ class TimetablePanelViewModel(application: Application) : AndroidViewModel(appli
 
     private val timetableStyleRepository = TimetableStyleRepository.getInstance(application)
     private val easSettingsRepository = EasSettingsRepository.getInstance(application)
-    private val subjectRepository = SubjectRepository.getInstance(application)
-    private val timetableRepository = TimetableRepository.getInstance(application)
+    private val subjectRepository = HitaServices.timetable(application)
+    private val timetableRepository = HitaServices.timetable(application)
 
     val startDateLiveData: SharedPreferenceIntLiveData
         get() = timetableStyleRepository.startTimeLiveData

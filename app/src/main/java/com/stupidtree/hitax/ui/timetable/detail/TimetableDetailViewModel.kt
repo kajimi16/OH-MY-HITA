@@ -1,5 +1,7 @@
 package com.stupidtree.hitax.ui.timetable.detail
 
+import com.stupidtree.hitax.HitaServices
+import com.stupidtree.hitax.data.model.timetable.TeacherInfo
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -9,15 +11,13 @@ import com.stupidtree.component.data.StringTrigger
 import com.stupidtree.hitax.data.model.timetable.TermSubject
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.data.repository.SubjectRepository
-import com.stupidtree.hitax.data.repository.TimetableRepository
 
 class TimetableDetailViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * 仓库区
      */
-    private val timetableRepository = TimetableRepository.getInstance(application)
-    private val subjectsRepository = SubjectRepository.getInstance(application)
+    private val timetableRepository = HitaServices.timetable(application)
+    private val subjectsRepository = HitaServices.timetable(application)
 
 
     /**

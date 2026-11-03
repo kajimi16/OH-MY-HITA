@@ -6,6 +6,31 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 
 当前版本：`0.0.2`。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
 
+### 运行时插件（T1）
+
+`kernel` 的 `PluginLoader` 支持从 dex 装载**纯逻辑插件**：
+
+1. `PluginInstaller` 读取索引（构建期 `PLUGIN_INDEX_URL`，为空时读 `filesDir/market/index.json`）
+2. 下载 → 校验 `sha256` → 复制到 `filesDir/runtime-plugins/<id>/plugin.dex`
+3. `DexClassLoader` 装载 `entryClass` → `PluginHost.install(ctx)`
+4. 应用启动时 `restore()` 自动恢复上次安装的插件
+
+索引格式：
+
+```json
+{"plugins":[{"id":"com.example.hello","name":"示例插件","version":"0.1.0",
+"apiVersion":2,"url":"plugin.dex","sha256":"...","entryClass":"com.example.hello.HelloPlugin"}]}
+```
+
+限制（Android 硬边界，不是实现取舍）：运行时插件不能声明四大组件、不能携带资源，
+且与宿主同进程共享权限。因此市场只上架逻辑插件；需要界面的功能走独立 APK（T2）。
+
+示例插件在 `:sample-plugin`，产出 dex：
+
+```bash
+./gradlew :sample-plugin:buildPluginDex   # -> sample-plugin/build/plugin-dex/classes.dex
+```
+
 ## 项目背景
 项目最初来自哈尔滨工业大学（深圳）2018 级本科生大一年度立项，原名 HITSZ 助手，重构版改名为 HITA 课表。
 该项目长期无人维护，本分支为接手维护的延续版本，同时附带了本研抓包逆向出来的api清单（由于更新时为非选课时间，部分选课api不能完全确认功能，同时部分api学校也没做完），便于后续更新。
@@ -33,8 +58,11 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 
 | 模块 | 角色 |
 |---|---|
-| `:api` | 插件契约：`Plugin` / `PluginContext` / `ServiceKey` / `NavEntry`。只有接口，不含实体类 |
+| `:api` | 插件契约：`Plugin` / `PluginContext` / `ServiceKey` / `NavEntry` / `SearchTab` / `SyncCodec`。只有接口，不含实体类 |
+| `:kernel` | 微内核：`PluginHost` 负责装载/卸载、注册表与回滚；不依赖 Android，可直接跑 JVM 单测 |
 | `:app` | 宿主（shell）：`PluginHost` 装载/卸载插件并撤销其注册；`PluginCatalog` 是构建期插件清单 |
+| `:model` | 共享数据模型：实体与 DTO，宿主 / 契约 / 插件三方共用 |
+| `:plugin-hita` | 课表插件：Room 库、DAO、仓库、ICS、`TimetableService` 实现与同步 codec |
 | `:theta` | 第一个插件样例：只依赖 `:api`，贡献 `CommunityService`、搜索页两个 tab、抽屉入口 |
 | `:component` `:style` `:user` `:sync` | 待迁移的能力层（P2/P3 目标） |
 
@@ -57,6 +85,7 @@ object PluginCatalog {
 - `ServiceKey<T>` —— 服务注册/查找（`CommunityService` 即由 θ 插件提供）
 - `NavEntry` —— 抽屉导航项
 - `SearchTab` —— 搜索结果页 tab，按 `SearchTabIds` 语义 id 与宿主对齐
+- `SyncCodec` —— 云同步的「一张表」，宿主不再 `when(key)` 硬编码数据表
 
 约定：
 

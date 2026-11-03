@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.ui.main.timeline
 
+import com.stupidtree.hitax.HitaServices
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -7,7 +8,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.switchMap
 import com.stupidtree.component.data.Trigger
 import com.stupidtree.hitax.data.model.timetable.EventItem
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import java.util.Calendar
 
 class FragmentTimelineViewModel(application: Application) : AndroidViewModel(application){
@@ -15,7 +15,7 @@ class FragmentTimelineViewModel(application: Application) : AndroidViewModel(app
     /**
      * 仓库区
      */
-    private val timetableRepository = TimetableRepository.getInstance(application)
+    private val timetableRepository = HitaServices.timetable(application)
 
     /**
      * 数据区

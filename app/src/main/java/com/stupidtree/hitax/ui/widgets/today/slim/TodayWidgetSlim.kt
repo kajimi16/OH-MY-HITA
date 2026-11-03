@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.ui.widgets.today.slim
 
+import com.stupidtree.hitax.HitaServices
 import android.app.Application
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -7,7 +8,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import com.stupidtree.hitax.ui.widgets.WidgetUtils.EVENT_REFRESH
 import com.stupidtree.hitax.ui.widgets.today.TodayUtils
 import com.stupidtree.hitax.ui.widgets.today.TodayUtils.goAsync
@@ -29,7 +29,7 @@ class TodayWidgetSlim : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         val timetableRepo =
-            TimetableRepository.getInstance(context.applicationContext as Application)
+            HitaServices.timetable(context.applicationContext as Application)
         goAsync {
             val events = timetableRepo.getTodayEventsSync()
             for (appWidgetId in appWidgetIds) {
@@ -47,7 +47,7 @@ class TodayWidgetSlim : AppWidgetProvider() {
                 val cn = ComponentName(context, TodayWidgetSlim::class.java)
                 val mgr = AppWidgetManager.getInstance(context)
                 val timetableRepo =
-                    TimetableRepository.getInstance(context.applicationContext as Application)
+                    HitaServices.timetable(context.applicationContext as Application)
                 goAsync {
                     val events = timetableRepo.getTodayEventsSync()
                     for (appWidgetId in mgr.getAppWidgetIds(cn)) {

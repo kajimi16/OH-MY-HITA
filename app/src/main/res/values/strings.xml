@@ -995,6 +995,8 @@
     <string name="load_failed">加载失败</string>
     <string name="percentage">%d%%</string>
     <string name="title_navigation">功能中心</string>
+    <string name="title_plugin">插件</string>
+    <string name="plugin_market_empty">暂无可安装的插件。配置索引地址后，这里会列出可用的逻辑插件。</string>
     <string name="title_timetable_manager">课表管理</string>
     <string name="recent_timetable">最近课表</string>
     <string name="timetable_count_format">共%d个课表</string>
@@ -1040,4 +1042,5 @@
     <string name="belonging_timetable">所属课表</string>
     <string name="events_incoming">将要进行</string>
     <string name="lecture_title">讲座信息</string>
+    <string name="plugin_market_title">插件市场</string>
 </resources>

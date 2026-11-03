@@ -1,11 +1,11 @@
 package com.stupidtree.hitax.ui.eas.classroom
 
+import com.stupidtree.hitax.HitaServices
 import android.app.Application
 import androidx.lifecycle.*
 import com.stupidtree.hitax.data.model.eas.TermItem
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.data.repository.EASRepository
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import com.stupidtree.component.data.DataState
 import com.stupidtree.component.data.Trigger
 import com.stupidtree.hitax.ui.eas.EASViewModel
@@ -16,7 +16,7 @@ class EmptyClassroomViewModel(application: Application) : EASViewModel(applicati
      * 仓库区
      */
     private val easRepository = EASRepository.getInstance(application)
-    private val timetableRepository = TimetableRepository.getInstance(application)
+    private val timetableRepository = HitaServices.timetable(application)
 
 
     private val pageController = MutableLiveData<Trigger>()
@@ -41,7 +41,7 @@ class EmptyClassroomViewModel(application: Application) : EASViewModel(applicati
     val selectedBuildingLiveData = MutableLiveData<BuildingItem>()
     val selectedWeekLiveData: MediatorLiveData<Int> =
         MTransformations.switchMap(selectedTermLiveData) { term ->
-            return@switchMap timetableRepository.getCurrentWeekOfTimetable(term)
+            return@switchMap timetableRepository.getCurrentWeekOfTimetable(term?.getCode())
         }
     val timetableStructureLiveData: LiveData<DataState<MutableList<TimePeriodInDay>>> = selectedTermLiveData.switchMap {
         return@switchMap easRepository.getScheduleStructure(it)

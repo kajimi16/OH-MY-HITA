@@ -22,10 +22,34 @@ class PopUpUpdate : TransparentBottomSheetDialog<DialogBottomUpdateBinding>() {
         fun onConfirm()
         fun onCancel()
         fun onSkip()
+
+        /**
+         * 返回键 / 点击外部关闭，且没有点过任何按钮。
+         * 默认与「取消」同义，调用方不必单独实现。
+         */
+        fun onDismissed() {
+            onCancel()
+        }
+    }
+
+    /** 是否已经通过按钮处理过本次弹窗（确认 / 跳过 / 取消）。 */
+    private var actionHandled = false
+
+    override fun onDismiss(dialog: android.content.DialogInterface) {
+        // 返回键、点空白处等"没点按钮"的关闭，也算一次取消。
+        if (!actionHandled) onActionListener?.onDismissed()
+        super.onDismiss(dialog)
     }
 
     override fun onStart() {
         super.onStart()
+        // 更新日志可能很长：让弹窗展开到可用高度，正文区域内部滚动，
+        // 保证底部三个按钮始终在屏幕内。
+        (dialog as? com.google.android.material.bottomsheet.BottomSheetDialog)?.behavior?.apply {
+            isFitToContents = true
+            skipCollapsed = true
+            state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        }
         binding.text.requestFocus()
     }
 
@@ -54,8 +78,10 @@ class PopUpUpdate : TransparentBottomSheetDialog<DialogBottomUpdateBinding>() {
         if (init_title != null) {
             binding.title.setText(init_title!!)
         }
-        if (!TextUtils.isEmpty(init_text)) {
-            binding.text.text = init_text
+        val markdown = init_text
+        if (!markdown.isNullOrEmpty()) {
+            // 更新日志来自 GitHub Release 正文，按 Markdown 渲染
+            io.noties.markwon.Markwon.create(requireContext()).setMarkdown(binding.text, markdown)
             binding.text.visibility = View.VISIBLE
         } else {
             binding.text.visibility = View.GONE
@@ -66,16 +92,18 @@ class PopUpUpdate : TransparentBottomSheetDialog<DialogBottomUpdateBinding>() {
             binding.cancel.visibility = View.GONE
         }
         binding.skip.setOnClickListener {
+            actionHandled = true
             onActionListener?.onSkip()
             dismiss()
         }
         binding.cancel.setOnClickListener {
+            actionHandled = true
             onActionListener?.onCancel()
-            dismiss() }
+            dismiss()
+        }
         binding.confirm.setOnClickListener {
-
-                onActionListener?.onConfirm()
-
+            actionHandled = true
+            onActionListener?.onConfirm()
             dismiss()
         }
     }

@@ -17,7 +17,8 @@ object ThemeTools {
         }
     }
 
-    private fun setThemeMode(context: Context, mode: MODE) {
+    /** 供宿主能力（如插件契约）切换主题模式。 */
+    fun setThemeMode(context: Context, mode: MODE) {
         val pr = context.getSharedPreferences("theme", Context.MODE_PRIVATE)
         val str = when (mode) {
             MODE.DARK -> "dark"

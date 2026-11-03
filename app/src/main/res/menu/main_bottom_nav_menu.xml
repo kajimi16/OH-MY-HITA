@@ -14,4 +14,8 @@
         android:id="@+id/navigation_navigation"
         android:icon="@drawable/ic_nav_navigation"
         android:title="@string/title_navigation" />
+    <item
+        android:id="@+id/navigation_plugin"
+        android:icon="@drawable/ic_nav_plugin"
+        android:title="@string/title_plugin" />
 </menu>

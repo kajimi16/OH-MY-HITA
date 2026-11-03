@@ -38,6 +38,8 @@ android {
 }
 
 dependencies {
+    // 更新日志是 Markdown（GitHub Release 正文），在弹窗里渲染
+    implementation 'io.noties.markwon:core:4.6.2'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.13.1'

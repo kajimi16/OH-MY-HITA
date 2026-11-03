@@ -1,12 +1,11 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
-    id 'kotlin-kapt'
 }
 
 // CI 通过 -PappVersionName / -PappVersionCode 覆盖。
 // 本地默认 versionCode 取当前时间戳（秒），保证本地包能覆盖 CI 包、CI 包也能覆盖本地包。
-def appVersionCodeValue = (project.findProperty("appVersionCode") ?: (System.currentTimeMillis() / 1000L)).toString().toInteger()
+def appVersionCodeValue = (project.findProperty("appVersionCode") ?: System.currentTimeMillis().intdiv(1000L)).toInteger()
 def appVersionNameValue = (project.findProperty("appVersionName") ?: "0.0.1") as String
 
 // 发布签名从 local.properties 读取（该文件已被 .gitignore 排除）；缺失时打未签名包。
@@ -32,12 +31,6 @@ android {
         versionName appVersionNameValue
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments = ["room.schemaLocation":
-                                     "$projectDir/schemas".toString()]
-            }
-        }
 
         buildConfigField "String", "HOA_BASE_URL", '"http://47.115.160.70:8081"'
         buildConfigField "String", "HOA_API_KEY", '""'
@@ -46,6 +39,8 @@ android {
         buildConfigField "long", "UPDATE_VERSION_CODE", "${appVersionCodeValue}L"
         buildConfigField "String", "UPDATE_LOG", '""'
         buildConfigField "boolean", "UPDATE_ALLOW_PRERELEASE", "true"
+        // 插件市场索引地址；为空时读 filesDir/market/index.json（本地联调）
+        buildConfigField "String", "PLUGIN_INDEX_URL", '""'
     }
 //    viewBinding{
 //        enabled = true
@@ -108,6 +103,8 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.4'
     implementation project(path: ':api')
+    implementation project(path: ':kernel')
+    implementation project(path: ':plugin-hita')
     implementation project(path: ':component')
     implementation project(path: ':user')
     implementation project(path: ':sync')
@@ -116,10 +113,6 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-
-
-    implementation "androidx.room:room-runtime:2.6.1"
-    kapt "androidx.room:room-compiler:2.6.1"
 
 
     //kotlin的viewModel
@@ -196,4 +189,31 @@ tasks.register('testClasses') {
     group = 'verification'
     description = 'Compatibility task alias for legacy invocations; runs debug unit tests.'
     dependsOn 'testDebugUnitTest'
+}
+
+// 宿主不得直接依赖插件的仓库 / DAO / 数据库实现——只能通过 :api 的服务契约访问。
+tasks.register('verifyPluginBoundary') {
+    // 只覆盖已迁入 :plugin-hita 的部分；EAS/课程资源等仓库仍属宿主，暂不在此列。
+    def forbidden = [
+            'com.stupidtree.hitax.data.repository.TimetableRepository',
+            'com.stupidtree.hitax.data.repository.SubjectRepository',
+            'com.stupidtree.hitax.data.repository.IcsImport',
+            'com.stupidtree.hitax.data.source.dao.'
+    ]
+    doLast {
+        def offenders = []
+        fileTree('src/main/java').matching { include '**/*.kt' }.each { f ->
+            def text = f.text
+            forbidden.each { token ->
+                if (text.contains(token)) offenders << "${f.path}: $token"
+            }
+        }
+        if (!offenders.isEmpty()) {
+            throw new GradleException("宿主越界引用插件实现：\n" + offenders.join("\n"))
+        }
+    }
+}
+
+tasks.matching { it.name == 'preBuild' }.configureEach {
+    dependsOn 'verifyPluginBoundary'
 }

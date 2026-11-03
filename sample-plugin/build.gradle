@@ -1,0 +1,59 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
+
+android {
+    defaultConfig {
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 35
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions { jvmTarget = '1.8' }
+    namespace 'com.example.hello'
+}
+
+// 插件只"看见"契约，运行时由宿主提供这些类。
+dependencies {
+    compileOnly project(':api')
+}
+
+def sdkDir = {
+    def props = new Properties()
+    def f = rootProject.file('local.properties')
+    if (f.exists()) f.withInputStream { props.load(it) }
+    props.getProperty('sdk.dir') ?: System.getenv('ANDROID_HOME') ?: System.getenv('ANDROID_SDK_ROOT')
+}
+
+tasks.register('buildPluginDex', Exec) {
+    dependsOn 'assembleRelease'
+    description = '把 AAR 里的 classes.jar 转成可下载的 plugin.dex'
+    def outDir = layout.buildDirectory.dir('plugin-dex').get().asFile
+    doFirst {
+        def sdk = sdkDir()
+        if (!sdk) throw new GradleException('找不到 Android SDK（local.properties / ANDROID_HOME）')
+        def aar = file("$buildDir/outputs/aar/sample-plugin-release.aar")
+        if (!aar.exists()) throw new GradleException("AAR 不存在：$aar")
+        outDir.deleteDir()
+        outDir.mkdirs()
+        def jar = new File(outDir, 'classes.jar')
+        new java.util.zip.ZipFile(aar).withCloseable { zip ->
+            def entry = zip.getEntry('classes.jar')
+            jar.bytes = zip.getInputStream(entry).bytes
+        }
+        commandLine "$sdk/build-tools/35.0.0/d8",
+                '--lib', "$sdk/platforms/android-35/android.jar",
+                '--min-api', '23',
+                '--output', outDir.absolutePath,
+                jar.absolutePath
+    }
+    doLast {
+        new File(outDir, 'classes.jar').delete()
+        def dex = new File(outDir, 'classes.dex')
+        println "plugin dex: ${dex.absolutePath} (${dex.length()} bytes)"
+    }
+}

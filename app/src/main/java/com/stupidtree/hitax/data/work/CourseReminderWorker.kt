@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.data.work
 
+import com.stupidtree.hitax.HitaServices
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -11,7 +12,6 @@ import androidx.core.app.NotificationCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.stupidtree.hitax.R
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import com.stupidtree.hitax.data.source.preference.CourseReminderStore
 import com.stupidtree.hitax.ui.main.MainActivity
 import com.stupidtree.hitax.utils.TimeTools
@@ -29,7 +29,7 @@ class CourseReminderWorker(appContext: Context, params: WorkerParameters) : Work
 
         val minutes = store.getReminderMinutes()
         val app = applicationContext as? Application ?: return Result.success()
-        val timetableRepo = TimetableRepository.getInstance(app)
+        val timetableRepo = HitaServices.timetable(app)
 
         val now = System.currentTimeMillis()
         val windowEnd = now + minutes * 60 * 1000

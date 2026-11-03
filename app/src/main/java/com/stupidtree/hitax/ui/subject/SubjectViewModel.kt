@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.ui.subject
 
+import com.stupidtree.hitax.HitaServices
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -8,8 +9,6 @@ import androidx.lifecycle.switchMap
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TermSubject
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.data.repository.SubjectRepository
-import com.stupidtree.hitax.data.repository.TimetableRepository
 
 class SubjectViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -17,8 +16,8 @@ class SubjectViewModel(application: Application) : AndroidViewModel(application)
     /**
      * 仓库区
      */
-    private val subjectRepository = SubjectRepository.getInstance(application)
-    private val timetableRepository = TimetableRepository.getInstance(application)
+    private val subjectRepository = HitaServices.timetable(application)
+    private val timetableRepository = HitaServices.timetable(application)
 
     /**
      * LiveData区

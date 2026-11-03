@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.ui.widgets.today.normal
 
+import com.stupidtree.hitax.HitaServices
 import android.app.Application
 import android.appwidget.AppWidgetManager
 import android.content.Context
@@ -10,7 +11,6 @@ import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.model.timetable.EventItem
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import com.stupidtree.hitax.ui.widgets.WidgetThemeUtils
 import com.stupidtree.hitax.ui.widgets.today.normal.TodayWidget.Companion.EVENT_EXTRA
 import com.stupidtree.hitax.utils.TimeTools
@@ -79,7 +79,7 @@ internal class ListRemoteViewsFactory(val mContext: Context, intent: Intent) :
         // 初始化“集合视图”中的数据
 //        executor.execute {
 //            val timetableRepo =
-//                TimetableRepository.getInstance(mContext.applicationContext as Application)
+//                HitaServices.timetable(mContext.applicationContext as Application)
 //            val events = timetableRepo.getTodayEvents()
 //            refresh(events)
 //        }
@@ -87,7 +87,7 @@ internal class ListRemoteViewsFactory(val mContext: Context, intent: Intent) :
 
     override fun onDataSetChanged() {
         val timetableRepo =
-            TimetableRepository.getInstance(mContext.applicationContext as Application)
+            HitaServices.timetable(mContext.applicationContext as Application)
         val events = timetableRepo.getTodayEventsSync()
         mBeans.clear()
         mBeans.addAll(events.sortedBy { it.from.time })
