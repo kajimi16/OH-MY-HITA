@@ -72,7 +72,8 @@ jobs:
         run: |
           ./gradlew :app:assembleRelease \
             -PappVersionName="${{ steps.ver.outputs.name }}" \
-            -PappVersionCode=${{ steps.ver.outputs.code }}
+            -PappVersionCode=${{ steps.ver.outputs.code }} \
+            -PpluginIndexUrl="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/master/market/index.json"
 
       - name: Rename APK
         run: cp app/build/outputs/apk/release/app-release.apk "oh-my-hita-dev-${GITHUB_SHA::7}.apk"

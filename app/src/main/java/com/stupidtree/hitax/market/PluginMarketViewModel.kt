@@ -24,21 +24,23 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     val message = MutableLiveData<String?>(null)
 
     init {
-        ensureDemoIndex()
         refresh()
     }
 
+    /** 索引可能在远端，读取放到后台线程。 */
     fun refresh() {
-        val ctx = getApplication<Application>()
-        val installed = installer.installed().map { it.id }.toSet()
-        runCatching { readIndex() }
-            .onSuccess { (index, _) ->
-                items.postValue(index.plugins.map { Item(it, it.id in installed) })
-            }
-            .onFailure {
-                items.postValue(emptyList())
-                message.postValue("读取索引失败：${it.message}")
-            }
+        executor.execute {
+            ensureDemoIndex()
+            val installed = installer.installed().map { it.id }.toSet()
+            runCatching { readIndex() }
+                .onSuccess { (index, _) ->
+                    items.postValue(index.plugins.map { Item(it, it.id in installed) })
+                }
+                .onFailure {
+                    items.postValue(emptyList())
+                    message.postValue("读取索引失败：${it.message}")
+                }
+        }
     }
 
     fun install(entry: MarketPlugin) {
@@ -66,14 +68,16 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         refresh()
     }
 
-    private fun readIndex(): Pair<MarketIndex, File?> {
+    /** @return 索引内容 + 用于解析相对插件地址的基准（远端 URL 或本地目录） */
+    private fun readIndex(): Pair<MarketIndex, String?> {
         val ctx = getApplication<Application>()
         return if (BuildConfig.PLUGIN_INDEX_URL.isNotBlank()) {
-            val text = java.net.URL(BuildConfig.PLUGIN_INDEX_URL).openStream().bufferedReader().use { it.readText() }
-            gson.fromJson(text, MarketIndex::class.java) to null
+            val text = java.net.URL(BuildConfig.PLUGIN_INDEX_URL).openStream()
+                .bufferedReader().use { it.readText() }
+            gson.fromJson(text, MarketIndex::class.java) to BuildConfig.PLUGIN_INDEX_URL
         } else {
             val file = File(ctx.filesDir, "market/index.json")
-            gson.fromJson(file.readText(), MarketIndex::class.java) to file.parentFile
+            gson.fromJson(file.readText(), MarketIndex::class.java) to file.parentFile.absolutePath
         }
     }
 

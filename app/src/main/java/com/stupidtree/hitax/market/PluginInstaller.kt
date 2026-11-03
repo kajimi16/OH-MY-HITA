@@ -31,7 +31,7 @@ class PluginInstaller(
     /**
      * 安装一个市场插件。失败时抛异常，调用方负责提示；已产生的文件会被清掉。
      */
-    fun install(entry: MarketPlugin, indexBase: File?): Unit {
+    fun install(entry: MarketPlugin, indexBase: String?): Unit {
         val dir = File(root, entry.id)
         dir.deleteRecursively()
         dir.mkdirs()
@@ -78,21 +78,29 @@ class PluginInstaller(
         }
     }
 
-    private fun fetch(entry: MarketPlugin, indexBase: File?, target: File) {
-        when {
-            entry.url.startsWith("http://") || entry.url.startsWith("https://") -> {
-                val conn = URL(entry.url).openConnection() as HttpURLConnection
-                conn.connectTimeout = 15_000
-                conn.readTimeout = 30_000
-                conn.inputStream.use { input -> target.outputStream().use { input.copyTo(it) } }
-                conn.disconnect()
-            }
-            else -> {
-                val source = File(entry.url).takeIf { it.isAbsolute }
-                    ?: File(indexBase ?: throw IllegalStateException("缺少索引目录"), entry.url)
-                if (!source.isFile) throw IllegalStateException("插件文件不存在：${source.path}")
-                source.copyTo(target, overwrite = true)
-            }
+    private fun fetch(entry: MarketPlugin, indexBase: String?, target: File) {
+        val absolute = resolveUrl(entry.url, indexBase)
+        if (absolute.startsWith("http://") || absolute.startsWith("https://")) {
+            val conn = URL(absolute).openConnection() as HttpURLConnection
+            conn.connectTimeout = 15_000
+            conn.readTimeout = 30_000
+            conn.inputStream.use { input -> target.outputStream().use { input.copyTo(it) } }
+            conn.disconnect()
+        } else {
+            val source = File(absolute)
+            if (!source.isFile) throw IllegalStateException("插件文件不存在：${source.path}")
+            source.copyTo(target, overwrite = true)
+        }
+    }
+
+    /** 相对地址按索引所在位置解析：远端索引 → URL resolve，本地索引 → 同目录文件。 */
+    private fun resolveUrl(rawUrl: String, indexBase: String?): String {
+        if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) return rawUrl
+        if (indexBase == null) throw IllegalStateException("缺少索引位置，无法解析插件地址：$rawUrl")
+        return if (indexBase.startsWith("http://") || indexBase.startsWith("https://")) {
+            java.net.URI(indexBase).resolve(rawUrl).toString()
+        } else {
+            File(indexBase, rawUrl).absolutePath
         }
     }
 

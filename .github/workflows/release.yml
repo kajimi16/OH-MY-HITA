@@ -96,7 +96,8 @@ jobs:
         run: |
           ./gradlew :app:assembleRelease \
             -PappVersionName="${{ steps.ver.outputs.version }}" \
-            -PappVersionCode=${{ steps.ver.outputs.code }}
+            -PappVersionCode=${{ steps.ver.outputs.code }} \
+            -PpluginIndexUrl="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/master/market/index.json"
 
       - name: Rename APK
         run: |
