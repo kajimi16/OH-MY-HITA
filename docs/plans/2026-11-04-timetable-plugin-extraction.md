@@ -12,7 +12,7 @@
 | 层 | 位置 | 说明 |
 |---|---|---|
 | Room 库 / 实体 / DAO | `:plugin-hita` | `AppDatabase`、`EventItem`/`TermSubject`/`Timetable`、三个 DAO |
-| 仓库 | `:app` | `TimetableRepository`、`SubjectRepository` 等仍直接持有 DAO |
+| 仓库 | `:plugin-hita` | `TimetableRepository`、`SubjectRepository`、ICS 导入、Gson 工具已迁入；EAS 相关仓库仍在宿主 |
 | UI / Worker / Widget | `:app` | 216 个 .kt 中的大部分，直接 import 实体 |
 | 跨层契约 | 无 | 宿主与插件共享同一批实体类 FQN |
 
@@ -39,9 +39,10 @@
 
 验收：至少一个界面的数据来源改为服务，其余仍走旧路径（可共存）。
 
-### S2 仓库搬入插件
+### S2 仓库搬入插件（数据/仓库部分已完成）
 
-- `TimetableRepository` / `SubjectRepository` / `EventItemRepository` 移入 `:plugin-hita`。
+- ✅ `TimetableRepository` / `SubjectRepository` / ICS 导入 / `GsonBuilderUtil` 已移入 `:plugin-hita`。
+- ⬜ 插件内实现 `TimetableService` 并在 `install(ctx)` 里 `provide`（下一步）。
 - 插件内实现 `TimetableService`，并在 `install(ctx)` 里 `provide`。
 - 宿主侧用 grep/AUnit 校验：`app` 不再 import `data.model.timetable.*`。
 

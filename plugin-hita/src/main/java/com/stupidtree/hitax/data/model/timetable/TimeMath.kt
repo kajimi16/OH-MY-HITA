@@ -13,6 +13,17 @@ const val WEEK_MILLS: Long = 1000L * 60 * 60 * 24 * 7
  */
 object TimeMath {
 
+    /** 某时间所在周的周一 0 点。 */
+    fun getMonday(ts: Long): Calendar {
+        val res = Calendar.getInstance()
+        res.timeInMillis = ts
+        res.firstDayOfWeek = Calendar.MONDAY
+        res[Calendar.DAY_OF_WEEK] = Calendar.MONDAY
+        res[Calendar.HOUR_OF_DAY] = 0
+        res[Calendar.MINUTE] = 0
+        return res
+    }
+
     /** 周几，周一为 1。 */
     fun getDow(ts: Long): Int {
         val c = Calendar.getInstance()

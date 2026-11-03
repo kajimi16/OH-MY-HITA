@@ -6,14 +6,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import com.stupidtree.component.data.DataState
-import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.AppDatabase
-import com.stupidtree.hitax.data.model.eas.TermItem
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
+import com.stupidtree.hitax.data.model.timetable.TimeMath
+import com.stupidtree.hitax.data.model.timetable.WEEK_MILLS
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.ui.main.timetable.TimetableFragment.Companion.WEEK_MILLS
-import com.stupidtree.hitax.utils.TimeTools
 import com.stupidtree.sync.StupidSync
 import com.stupidtree.sync.data.model.History
 import java.lang.NumberFormatException
@@ -126,9 +124,9 @@ class TimetableRepository(val application: Application) {
     /**
      * 获得某学期（本地可能没有）的当前周数
      */
-    fun getCurrentWeekOfTimetable(termItem: TermItem?): LiveData<Int> {
+    fun getCurrentWeekOfTimetable(easCode: String?): LiveData<Int> {
         val result = MediatorLiveData<Int>()
-        result.addSource(timetableDao.getTimetableByEASCode(termItem?.getCode() ?: "")) {
+        result.addSource(timetableDao.getTimetableByEASCode(easCode ?: "")) {
             it?.let {
                 result.value = it.getWeekNumber(System.currentTimeMillis())
             } ?: kotlin.run {
@@ -184,11 +182,11 @@ class TimetableRepository(val application: Application) {
     fun actionNewTimetable() {
         executor.execute {
             val defaultTables =
-                timetableDao.getTimetableNamesWithDefaultSync(application.getString(R.string.default_timetable_name) + "%")
+                timetableDao.getTimetableNamesWithDefaultSync(DEFAULT_TIMETABLE_NAME + "%")
             var max = 0
             for (tt in defaultTables) {
                 val i = try {
-                    tt.replace(application.getString(R.string.default_timetable_name), "").toInt()
+                    tt.replace(DEFAULT_TIMETABLE_NAME, "").toInt()
                 } catch (e: NumberFormatException) {
                     null
                 }
@@ -197,11 +195,11 @@ class TimetableRepository(val application: Application) {
                 }
             }
             val newTable = Timetable()
-            val c = TimeTools.getMonday(System.currentTimeMillis())
+            val c = TimeMath.getMonday(System.currentTimeMillis())
             newTable.startTime.time = c.timeInMillis
             newTable.endTime.time = c.timeInMillis + WEEK_MILLS
             newTable.name =
-                application.getString(R.string.default_timetable_name) + (max + 1).toString()
+                DEFAULT_TIMETABLE_NAME + (max + 1).toString()
             timetableDao.saveTimetableSync(newTable)
             StupidSync.putHistorySync("timetable", History.ACTION.REQUIRE, listOf(newTable.id))
         }
@@ -215,7 +213,7 @@ class TimetableRepository(val application: Application) {
     }
 
     fun actionChangeTimetableStartDate(timetable: Timetable, startTime: Long) {
-        val calendar = TimeTools.getMonday(startTime)
+        val calendar = TimeMath.getMonday(startTime)
         val offset = calendar.timeInMillis - timetable.startTime.time
         timetable.endTime.time = timetable.endTime.time + offset
         timetable.startTime.time = calendar.timeInMillis
@@ -392,7 +390,7 @@ class TimetableRepository(val application: Application) {
                     DataState(
                         IcsImportResult(
                             timetableId = bundle.timetable.id,
-                            timetableName = bundle.timetable.name ?: application.getString(R.string.default_timetable_name),
+                            timetableName = bundle.timetable.name ?: DEFAULT_TIMETABLE_NAME,
                             importedCount = bundle.events.size
                         )
                     )
@@ -422,3 +420,6 @@ class TimetableRepository(val application: Application) {
         }
     }
 }
+
+/** 新建课表的默认名字。原先取自 app 的 R.string，移入插件后固定为同一文案。 */
+private const val DEFAULT_TIMETABLE_NAME = "新建课表"

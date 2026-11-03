@@ -34,10 +34,14 @@ dependencies {
     api project(':api')
     implementation project(':component')
     implementation project(':user')
+    implementation project(':sync')
 
     // AppDatabase 是 public 类型，宿主在迁移期仍会看到它的父类 RoomDatabase
     api "androidx.room:room-runtime:2.6.1"
     kapt "androidx.room:room-compiler:2.6.1"
     implementation 'androidx.lifecycle:lifecycle-livedata-core:2.8.4'
     implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'org.mnode.ical4j:ical4j:1.0.2'
+
+    testImplementation 'junit:junit:4.13.2'
 }

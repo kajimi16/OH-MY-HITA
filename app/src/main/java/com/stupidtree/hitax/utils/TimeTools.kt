@@ -30,15 +30,7 @@ object TimeTools {
     /**
      * 获得某时间所在的周一0点0分
      */
-    fun getMonday(ts: Long): Calendar {
-        val res = Calendar.getInstance()
-        res.timeInMillis = ts
-        res.firstDayOfWeek = Calendar.MONDAY
-        res[Calendar.DAY_OF_WEEK] = Calendar.MONDAY
-        res[Calendar.HOUR_OF_DAY] = 0
-        res[Calendar.MINUTE] = 0
-        return res
-    }
+    fun getMonday(ts: Long): Calendar = TimeMath.getMonday(ts)
 
     /**
      * 获取季节（课表意义）
