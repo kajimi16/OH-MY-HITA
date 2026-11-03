@@ -49,16 +49,17 @@ jobs:
       - name: Resolve version
         id: ver
         run: |
+          PREV="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then
             VERSION="${GITHUB_REF_NAME#v}"
           else
-            LATEST="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
-            LATEST="${LATEST#v}"
+            LATEST="${PREV#v}"
             [ -z "$LATEST" ] && LATEST="0.0.0"
             IFS=. read -r MA MI PA <<< "$LATEST"
             VERSION="$MA.$MI.$((PA+1))"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "prev=$PREV" >> "$GITHUB_OUTPUT"
           # versionCode 用时间戳：与 dev 构建共享同一条单调序列。
           echo "code=$(date +%s)" >> "$GITHUB_OUTPUT"
           echo "resolved $VERSION"
@@ -90,6 +91,29 @@ jobs:
           cp app/build/outputs/apk/release/app-release.apk \
              "oh-my-hita-${{ steps.ver.outputs.version }}.apk"
 
+      - name: Compose release notes
+        run: |
+          TAG="v${{ steps.ver.outputs.version }}"
+          PREV="${{ steps.ver.outputs.prev }}"
+          {
+            echo "## 本版变更"
+            echo
+            if [ -n "$PREV" ]; then
+              git log "${PREV}..HEAD" --no-merges --pretty='- %s'
+              echo
+              echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV}...${TAG}"
+            else
+              git log -20 --no-merges --pretty='- %s'
+            fi
+            echo
+            echo "## 安装说明"
+            echo
+            echo "- 包名 \`io.github.kajimi16.ohmyhita\`，可与原版 HITA（\`com.stupidtree.hitax\`）共存"
+            echo "- 同包名的后续版本可直接覆盖升级（签名保持同一把 key）"
+            echo "- minSdk 23"
+          } > release-notes.md
+          cat release-notes.md
+
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -97,8 +121,9 @@ jobs:
           TAG="v${{ steps.ver.outputs.version }}"
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release upload "$TAG" "oh-my-hita-${{ steps.ver.outputs.version }}.apk" --clobber
+            gh release edit "$TAG" --notes-file release-notes.md
           else
             gh release create "$TAG" "oh-my-hita-${{ steps.ver.outputs.version }}.apk" \
               --title "OH-MY-HITA ${{ steps.ver.outputs.version }}" \
-              --generate-notes
+              --notes-file release-notes.md
           fi
