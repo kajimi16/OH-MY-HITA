@@ -1,4 +1,4 @@
-package com.stupidtree.hitax.utils
+package com.stupidtree.component.util
 
 object ColorTools {
     private const val TIME_INTERVAL = 1000 * 60.toLong()

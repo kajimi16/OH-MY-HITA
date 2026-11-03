@@ -1,0 +1,42 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+}
+
+android {
+    defaultConfig {
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 35
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    namespace 'com.stupidtree.hita.plugin.timetable'
+}
+
+// 课表插件：自己持有数据库、实体与 DAO。
+// 只允许依赖 :api / :component / :user，不得依赖 :app。
+dependencies {
+    api project(':api')
+    implementation project(':component')
+    implementation project(':user')
+
+    implementation "androidx.room:room-runtime:2.6.1"
+    kapt "androidx.room:room-compiler:2.6.1"
+    implementation 'androidx.lifecycle:lifecycle-livedata-core:2.8.4'
+    implementation 'com.google.code.gson:gson:2.8.9'
+}

@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.ui.timetable.detail
 
+import com.stupidtree.hitax.data.model.timetable.TeacherInfo
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.ViewGroup

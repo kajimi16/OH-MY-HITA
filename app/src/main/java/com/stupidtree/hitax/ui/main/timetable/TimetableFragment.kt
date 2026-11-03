@@ -15,6 +15,7 @@ import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.model.timetable.EventItem
+import com.stupidtree.hitax.data.model.timetable.WEEK_MILLS
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.data.model.timetable.Timetable
 import com.stupidtree.hitax.data.repository.TimetableRepository
@@ -37,7 +38,7 @@ class TimetableFragment :
 
     companion object {
         const val WINDOW_SIZE: Int = 5
-        const val WEEK_MILLS: Long = 1000 * 60 * 60 * 24 * 7
+        const val WEEK_MILLS: Long = com.stupidtree.hitax.data.model.timetable.WEEK_MILLS
     }
 
     private lateinit var pagerAdapter: TimeTablePagerAdapter

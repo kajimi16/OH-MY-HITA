@@ -109,6 +109,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.4'
     implementation project(path: ':api')
     implementation project(path: ':kernel')
+    implementation project(path: ':plugin-hita')
     implementation project(path: ':component')
     implementation project(path: ':user')
     implementation project(path: ':sync')

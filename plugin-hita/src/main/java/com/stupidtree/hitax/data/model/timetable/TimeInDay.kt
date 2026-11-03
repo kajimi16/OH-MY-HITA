@@ -1,6 +1,5 @@
 package com.stupidtree.hitax.data.model.timetable
 
-import com.stupidtree.hitax.utils.TimeTools
 import java.sql.Timestamp
 import java.util.*
 
@@ -57,8 +56,8 @@ class TimeInDay {
     }
 
     fun getDistanceInMinutes(ts: Long): Int {
-        val m = TimeTools.getMinute(ts)
-        val h = TimeTools.getHour(ts)
+        val m = TimeMath.getMinute(ts)
+        val h = TimeMath.getHour(ts)
         return getDistanceInMinutes(h, m)
     }
 

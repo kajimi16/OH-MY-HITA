@@ -6,8 +6,8 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.map
 import com.stupidtree.hitax.data.AppDatabase
 import com.stupidtree.hitax.data.model.timetable.TermSubject
-import com.stupidtree.hitax.ui.timetable.detail.TeacherInfo
-import com.stupidtree.hitax.utils.ColorTools
+import com.stupidtree.hitax.data.model.timetable.TeacherInfo
+import com.stupidtree.component.util.ColorTools
 import com.stupidtree.sync.StupidSync
 import com.stupidtree.sync.data.model.History
 import java.util.concurrent.Executors

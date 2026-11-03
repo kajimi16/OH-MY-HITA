@@ -3,7 +3,7 @@ package com.stupidtree.hitax.data.model.timetable
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import com.stupidtree.hitax.utils.ColorTools
+import com.stupidtree.component.util.ColorTools
 import java.sql.Timestamp
 import java.util.*
 

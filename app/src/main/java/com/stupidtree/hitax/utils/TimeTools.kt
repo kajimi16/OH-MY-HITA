@@ -5,6 +5,7 @@ import android.text.TextUtils
 import android.util.Log
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.model.timetable.TimeInDay
+import com.stupidtree.hitax.data.model.timetable.TimeMath
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.ui.main.timetable.TimetableFragment.Companion.WEEK_MILLS
 import java.sql.Timestamp
@@ -74,16 +75,7 @@ object TimeTools {
      * 星期几
      * 周一为1
      */
-    fun getDow(ts: Long): Int {
-        val c = Calendar.getInstance()
-        c.timeInMillis = ts
-        c.firstDayOfWeek = Calendar.MONDAY
-        return if (c.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
-            7
-        } else {
-            c.get(Calendar.DAY_OF_WEEK) - 1
-        }
-    }
+    fun getDow(ts: Long): Int = TimeMath.getDow(ts)
 
 
     fun printDate(date: Long?): String {
@@ -294,13 +286,9 @@ object TimeTools {
     /**
      * 获取小时（东八区）
      */
-    fun getHour(date: Long): Int {
-        return ((8 + ((date % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)))%24).toInt()
-    }
+    fun getHour(date: Long): Int = TimeMath.getHour(date)
 
-    fun getMinute(date: Long): Int {
-        return ((date % (1000 * 60 * 60)) / (1000 * 60)).toInt()
-    }
+    fun getMinute(date: Long): Int = TimeMath.getMinute(date)
 
     fun isSameDay(tsA:Long, tsB:Long): Boolean {
         val calA = Calendar.getInstance()

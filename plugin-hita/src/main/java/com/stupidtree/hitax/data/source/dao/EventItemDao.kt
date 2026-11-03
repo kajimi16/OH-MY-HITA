@@ -6,7 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.stupidtree.hitax.data.model.timetable.EventItem
-import com.stupidtree.hitax.ui.timetable.detail.TeacherInfo
+import com.stupidtree.hitax.data.model.timetable.TeacherInfo
 
 @Dao
 interface EventItemDao {

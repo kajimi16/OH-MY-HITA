@@ -2,7 +2,6 @@ package com.stupidtree.hitax.data.model.timetable
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.stupidtree.hitax.ui.main.timetable.TimetableFragment.Companion.WEEK_MILLS
 import java.sql.Timestamp
 import java.util.*
 import kotlin.math.roundToInt

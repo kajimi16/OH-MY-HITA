@@ -3,7 +3,7 @@ package com.stupidtree.hitax.data.repository
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TermSubject
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.utils.ColorTools
+import com.stupidtree.component.util.ColorTools
 import net.fortuna.ical4j.model.component.VEvent
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
