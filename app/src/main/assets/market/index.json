@@ -1,0 +1,13 @@
+{
+  "plugins": [
+    {
+      "id": "com.example.hello",
+      "name": "示例插件（离线演示）",
+      "version": "0.1.0",
+      "apiVersion": 2,
+      "url": "plugin.dex",
+      "sha256": "45c1410b03458a18775b6d857b8b5368cf26f268de4982ad24970ac2b0629770",
+      "entryClass": "com.example.hello.HelloPlugin"
+    }
+  ]
+}

@@ -33,6 +33,7 @@ class PluginMarketActivity : Activity() {
         super.onCreate(savedInstanceState)
         installer = PluginInstaller(applicationContext, (application as HApplication).pluginHost)
         setContentView(buildContentView())
+        ensureDemoIndex()
         refresh()
     }
 
@@ -44,6 +45,25 @@ class PluginMarketActivity : Activity() {
         }
         scroll.addView(list)
         return scroll
+    }
+
+    /**
+     * 离线演示：首次打开市场时，把内置的示例索引与 dex 释放到私有目录。
+     * 配置了 PLUGIN_INDEX_URL 时不会走到这里。
+     */
+    private fun ensureDemoIndex() {
+        if (BuildConfig.PLUGIN_INDEX_URL.isNotBlank()) return
+        val dir = File(filesDir, "market")
+        if (File(dir, "index.json").isFile) return
+        dir.mkdirs()
+        runCatching {
+            assets.open("market/index.json").use { input ->
+                File(dir, "index.json").outputStream().use { input.copyTo(it) }
+            }
+            assets.open("market/plugin.dex").use { input ->
+                File(dir, "plugin.dex").outputStream().use { input.copyTo(it) }
+            }
+        }
     }
 
     private fun refresh() {
