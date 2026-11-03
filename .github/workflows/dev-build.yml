@@ -1,0 +1,71 @@
+name: Dev build
+
+# 每次往分支推送（或开 PR）都产出一个可直接安装的 APK 包。
+# 下载：Actions → 对应 run → Artifacts，或 `gh run download <run-id> -n oh-my-hita-dev-<sha>`。
+
+on:
+  push:
+    branches-ignore: [ master ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dev-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Ensure SDK 35
+        run: |
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$SDK"
+          ls "$SDK/platforms" || true
+          if [ ! -d "$SDK/platforms/android-35" ]; then
+            yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" > /dev/null
+          fi
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Configure signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          cat > local.properties <<EOF
+          sdk.dir=${ANDROID_HOME:-/usr/local/lib/android/sdk}
+          RELEASE_KEYSTORE=$RUNNER_TEMP/release.jks
+          RELEASE_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD
+          RELEASE_KEY_ALIAS=$KEY_ALIAS
+          RELEASE_KEY_PASSWORD=$KEY_PASSWORD
+          EOF
+
+      - name: Build APK
+        run: |
+          ./gradlew :app:assembleRelease \
+            -PappVersionName="0.0.1-dev.${GITHUB_RUN_NUMBER}" \
+            -PappVersionCode=$((100 + GITHUB_RUN_NUMBER))
+
+      - name: Rename APK
+        run: cp app/build/outputs/apk/release/app-release.apk "oh-my-hita-dev-${GITHUB_SHA::7}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oh-my-hita-dev-${{ github.sha }}
+          path: oh-my-hita-dev-*.apk
+          retention-days: 30

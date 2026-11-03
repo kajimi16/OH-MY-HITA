@@ -1,0 +1,98 @@
+name: Release
+
+# 合并进 master 即发版：自动取最近的 v* tag，patch +1，打 tag 并创建 Release。
+# 也可以手动推 tag（v1.2.3）来指定版本号。
+
+on:
+  push:
+    branches: [ master ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Ensure SDK 35
+        run: |
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$SDK"
+          ls "$SDK/platforms" || true
+          if [ ! -d "$SDK/platforms/android-35" ]; then
+            yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" > /dev/null
+          fi
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            LATEST="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
+            LATEST="${LATEST#v}"
+            [ -z "$LATEST" ] && LATEST="0.0.0"
+            IFS=. read -r MA MI PA <<< "$LATEST"
+            VERSION="$MA.$MI.$((PA+1))"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "code=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_OUTPUT"
+          echo "resolved $VERSION"
+
+      - name: Configure signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          cat > local.properties <<EOF
+          sdk.dir=${ANDROID_HOME:-/usr/local/lib/android/sdk}
+          RELEASE_KEYSTORE=$RUNNER_TEMP/release.jks
+          RELEASE_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD
+          RELEASE_KEY_ALIAS=$KEY_ALIAS
+          RELEASE_KEY_PASSWORD=$KEY_PASSWORD
+          EOF
+
+      - name: Build APK
+        run: |
+          ./gradlew :app:assembleRelease \
+            -PappVersionName="${{ steps.ver.outputs.version }}" \
+            -PappVersionCode=${{ steps.ver.outputs.code }}
+
+      - name: Rename APK
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk \
+             "oh-my-hita-${{ steps.ver.outputs.version }}.apk"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.ver.outputs.version }}"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "oh-my-hita-${{ steps.ver.outputs.version }}.apk" --clobber
+          else
+            gh release create "$TAG" "oh-my-hita-${{ steps.ver.outputs.version }}.apk" \
+              --title "OH-MY-HITA ${{ steps.ver.outputs.version }}" \
+              --generate-notes
+          fi
