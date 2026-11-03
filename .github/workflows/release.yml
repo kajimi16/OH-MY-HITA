@@ -54,7 +54,8 @@ jobs:
             VERSION="$MA.$MI.$((PA+1))"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "code=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_OUTPUT"
+          # versionCode 用时间戳：与 dev 构建共享同一条单调序列。
+          echo "code=$(date +%s)" >> "$GITHUB_OUTPUT"
           echo "resolved $VERSION"
 
       - name: Configure signing
