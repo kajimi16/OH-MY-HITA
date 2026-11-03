@@ -3,10 +3,14 @@ package com.stupidtree.hita.api
 /**
  * 插件内核 API 版本号。
  *
- * 任何对 [Plugin]、[PluginContext]、[ServiceKey]、[NavEntry] 的**破坏性**改动都必须递增此值，
- * 并同步升级 build.gradle 中的 `api` 模块版本。插件在 [Plugin.requiresApi] 中声明自己依赖的版本。
+ * 任何对 [Plugin]、[PluginContext]、[ServiceKey]、[NavEntry]、[SearchTab]、[SyncCodec] 的
+ * **破坏性**改动都必须递增此值。插件在 [Plugin.requiresApi] 中声明自己依赖的版本。
+ *
+ * 变更记录：
+ * - 2: 移除 `PluginContext.appContext`；新增 `PluginContext.sync`（SyncRegistry）
+ * - 1: 首个版本
  */
-const val HITA_API_VERSION = 1
+const val HITA_API_VERSION = 2
 
 /**
  * 一个插件。
