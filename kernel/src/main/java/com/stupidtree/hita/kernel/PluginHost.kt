@@ -1,7 +1,5 @@
-package com.stupidtree.hitax.kernel
+package com.stupidtree.hita.kernel
 
-import android.content.Context
-import android.util.Log
 import com.stupidtree.hita.api.HITA_API_VERSION
 import com.stupidtree.hita.api.NavEntry
 import com.stupidtree.hita.api.NavRegistry
@@ -10,21 +8,28 @@ import com.stupidtree.hita.api.PluginContext
 import com.stupidtree.hita.api.SearchTab
 import com.stupidtree.hita.api.SearchTabRegistry
 import com.stupidtree.hita.api.ServiceKey
+import com.stupidtree.hita.api.SyncCodec
+import com.stupidtree.hita.api.SyncRegistry
 import java.io.File
 
 /**
- * 微内核：只负责「装/卸插件」和「持有服务表」。
+ * 微内核：只负责「装/卸插件」和「持有注册表」。
  *
  * 设计约束：
- * - 不出现任何业务概念（没有课程、没有学期、没有用户）。业务全部在插件里。
+ * - 不出现任何业务概念（没有课程、没有学期、没有用户）；也不依赖 Android，
+ *   因此可以在 JVM 上直接跑单元测试。
  * - 插件的每一次注册都是一条可撤销记录（effect），装载失败或卸载时按相反顺序回滚。
- * - 一个插件装载失败不影响其它插件，失败原因保留在 [failures] 里供设置页展示。
+ * - 一个插件装载失败不影响其它插件，失败原因保留在 [failures] 里。
  */
-class PluginHost(private val appContext: Context) {
+class PluginHost(
+    private val pluginsDir: File,
+    private val logger: (message: String, error: Throwable?) -> Unit = { _, _ -> },
+) {
 
     private val services = LinkedHashMap<String, Any>()
     private val navEntries = LinkedHashMap<String, NavEntry>()
     private val searchTabEntries = LinkedHashMap<String, SearchTab>()
+    private val syncCodecs = LinkedHashMap<String, SyncCodec>()
     private val installedPlugins = LinkedHashMap<String, Plugin>()
     private val scopes = LinkedHashMap<String, PluginScope>()
     private val failures = LinkedHashMap<String, Throwable>()
@@ -49,19 +54,30 @@ class PluginHost(private val appContext: Context) {
         override fun entries(): List<SearchTab> = searchTabEntries.values.sortedBy { it.order }
     }
 
+    /** 宿主只读的同步表视图。 */
+    val sync: SyncRegistry = object : SyncRegistry {
+        override fun register(codec: SyncCodec) {
+            syncCodecs[codec.key] = codec
+        }
+
+        override fun get(key: String): SyncCodec? = syncCodecs[key]
+
+        override fun keys(): Set<String> = syncCodecs.keys.toSet()
+    }
+
     fun installAll(plugins: List<Plugin>) {
         plugins.forEach { install(it) }
     }
 
     fun install(plugin: Plugin) {
         if (scopes.containsKey(plugin.id)) {
-            Log.w(TAG, "plugin already installed: ${plugin.id}")
+            logger("plugin already installed: ${plugin.id}", null)
             return
         }
         if (plugin.requiresApi > HITA_API_VERSION) {
             failures[plugin.id] =
                 IllegalStateException("requires api ${plugin.requiresApi}, kernel api $HITA_API_VERSION")
-            Log.e(TAG, "plugin rejected: ${plugin.id}")
+            logger("plugin rejected: ${plugin.id}", null)
             return
         }
         val scope = PluginScope(plugin.id)
@@ -69,13 +85,13 @@ class PluginHost(private val appContext: Context) {
         installedPlugins[plugin.id] = plugin
         try {
             plugin.install(scope)
-            Log.i(TAG, "plugin installed: ${plugin.id}")
+            logger("plugin installed: ${plugin.id}", null)
         } catch (t: Throwable) {
             scope.revokeAll()
             scopes.remove(plugin.id)
             installedPlugins.remove(plugin.id)
             failures[plugin.id] = t
-            Log.e(TAG, "plugin install failed: ${plugin.id}", t)
+            logger("plugin install failed: ${plugin.id}", t)
         }
     }
 
@@ -83,7 +99,7 @@ class PluginHost(private val appContext: Context) {
         val plugin = installedPlugins[pluginId] ?: return
         val scope = scopes[pluginId] ?: return
         runCatching { plugin.uninstall(scope) }
-            .onFailure { Log.e(TAG, "plugin uninstall hook failed: $pluginId", it) }
+            .onFailure { logger("plugin uninstall hook failed: $pluginId", it) }
         scope.revokeAll()
         scopes.remove(pluginId)
         installedPlugins.remove(pluginId)
@@ -91,7 +107,6 @@ class PluginHost(private val appContext: Context) {
 
     fun <T : Any> service(key: ServiceKey<T>): T? = services[key.name] as? T
 
-    @Suppress("UNCHECKED_CAST")
     fun <T : Any> requireService(key: ServiceKey<T>): T =
         services[key.name] as? T
             ?: throw IllegalStateException("service not provided: ${key.name}")
@@ -101,14 +116,12 @@ class PluginHost(private val appContext: Context) {
     fun failures(): Map<String, Throwable> = failures.toMap()
 
     /**
-     * 单个插件的注册作用域。所有 undo 都是幂等的移除动作，
+     * 单个插件的注册作用域。所有 undo 都是幂等的移除/恢复动作，
      * 因此「安装到一半失败」也能安全回滚。
      */
     inner class PluginScope(private val pluginId: String) : PluginContext {
 
         private val undoStack = ArrayList<() -> Unit>()
-
-        override val appContext: Context get() = this@PluginHost.appContext
 
         override fun <T : Any> service(key: ServiceKey<T>): T? = this@PluginHost.service(key)
 
@@ -120,7 +133,7 @@ class PluginHost(private val appContext: Context) {
         }
 
         override fun filesDir(): File =
-            File(appContext.filesDir, "plugins/$pluginId").apply { mkdirs() }
+            File(pluginsDir, pluginId).apply { mkdirs() }
 
         override val nav: NavRegistry = object : NavRegistry {
             override fun register(entry: NavEntry) {
@@ -147,13 +160,23 @@ class PluginHost(private val appContext: Context) {
             override fun entries(): List<SearchTab> = this@PluginHost.searchTabs.entries()
         }
 
+        override val sync: SyncRegistry = object : SyncRegistry {
+            override fun register(codec: SyncCodec) {
+                val previous = syncCodecs.put(codec.key, codec)
+                undoStack += {
+                    if (previous == null) syncCodecs.remove(codec.key)
+                    else syncCodecs[codec.key] = previous
+                }
+            }
+
+            override fun get(key: String): SyncCodec? = this@PluginHost.sync.get(key)
+
+            override fun keys(): Set<String> = this@PluginHost.sync.keys()
+        }
+
         fun revokeAll() {
             undoStack.asReversed().forEach { runCatching(it) }
             undoStack.clear()
         }
-    }
-
-    companion object {
-        private const val TAG = "PluginHost"
     }
 }

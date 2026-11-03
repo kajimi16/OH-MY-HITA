@@ -33,4 +33,6 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     // SearchTab 的契约里出现 Fragment，插件侧需要同一份类型。
     api 'androidx.fragment:fragment:1.6.2'
+    // SyncCodec 的契约里出现 JsonObject。
+    api 'com.google.code.gson:gson:2.8.9'
 }

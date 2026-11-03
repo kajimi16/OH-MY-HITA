@@ -33,7 +33,8 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 
 | 模块 | 角色 |
 |---|---|
-| `:api` | 插件契约：`Plugin` / `PluginContext` / `ServiceKey` / `NavEntry`。只有接口，不含实体类 |
+| `:api` | 插件契约：`Plugin` / `PluginContext` / `ServiceKey` / `NavEntry` / `SearchTab` / `SyncCodec`。只有接口，不含实体类 |
+| `:kernel` | 微内核：`PluginHost` 负责装载/卸载、注册表与回滚；不依赖 Android，可直接跑 JVM 单测 |
 | `:app` | 宿主（shell）：`PluginHost` 装载/卸载插件并撤销其注册；`PluginCatalog` 是构建期插件清单 |
 | `:theta` | 第一个插件样例：只依赖 `:api`，贡献 `CommunityService`、搜索页两个 tab、抽屉入口 |
 | `:component` `:style` `:user` `:sync` | 待迁移的能力层（P2/P3 目标） |
@@ -57,6 +58,7 @@ object PluginCatalog {
 - `ServiceKey<T>` —— 服务注册/查找（`CommunityService` 即由 θ 插件提供）
 - `NavEntry` —— 抽屉导航项
 - `SearchTab` —— 搜索结果页 tab，按 `SearchTabIds` 语义 id 与宿主对齐
+- `SyncCodec` —— 云同步的「一张表」，宿主不再 `when(key)` 硬编码数据表
 
 约定：
 

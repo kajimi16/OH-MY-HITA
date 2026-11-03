@@ -6,7 +6,7 @@ plugins {
 
 // CI 通过 -PappVersionName / -PappVersionCode 覆盖。
 // 本地默认 versionCode 取当前时间戳（秒），保证本地包能覆盖 CI 包、CI 包也能覆盖本地包。
-def appVersionCodeValue = (project.findProperty("appVersionCode") ?: (System.currentTimeMillis() / 1000L)).toString().toInteger()
+def appVersionCodeValue = (project.findProperty("appVersionCode") ?: System.currentTimeMillis().intdiv(1000L)).toInteger()
 def appVersionNameValue = (project.findProperty("appVersionName") ?: "0.0.1") as String
 
 // 发布签名从 local.properties 读取（该文件已被 .gitignore 排除）；缺失时打未签名包。
@@ -108,6 +108,7 @@ dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.4'
     implementation project(path: ':api')
+    implementation project(path: ':kernel')
     implementation project(path: ':component')
     implementation project(path: ':user')
     implementation project(path: ':sync')

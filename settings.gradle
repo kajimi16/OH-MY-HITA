@@ -3,6 +3,7 @@ rootProject.name = "OH-MY-HITA"
 include ':sync'
 include ':theta'
 include ':api'
+include ':kernel'
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
