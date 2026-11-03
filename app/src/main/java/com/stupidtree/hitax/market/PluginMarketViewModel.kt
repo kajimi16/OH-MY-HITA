@@ -22,6 +22,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     val items = MutableLiveData<List<Item>>(emptyList())
     val message = MutableLiveData<String?>(null)
+    val status = MutableLiveData<String?>(null)
 
     init {
         refresh()
@@ -29,16 +30,18 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     /** 索引可能在远端，读取放到后台线程。 */
     fun refresh() {
+        status.postValue("正在读取插件索引…")
         executor.execute {
             ensureDemoIndex()
             val installed = installer.installed().map { it.id }.toSet()
             runCatching { readIndex() }
                 .onSuccess { (index, _) ->
                     items.postValue(index.plugins.map { Item(it, it.id in installed) })
+                    status.postValue(null)
                 }
                 .onFailure {
                     items.postValue(emptyList())
-                    message.postValue("读取索引失败：${it.message}")
+                    status.postValue("读取索引失败：${it.message}")
                 }
         }
     }

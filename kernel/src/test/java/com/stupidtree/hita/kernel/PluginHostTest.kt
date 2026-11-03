@@ -122,6 +122,43 @@ class PluginHostTest {
     }
 
     @Test
+    fun globalServiceIsVisibleToPluginsAndSurvivesUninstall() {
+        val host = newHost()
+        host.provideGlobal(key, "host-service")
+
+        var seen: Any? = null
+        host.install(TestPlugin("p") { ctx -> seen = ctx.service(key) })
+        assertEquals("host-service", seen)
+
+        host.uninstall("p")
+        assertEquals("host-service", host.service(key))
+    }
+
+    @Test
+    fun uninstallHookStillSeesServicesBeforeRollback() {
+        val host = newHost()
+        val key2 = ServiceKey<String>("plugin.own")
+        var seenInUninstall: String? = null
+
+        val plugin = object : Plugin {
+            override val id = "with-hook"
+            override fun install(ctx: PluginContext) {
+                ctx.provide(key2, "own")
+            }
+
+            override fun uninstall(ctx: PluginContext) {
+                seenInUninstall = ctx.service(key2)
+            }
+        }
+
+        host.install(plugin)
+        host.uninstall("with-hook")
+
+        assertEquals("own", seenInUninstall)
+        assertNull(host.service(key2))
+    }
+
+    @Test
     fun eachPluginGetsItsOwnDirectory() {
         val host = newHost()
         var dirA: java.io.File? = null

@@ -15,8 +15,19 @@ import com.stupidtree.hita.theta.ThetaPlugin
  */
 object PluginCatalog {
 
-    fun plugins(application: Application): List<Plugin> = listOf(
-        ThetaPlugin(),
-        HitaPlugin(application),
-    )
+    fun plugins(application: Application): List<Plugin> {
+        val all = listOf(
+            ThetaPlugin(),
+            HitaPlugin(application),
+        )
+        return PluginComposition.select(all, readEnabledIds(application))
+    }
+
+    /** `assets/plugins.json` 的 enabled 列表；文件缺失或解析失败时返回 null（表示全部启用）。 */
+    private fun readEnabledIds(application: Application): Set<String>? = runCatching {
+        val text = application.assets.open("plugins.json").bufferedReader().use { it.readText() }
+        val root = com.google.gson.JsonParser.parseString(text).asJsonObject
+        val array = root.getAsJsonArray("enabled") ?: return null
+        array.mapNotNull { it.asString }.toSet()
+    }.getOrNull()
 }

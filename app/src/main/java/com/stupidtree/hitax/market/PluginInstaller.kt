@@ -79,7 +79,7 @@ class PluginInstaller(
     }
 
     private fun fetch(entry: MarketPlugin, indexBase: String?, target: File) {
-        val absolute = resolveUrl(entry.url, indexBase)
+        val absolute = PluginUrls.resolve(entry.url, indexBase)
         if (absolute.startsWith("http://") || absolute.startsWith("https://")) {
             val conn = URL(absolute).openConnection() as HttpURLConnection
             conn.connectTimeout = 15_000
@@ -90,17 +90,6 @@ class PluginInstaller(
             val source = File(absolute)
             if (!source.isFile) throw IllegalStateException("插件文件不存在：${source.path}")
             source.copyTo(target, overwrite = true)
-        }
-    }
-
-    /** 相对地址按索引所在位置解析：远端索引 → URL resolve，本地索引 → 同目录文件。 */
-    private fun resolveUrl(rawUrl: String, indexBase: String?): String {
-        if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) return rawUrl
-        if (indexBase == null) throw IllegalStateException("缺少索引位置，无法解析插件地址：$rawUrl")
-        return if (indexBase.startsWith("http://") || indexBase.startsWith("https://")) {
-            java.net.URI(indexBase).resolve(rawUrl).toString()
-        } else {
-            File(indexBase, rawUrl).absolutePath
         }
     }
 

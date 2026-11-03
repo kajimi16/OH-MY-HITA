@@ -20,11 +20,21 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
 
     override fun initViews(view: View) {
         viewModel.items.observe(this) { render(it) }
+        viewModel.status.observe(this) { text ->
+            binding?.status?.text = text
+            binding?.status?.visibility = if (text == null) View.GONE else View.VISIBLE
+        }
         viewModel.message.observe(this) { text ->
             text ?: return@observe
             Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
             viewModel.consumeMessage()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 从详情/外部返回时重新拉一次索引，避免看到过期列表
+        viewModel.refresh()
     }
 
     private fun render(items: List<PluginMarketViewModel.Item>) {
