@@ -188,3 +188,30 @@ tasks.register('testClasses') {
     description = 'Compatibility task alias for legacy invocations; runs debug unit tests.'
     dependsOn 'testDebugUnitTest'
 }
+
+// 宿主不得直接依赖插件的仓库 / DAO / 数据库实现——只能通过 :api 的服务契约访问。
+tasks.register('verifyPluginBoundary') {
+    // 只覆盖已迁入 :plugin-hita 的部分；EAS/课程资源等仓库仍属宿主，暂不在此列。
+    def forbidden = [
+            'com.stupidtree.hitax.data.repository.TimetableRepository',
+            'com.stupidtree.hitax.data.repository.SubjectRepository',
+            'com.stupidtree.hitax.data.repository.IcsImport',
+            'com.stupidtree.hitax.data.source.dao.'
+    ]
+    doLast {
+        def offenders = []
+        fileTree('src/main/java').matching { include '**/*.kt' }.each { f ->
+            def text = f.text
+            forbidden.each { token ->
+                if (text.contains(token)) offenders << "${f.path}: $token"
+            }
+        }
+        if (!offenders.isEmpty()) {
+            throw new GradleException("宿主越界引用插件实现：\n" + offenders.join("\n"))
+        }
+    }
+}
+
+tasks.matching { it.name == 'preBuild' }.configureEach {
+    dependsOn 'verifyPluginBoundary'
+}

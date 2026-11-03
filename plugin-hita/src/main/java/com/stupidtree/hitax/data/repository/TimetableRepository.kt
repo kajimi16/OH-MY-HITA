@@ -11,6 +11,7 @@ import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.data.model.timetable.TimeMath
 import com.stupidtree.hitax.data.model.timetable.WEEK_MILLS
+import com.stupidtree.hitax.data.model.timetable.IcsImportResult
 import com.stupidtree.hitax.data.model.timetable.Timetable
 import com.stupidtree.sync.StupidSync
 import com.stupidtree.sync.data.model.History

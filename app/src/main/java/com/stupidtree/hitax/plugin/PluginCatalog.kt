@@ -1,6 +1,6 @@
 package com.stupidtree.hitax.plugin
 
-import android.content.Context
+import android.app.Application
 import com.stupidtree.hita.api.Plugin
 import com.stupidtree.hita.theta.ThetaPlugin
 
@@ -15,8 +15,8 @@ import com.stupidtree.hita.theta.ThetaPlugin
  */
 object PluginCatalog {
 
-    fun plugins(appContext: Context): List<Plugin> = listOf(
+    fun plugins(application: Application): List<Plugin> = listOf(
         ThetaPlugin(),
-        TimetableSyncPlugin(appContext),
+        HitaPlugin(application),
     )
 }

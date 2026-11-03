@@ -36,7 +36,8 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 | `:api` | 插件契约：`Plugin` / `PluginContext` / `ServiceKey` / `NavEntry` / `SearchTab` / `SyncCodec`。只有接口，不含实体类 |
 | `:kernel` | 微内核：`PluginHost` 负责装载/卸载、注册表与回滚；不依赖 Android，可直接跑 JVM 单测 |
 | `:app` | 宿主（shell）：`PluginHost` 装载/卸载插件并撤销其注册；`PluginCatalog` 是构建期插件清单 |
-| `:plugin-hita` | 课表数据层（Room 库/实体/DAO）：P3 迁移中，尚未成为完整插件 |
+| `:model` | 共享数据模型：实体与 DTO，宿主 / 契约 / 插件三方共用 |
+| `:plugin-hita` | 课表插件：Room 库、DAO、仓库、ICS、`TimetableService` 实现与同步 codec |
 | `:theta` | 第一个插件样例：只依赖 `:api`，贡献 `CommunityService`、搜索页两个 tab、抽屉入口 |
 | `:component` `:style` `:user` `:sync` | 待迁移的能力层（P2/P3 目标） |
 

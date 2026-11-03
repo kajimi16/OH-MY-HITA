@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.ui.event.add
 
+import com.stupidtree.hitax.HitaServices
 import android.app.Application
 import android.media.metrics.Event
 import androidx.lifecycle.*
@@ -7,15 +8,13 @@ import com.stupidtree.component.data.DataState
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TermSubject
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.data.repository.SubjectRepository
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import java.sql.Timestamp
 import java.time.DayOfWeek
 import java.util.*
 
 class AddEventViewModel(application: Application) : AndroidViewModel(application) {
-    private val eventRepo = TimetableRepository.getInstance(application)
-    private val subjectRepo = SubjectRepository.getInstance(application)
+    private val eventRepo = HitaServices.timetable(application)
+    private val subjectRepo = HitaServices.timetable(application)
     val timetableLiveData = MutableLiveData<DataState<Timetable>>()
     val subjectLiveData = MediatorLiveData<DataState<TermSubject>>()
     val timeRangeLiveDate = MediatorLiveData<DataState<CourseTime>>()

@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.ui.main.navigation
 
+import com.stupidtree.hitax.HitaServices
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.res.ColorStateList
@@ -21,7 +22,6 @@ import com.stupidtree.stupiduser.data.repository.LocalUserRepository
 import com.stupidtree.style.widgets.PopUpText
 import com.stupidtree.hitax.data.source.preference.CourseReminderStore
 import com.stupidtree.hitax.data.work.CourseReminderScheduler
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import com.stupidtree.hitax.utils.IcsImportUtils
 import android.content.Intent
 import android.net.Uri
@@ -303,7 +303,7 @@ class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationB
                 Toast.makeText(context, "无法读取所选 ICS 文件", Toast.LENGTH_SHORT).show()
                 return
             }
-            val timetableRepo = TimetableRepository.getInstance(context.applicationContext as android.app.Application)
+            val timetableRepo = HitaServices.timetable(context.applicationContext as android.app.Application)
 
             timetableRepo.importFromICSAsNewTimetable(
                 inputStream,

@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.ui.event.add
 
+import com.stupidtree.hitax.HitaServices
 import android.annotation.SuppressLint
 import android.text.Editable
 import android.text.TextWatcher
@@ -12,9 +13,7 @@ import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.model.timetable.TermSubject
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.data.repository.SubjectRepository
 import com.stupidtree.hitax.data.repository.TeacherInfoRepository
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import com.stupidtree.hitax.databinding.DialogBottomAddEventBinding
 import com.stupidtree.hitax.ui.widgets.PopUpPickCourseTime
 import com.stupidtree.style.widgets.DialogAutoEditText
@@ -249,7 +248,7 @@ class PopupAddEvent(private val addSubjectMode:Boolean = false) :
                 .setInitValue(viewModel.timetableLiveData.value?.data)
                 .setDataLoader(object : DialogSelectableLiveList.DataLoader<Timetable> {
                     override fun loadData(): LiveData<List<DialogSelectableLiveList.ItemData<Timetable>>> {
-                        return TimetableRepository.getInstance(activity!!.application).getTimetables()
+                        return HitaServices.timetable(activity!!.application).getTimetables()
                             .switchMap{
                             val res = mutableListOf<DialogSelectableLiveList.ItemData<Timetable>>()
                             for (data: Timetable in it) {
@@ -271,7 +270,7 @@ class PopupAddEvent(private val addSubjectMode:Boolean = false) :
                 .setInitValue(viewModel.subjectLiveData.value?.data)
                 .setDataLoader(object : DialogSelectableLiveList.DataLoader<TermSubject> {
                     override fun loadData(): LiveData<List<DialogSelectableLiveList.ItemData<TermSubject>>> {
-                        return SubjectRepository.getInstance(activity!!.application)
+                        return HitaServices.timetable(activity!!.application)
                                 .getSubjects(viewModel.timetableLiveData.value?.data?.id ?: "").switchMap{
                             val res =
                                 mutableListOf<DialogSelectableLiveList.ItemData<TermSubject>>()
@@ -343,7 +342,7 @@ class PopupAddEvent(private val addSubjectMode:Boolean = false) :
                 }).setInitValue(viewModel.locationLiveData.value?.data ?: "")
                 .setDataLoader(object : DialogAutoEditText.DataLoader {
                     override fun loadData(str: String): LiveData<List<String>> {
-                        return TimetableRepository.getInstance(activity!!.application)
+                        return HitaServices.timetable(activity!!.application)
                             .searchLocation(str)
                     }
 

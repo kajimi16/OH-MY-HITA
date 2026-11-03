@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.ui.profile
 
+import com.stupidtree.hitax.HitaServices
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
@@ -9,7 +10,6 @@ import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.CommunityService
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.R
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import com.stupidtree.hitax.databinding.ActivityProfileBinding
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.stupiduser.data.model.UserLocal
@@ -63,7 +63,7 @@ class ProfileActivity : BaseActivity<ProfileViewModel, ActivityProfileBinding>()
                 object : PopUpText.OnConfirmListener {
                     override fun OnConfirm() {
                         viewModel.logout(getThis())
-                        TimetableRepository.getInstance(application).actionClearData()
+                        HitaServices.timetable(application).actionClearData()
                         StupidSync.clearData()
                         finish()
                     }

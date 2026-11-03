@@ -2,6 +2,8 @@ package com.stupidtree.hitax.data.repository
 
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TermSubject
+import com.stupidtree.hitax.data.model.timetable.IcsImportBundle
+import com.stupidtree.hitax.data.model.timetable.IcsImportResult
 import com.stupidtree.hitax.data.model.timetable.Timetable
 import com.stupidtree.component.util.ColorTools
 import net.fortuna.ical4j.model.component.VEvent
@@ -10,18 +12,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.LinkedHashMap
 import java.util.Locale
-
-data class IcsImportBundle(
-    val timetable: Timetable,
-    val subjects: List<TermSubject>,
-    val events: List<EventItem>
-)
-
-data class IcsImportResult(
-    val timetableId: String,
-    val timetableName: String,
-    val importedCount: Int
-)
 
 object IcsImportBundleBuilder {
     fun build(

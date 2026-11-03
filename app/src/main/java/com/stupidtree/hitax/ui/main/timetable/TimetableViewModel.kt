@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.ui.main.timetable
 
+import com.stupidtree.hitax.HitaServices
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -10,7 +11,6 @@ import com.stupidtree.component.data.MTransformations
 import com.stupidtree.component.data.Trigger
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import com.stupidtree.hitax.data.repository.TimetableStyleRepository
 import com.stupidtree.hitax.ui.main.timetable.TimetableFragment.Companion.WEEK_MILLS
 import com.stupidtree.hitax.ui.main.timetable.TimetableFragment.Companion.WINDOW_SIZE
@@ -18,7 +18,7 @@ import java.util.Calendar
 
 class TimetableViewModel(application: Application) :
     AndroidViewModel(application) {
-    private val timetableRepository = TimetableRepository.getInstance(application)
+    private val timetableRepository = HitaServices.timetable(application)
     private val timetableStyleRepository = TimetableStyleRepository.getInstance(application)
 
     private val timetableController = MutableLiveData<Trigger>()

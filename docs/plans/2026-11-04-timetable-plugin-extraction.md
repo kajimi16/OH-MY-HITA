@@ -14,7 +14,8 @@
 | Room 库 / 实体 / DAO | `:plugin-hita` | `AppDatabase`、`EventItem`/`TermSubject`/`Timetable`、三个 DAO |
 | 仓库 | `:plugin-hita` | `TimetableRepository`、`SubjectRepository`、ICS 导入、Gson 工具已迁入；EAS 相关仓库仍在宿主 |
 | UI / Worker / Widget | `:app` | 216 个 .kt 中的大部分，直接 import 实体 |
-| 跨层契约 | 无 | 宿主与插件共享同一批实体类 FQN |
+| 服务契约 | `:api` | `TimetableService`（35 个方法），宿主只通过它访问课表 |
+| 共享模型 | `:model` | 实体与 DTO，宿主/契约/插件三方共享；不进 `:api` 是为了保持契约只有接口 |
 
 ## 切片
 
@@ -31,13 +32,14 @@
 
 验收：构建、`:kernel` 与 `:app` 单测、模拟器启动并打开课表页、无 Room 异常。
 
-### S1 定义 `TimetableService`（`:api`）+ DTO
+### S1 定义 `TimetableService`（已完成）
 
-- 只收录宿主真正用到的能力：当前周、课表列表、课程、事件、提醒时间。
-- 实体类型不进 `api`，跨边界只传 DTO 与 id。
-- 宿主通过 `pluginHost.service(TimetableService.KEY)` 取用。
+- 契约在 `:api`，模型在 `:model`：`:api` 只放接口，实体放共享模型模块。
+- 覆盖宿主全部读写需求：19 个读接口、14 个写接口、3 个 ICS 接口。
+- 插件在 `install(ctx)` 里 `ctx.provide(TimetableService.KEY, ...)`。
+- 宿主通过 `HitaServices.timetable(context)` 取用；缺插件时直接抛错，不静默降级。
 
-验收：至少一个界面的数据来源改为服务，其余仍走旧路径（可共存）。
+验收：宿主 19 个文件、31 处调用全部改为服务调用；`grep` 确认宿主不再引用仓库类。
 
 ### S2 仓库搬入插件（数据/仓库部分已完成）
 

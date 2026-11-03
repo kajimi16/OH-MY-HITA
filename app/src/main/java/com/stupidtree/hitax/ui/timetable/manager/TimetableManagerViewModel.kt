@@ -1,13 +1,13 @@
 package com.stupidtree.hitax.ui.timetable.manager
 
+import com.stupidtree.hitax.HitaServices
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.switchMap
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.data.repository.IcsImportResult
-import com.stupidtree.hitax.data.repository.TimetableRepository
+import com.stupidtree.hitax.data.model.timetable.IcsImportResult
 import com.stupidtree.component.data.DataState
 import java.io.InputStream
 
@@ -15,7 +15,7 @@ class TimetableManagerViewModel(application: Application) : AndroidViewModel(app
     /**
      * 仓库区
      */
-    private val timetableRepository = TimetableRepository.getInstance(application)
+    private val timetableRepository = HitaServices.timetable(application)
     val timetablesLiveData:LiveData<List<Timetable>> = timetableRepository.getTimetables()
 
     private val exportController = MutableLiveData<Timetable>()

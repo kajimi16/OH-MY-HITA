@@ -19,3 +19,8 @@ build/
 local.properties
 /.idea/
 .worktrees
+
+# 发布密钥（防误提交）
+*.jks
+*.keystore
+*.p12

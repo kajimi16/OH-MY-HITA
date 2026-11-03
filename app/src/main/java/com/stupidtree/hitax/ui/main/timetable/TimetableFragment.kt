@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.ui.main.timetable
 
+import com.stupidtree.hitax.HitaServices
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -18,7 +19,6 @@ import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.WEEK_MILLS
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.data.repository.TimetableRepository
 import com.stupidtree.hitax.databinding.FragmentTimetableBinding
 import com.stupidtree.hitax.ui.event.add.PopupAddEvent
 import com.stupidtree.hitax.ui.main.timetable.views.TimeTableView
@@ -286,7 +286,7 @@ class TimetableFragment :
                                         v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                                         Thread{
                                             activity?.application?.let {
-                                                TimetableRepository.getInstance(it).actionDeleteEvents(
+                                                HitaServices.timetable(it).actionDeleteEvents(
                                                     listOf(eventItem)
                                                 )
                                             }
@@ -323,7 +323,7 @@ class TimetableFragment :
                                             v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                                             Thread{
                                                 activity?.application?.let {
-                                                    TimetableRepository.getInstance(it).actionDeleteEvents(
+                                                    HitaServices.timetable(it).actionDeleteEvents(
                                                         eventItems
                                                     )
                                                 }
@@ -347,7 +347,7 @@ class TimetableFragment :
                                                     v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                                                     Thread{
                                                         activity?.application?.let {
-                                                            TimetableRepository.getInstance(it).actionDeleteEvents(
+                                                            HitaServices.timetable(it).actionDeleteEvents(
                                                                 listOf(selectedEvent)
                                                             )
                                                         }

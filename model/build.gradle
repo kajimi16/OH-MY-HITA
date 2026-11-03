@@ -1,0 +1,35 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
+
+android {
+    defaultConfig {
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 35
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    namespace 'com.stupidtree.hita.model'
+}
+
+// 纯数据模型：宿主、契约、插件三方共享的类型。
+// 这里不放业务逻辑，也不依赖任何模块的业务代码。
+dependencies {
+    api "androidx.room:room-common:2.6.1"
+    implementation project(':component')
+
+    testImplementation 'junit:junit:4.13.2'
+}
