@@ -96,6 +96,11 @@ jobs:
           TAG="v${{ steps.ver.outputs.version }}"
           PREV="${{ steps.ver.outputs.prev }}"
           {
+            # 每个版本可维护一份固定说明（预览状态、安装须知等）
+            if [ -f release-header.md ]; then
+              cat release-header.md
+              echo
+            fi
             echo "## 本版变更"
             echo
             if [ -n "$PREV" ]; then

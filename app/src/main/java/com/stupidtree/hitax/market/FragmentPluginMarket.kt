@@ -29,6 +29,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
 
     private fun render(items: List<PluginMarketViewModel.Item>) {
         val container = binding?.container ?: return
+        binding?.emptyHint?.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
         container.removeAllViews()
         val inflater = LayoutInflater.from(requireContext())
         items.forEach { item ->

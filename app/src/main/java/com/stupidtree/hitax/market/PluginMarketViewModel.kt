@@ -79,6 +79,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     /** 离线演示：未配置远端索引且本地没有索引时，释放内置示例。 */
     private fun ensureDemoIndex() {
+        // 演示插件只随 debug 包分发；正式包的市场应有真实索引。
+        if (!BuildConfig.DEBUG) return
         if (BuildConfig.PLUGIN_INDEX_URL.isNotBlank()) return
         val ctx = getApplication<Application>()
         val dir = File(ctx.filesDir, "market")

@@ -12,6 +12,16 @@
         android:orientation="vertical"
         android:paddingBottom="16dp">
 
+        <TextView
+            android:id="@+id/empty_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="24dp"
+            android:text="@string/plugin_market_empty"
+            android:textColor="?attr/textColorSecondary"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
         <LinearLayout
             android:id="@+id/container"
             android:layout_width="match_parent"
