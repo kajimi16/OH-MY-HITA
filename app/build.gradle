@@ -4,8 +4,9 @@ plugins {
     id 'kotlin-kapt'
 }
 
-// CI 可通过 -PappVersionName / -PappVersionCode 覆盖；本地默认从源码读。
-def appVersionCodeValue = (project.findProperty("appVersionCode") ?: 1) as int
+// CI 通过 -PappVersionName / -PappVersionCode 覆盖。
+// 本地默认 versionCode 取当前时间戳（秒），保证本地包能覆盖 CI 包、CI 包也能覆盖本地包。
+def appVersionCodeValue = (project.findProperty("appVersionCode") ?: (System.currentTimeMillis() / 1000L)).toString().toInteger()
 def appVersionNameValue = (project.findProperty("appVersionName") ?: "0.0.1") as String
 
 // 发布签名从 local.properties 读取（该文件已被 .gitignore 排除）；缺失时打未签名包。

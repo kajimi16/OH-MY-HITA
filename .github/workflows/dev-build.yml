@@ -22,6 +22,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-java@v4
         with:
@@ -38,6 +40,17 @@ jobs:
           fi
 
       - uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        id: ver
+        run: |
+          LATEST="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
+          LATEST="${LATEST#v}"
+          [ -z "$LATEST" ] && LATEST="0.0.0"
+          IFS=. read -r MA MI PA <<< "$LATEST"
+          # versionCode 用时间戳：跨 workflow 单调递增，dev 包可以升级到之后的 release。
+          echo "name=$MA.$MI.$((PA+1))-dev.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "code=$(date +%s)" >> "$GITHUB_OUTPUT"
 
       - name: Configure signing
         env:
@@ -58,8 +71,8 @@ jobs:
       - name: Build APK
         run: |
           ./gradlew :app:assembleRelease \
-            -PappVersionName="0.0.1-dev.${GITHUB_RUN_NUMBER}" \
-            -PappVersionCode=$((100 + GITHUB_RUN_NUMBER))
+            -PappVersionName="${{ steps.ver.outputs.name }}" \
+            -PappVersionCode=${{ steps.ver.outputs.code }}
 
       - name: Rename APK
         run: cp app/build/outputs/apk/release/app-release.apk "oh-my-hita-dev-${GITHUB_SHA::7}.apk"
