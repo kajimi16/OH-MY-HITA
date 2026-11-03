@@ -49,10 +49,12 @@ jobs:
       - name: Resolve version
         id: ver
         run: |
-          PREV="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then
             VERSION="${GITHUB_REF_NAME#v}"
+            # 手动发版时，最新的 tag 就是当前这个，要取它的上一个
+            PREV="$(git tag -l 'v*' --sort=-v:refname | grep -vx "v${VERSION}" | head -n1)"
           else
+            PREV="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
             LATEST="${PREV#v}"
             [ -z "$LATEST" ] && LATEST="0.0.0"
             IFS=. read -r MA MI PA <<< "$LATEST"
