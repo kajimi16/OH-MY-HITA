@@ -48,7 +48,7 @@ class NewsDetailActivity : BaseActivity<NewsViewModel, ActivityNewsDetailBinding
             @JavascriptInterface
             override fun showBigImg(url: String) {
                 (application as HApplication).pluginHost.service(CommunityService.KEY)
-                    ?.openImageGallery(getThis(), listOf(url), 0)
+                    ?.openImageGallery(getThis(), listOf(url), 0, absolute = true)
             }
         }, "jsCallJavaObj")
         binding.webview.webViewClient = object : WebViewClient() {

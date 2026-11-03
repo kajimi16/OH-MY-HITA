@@ -15,7 +15,10 @@ interface CommunityService {
 
     fun openArticleList(context: Context, title: String, mode: String, extra: String?)
 
-    fun openImageGallery(activity: Activity, urls: List<String>, index: Int)
+    /**
+     * @param absolute 图片地址是否为绝对 URL。宿主从 WebView 拿到的地址是绝对的。
+     */
+    fun openImageGallery(activity: Activity, urls: List<String>, index: Int, absolute: Boolean)
 
     companion object {
         val KEY = ServiceKey<CommunityService>("hita.community")

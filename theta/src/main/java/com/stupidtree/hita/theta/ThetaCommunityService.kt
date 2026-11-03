@@ -20,7 +20,7 @@ class ThetaCommunityService : CommunityService {
         ActivityTools.startArticleListActivity(context, title, mode, extra)
     }
 
-    override fun openImageGallery(activity: Activity, urls: List<String>, index: Int) {
-        ActivityTools.showMultipleImages(activity, urls, index)
+    override fun openImageGallery(activity: Activity, urls: List<String>, index: Int, absolute: Boolean) {
+        ActivityTools.showMultipleImages(activity, urls, index, abs = absolute)
     }
 }
