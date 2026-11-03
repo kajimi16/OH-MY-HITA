@@ -1040,4 +1040,5 @@
     <string name="belonging_timetable">所属课表</string>
     <string name="events_incoming">将要进行</string>
     <string name="lecture_title">讲座信息</string>
+    <string name="plugin_market_title">插件市场</string>
 </resources>

@@ -41,14 +41,19 @@
 
 验收：宿主 19 个文件、31 处调用全部改为服务调用；`grep` 确认宿主不再引用仓库类。
 
-### S2 仓库搬入插件（数据/仓库部分已完成）
+### S2 仓库与实现搬入插件（已完成）
 
-- ✅ `TimetableRepository` / `SubjectRepository` / ICS 导入 / `GsonBuilderUtil` 已移入 `:plugin-hita`。
-- ⬜ 插件内实现 `TimetableService` 并在 `install(ctx)` 里 `provide`（下一步）。
-- 插件内实现 `TimetableService`，并在 `install(ctx)` 里 `provide`。
-- 宿主侧用 grep/AUnit 校验：`app` 不再 import `data.model.timetable.*`。
+- ✅ 数据层、仓库层、ICS 解析、Gson 工具全部位于 `:plugin-hita`。
+- ✅ `TimetableServiceImpl` 实现契约，`HitaPlugin` 在 `install` 中 `provide`，
+  同时注册 timetable / subject / event 三张同步表。
+- ✅ 宿主 19 个文件、31 处调用改为 `HitaServices.timetable(context)`。
+- ✅ `:app:verifyPluginBoundary` 挂在 `preBuild`，禁止宿主 import 已迁移的仓库/DAO，
+  越界直接编译失败。
 
 验收：新增一个读接口时，只需要改插件与服务契约。
+
+> 实体位于 `:model`，是宿主与插件共享的数据契约。宿主 UI 渲染课表必然需要这些类型；
+> 想让宿主彻底不认识课表，需要 S3 把 UI 一并搬走。
 
 ### S3 UI 搬入插件
 
@@ -61,6 +66,8 @@
 ### S4 系统集成去特化
 
 - `CourseReminderWorker`、桌面小组件等由插件注册，宿主提供通用注册点。
+- `EASRepository` 不再持有 `AppDatabase`/DAO，改为通过 `TimetableService` 写课表；
+  完成后把 `verifyPluginBoundary` 的白名单去掉，恢复全量禁令。
 
 ## 风险
 
@@ -69,6 +76,7 @@
 | Room 迁移归属 | 数据库在插件内，schema 版本与迁移脚本必须跟插件走；宿主不再持有备份/升级逻辑 |
 | 资源依赖 | T0（同 APK 编译）阶段插件资源可与宿主合并；将来若改运行时加载，UI 必须改为宿主 token 或 assetPath 注入 |
 | 反射耦合 | `theta` 的 `ActivityTools.startUserActivity` 里用 `Class.forName("com.stupidtree.hitax.ui.profile.ProfileActivity")`，属于隐式跨模块引用，S3 前要清掉 |
+| EAS 仍直连课表库 | `EASRepository` 直接持有 `AppDatabase` 与三个 DAO（导入课表、写入事件），因此被 `verifyPluginBoundary` 排除。S4 需把它改为调用 `TimetableService`，或随 EAS 一起搬进独立插件 |
 | 单仓库多模块同包名 | 迁移期保留 `com.stupidtree.hitax.data.*` 包名以减少改动；S3 结束后应统一到 `com.stupidtree.hita.plugin.timetable` |
 
 ## 回滚

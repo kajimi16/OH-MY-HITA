@@ -39,6 +39,8 @@ android {
         buildConfigField "long", "UPDATE_VERSION_CODE", "${appVersionCodeValue}L"
         buildConfigField "String", "UPDATE_LOG", '""'
         buildConfigField "boolean", "UPDATE_ALLOW_PRERELEASE", "true"
+        // 插件市场索引地址；为空时读 filesDir/market/index.json（本地联调）
+        buildConfigField "String", "PLUGIN_INDEX_URL", '""'
     }
 //    viewBinding{
 //        enabled = true

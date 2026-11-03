@@ -6,6 +6,7 @@ include ':api'
 include ':kernel'
 include ':model'
 include ':plugin-hita'
+include ':sample-plugin'
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {

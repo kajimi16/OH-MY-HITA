@@ -6,6 +6,31 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 
 当前版本：`0.0.2`。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
 
+### 运行时插件（T1）
+
+`kernel` 的 `PluginLoader` 支持从 dex 装载**纯逻辑插件**：
+
+1. `PluginInstaller` 读取索引（构建期 `PLUGIN_INDEX_URL`，为空时读 `filesDir/market/index.json`）
+2. 下载 → 校验 `sha256` → 复制到 `filesDir/runtime-plugins/<id>/plugin.dex`
+3. `DexClassLoader` 装载 `entryClass` → `PluginHost.install(ctx)`
+4. 应用启动时 `restore()` 自动恢复上次安装的插件
+
+索引格式：
+
+```json
+{"plugins":[{"id":"com.example.hello","name":"示例插件","version":"0.1.0",
+"apiVersion":2,"url":"plugin.dex","sha256":"...","entryClass":"com.example.hello.HelloPlugin"}]}
+```
+
+限制（Android 硬边界，不是实现取舍）：运行时插件不能声明四大组件、不能携带资源，
+且与宿主同进程共享权限。因此市场只上架逻辑插件；需要界面的功能走独立 APK（T2）。
+
+示例插件在 `:sample-plugin`，产出 dex：
+
+```bash
+./gradlew :sample-plugin:buildPluginDex   # -> sample-plugin/build/plugin-dex/classes.dex
+```
+
 ## 项目背景
 项目最初来自哈尔滨工业大学（深圳）2018 级本科生大一年度立项，原名 HITSZ 助手，重构版改名为 HITA 课表。
 该项目长期无人维护，本分支为接手维护的延续版本，同时附带了本研抓包逆向出来的api清单（由于更新时为非选课时间，部分选课api不能完全确认功能，同时部分api学校也没做完），便于后续更新。

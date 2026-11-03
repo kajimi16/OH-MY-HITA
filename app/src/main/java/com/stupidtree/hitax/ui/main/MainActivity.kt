@@ -126,6 +126,9 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 R.id.drawer_nav_timetable_manager -> {
                     ActivityUtils.startTimetableManager(getThis())
                 }
+                R.id.drawer_nav_plugins -> {
+                    startActivity(android.content.Intent(getThis(), com.stupidtree.hitax.market.PluginMarketActivity::class.java))
+                }
                 R.id.drawer_nav_about -> {
                     ActivityUtils.startActivity(getThis(), ActivityAbout::class.java)
                 }

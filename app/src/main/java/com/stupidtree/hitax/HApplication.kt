@@ -33,6 +33,8 @@ class HApplication : Application() {
             },
         )
         pluginHost.installAll(PluginCatalog.plugins(this))
+        // 恢复上次安装的运行时插件（T1）；单个失败不影响其它插件。
+        com.stupidtree.hitax.market.PluginInstaller(this, pluginHost).restore()
 
         // 宿主不再认识任何具体数据表：只按 key 查 SyncCodec 并转发。
         StupidSync.init(this, object : StupidSync.PushDelegate {
