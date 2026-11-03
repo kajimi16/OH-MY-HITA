@@ -57,3 +57,18 @@ tasks.register('buildPluginDex', Exec) {
         println "plugin dex: ${dex.absolutePath} (${dex.length()} bytes)"
     }
 }
+
+// 一键把示例插件发布到仓库市场：生成 dex、更新 market/hello.dex 与索引里的 sha256。
+tasks.register('publishToMarket') {
+    dependsOn 'buildPluginDex'
+    doLast {
+        def src = layout.buildDirectory.file('plugin-dex/classes.dex').get().asFile
+        def dest = rootProject.file('market/hello.dex')
+        dest.bytes = src.bytes
+
+        def sha = java.security.MessageDigest.getInstance('SHA-256').digest(dest.bytes).encodeHex().toString()
+        def indexFile = rootProject.file('market/index.json')
+        indexFile.text = indexFile.text.replaceAll(/"sha256"\s*:\s*"[0-9a-f]+"/, "\"sha256\": \"$sha\"")
+        println "market/hello.dex updated (${dest.length()} bytes), sha256=$sha"
+    }
+}
