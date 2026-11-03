@@ -4,8 +4,16 @@ plugins {
     id 'kotlin-kapt'
 }
 
-def appVersionCodeValue = 2026040701
-def appVersionNameValue = "1.5.2"
+def appVersionCodeValue = 1
+def appVersionNameValue = "0.0.1"
+
+// 发布签名从 local.properties 读取（该文件已被 .gitignore 排除）；缺失时打未签名包。
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file("local.properties")
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+def hasReleaseKeystore = keystoreProps.getProperty("RELEASE_KEYSTORE") != null
 
 
 android {
@@ -30,7 +38,7 @@ android {
 
         buildConfigField "String", "HOA_BASE_URL", '"http://47.115.160.70:8081"'
         buildConfigField "String", "HOA_API_KEY", '""'
-        buildConfigField "String", "UPDATE_URL", '"https://github.com/LiPu-jpg/HITA_L/releases/latest"'
+        buildConfigField "String", "UPDATE_URL", '"https://github.com/kajimi16/OH-MY-HITA/releases/latest"'
         buildConfigField "String", "UPDATE_VERSION_NAME", "\"${appVersionNameValue}\""
         buildConfigField "long", "UPDATE_VERSION_CODE", "${appVersionCodeValue}L"
         buildConfigField "String", "UPDATE_LOG", '""'
@@ -51,10 +59,24 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            if (hasReleaseKeystore) {
+                storeFile file(keystoreProps.getProperty("RELEASE_KEYSTORE"))
+                storePassword keystoreProps.getProperty("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias keystoreProps.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword keystoreProps.getProperty("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 

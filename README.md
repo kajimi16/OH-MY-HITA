@@ -2,7 +2,9 @@
 
 HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 
-[App 下载（Releases）](https://github.com/LiPu-jpg/HITA_L/releases/latest)
+[App 下载（Releases）](https://github.com/kajimi16/OH-MY-HITA/releases/latest)
+
+当前版本：`0.0.1`（首个插件化构建，versionCode 1）。
 
 ## 项目背景
 项目最初来自哈尔滨工业大学（深圳）2018 级本科生大一年度立项，原名 HITSZ 助手，重构版改名为 HITA 课表。
