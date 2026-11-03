@@ -1,7 +1,8 @@
 include ':app',':user','component','style'
-rootProject.name = "HITA"
+rootProject.name = "OH-MY-HITA"
 include ':sync'
 include ':theta'
+include ':api'
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {

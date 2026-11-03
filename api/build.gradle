@@ -1,0 +1,34 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
+
+android {
+    defaultConfig {
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 35
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    namespace 'com.stupidtree.hita.api'
+}
+
+// 插件契约模块：只允许依赖 Kotlin 标准库，禁止引入 AndroidX 之外的运行时。
+// 所有插件都编译在此 ABI 上，这里的任何破坏性改动都要同步 HITA_API_VERSION。
+dependencies {
+    api "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}

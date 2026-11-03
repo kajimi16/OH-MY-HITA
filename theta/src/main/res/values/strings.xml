@@ -55,4 +55,5 @@
         <item>回复评论</item>
         <item>复制评论</item>
     </string-array>
+    <string name="plugin_theta_title">θ社区</string>
 </resources>

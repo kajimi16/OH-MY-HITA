@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.HapticFeedbackConstants
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.View.VISIBLE
@@ -20,6 +21,8 @@ import androidx.drawerlayout.widget.DrawerLayout.GONE
 import androidx.fragment.app.Fragment
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener
 import com.stupidtree.component.data.DataState
+import com.stupidtree.hita.api.NavEntry
+import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.repository.EasSettingsRepository
 import com.stupidtree.hitax.data.repository.EASRepository
@@ -49,6 +52,23 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     TimetableFragment.MainPageController, FragmentTimeLine.MainPageController {
 
     /**
+     * 插件贡献的抽屉项。id 由宿主按顺序分配，避免菜单 xml 里写死。
+     */
+    private val pluginMenuIds = LinkedHashMap<Int, NavEntry>()
+
+    private fun attachPluginNavItems() {
+        val menu = binding.drawerNavigationview.menu
+        val host = (application as HApplication).pluginHost
+        pluginMenuIds.clear()
+        host.nav.entries().forEachIndexed { index, entry ->
+            val itemId = PLUGIN_MENU_ID_BASE + index
+            pluginMenuIds[itemId] = entry
+            menu.add(Menu.NONE, itemId, 100 + index, entry.titleRes)
+                .setIcon(entry.iconRes)
+        }
+    }
+
+    /**
      * 抽屉里的View
      */
     private val autoReimportIntervalMs = 12 * 60 * 60 * 1000L
@@ -74,6 +94,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         drawerHeader = headerView.findViewById(R.id.drawer_header)
         drawerNickname = headerView.findViewById(R.id.nickname)
         drawerUsername = headerView.findViewById(R.id.username)
+        attachPluginNavItems()
         binding.drawer.addDrawerListener(object : DrawerListener {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
                 //offset 偏移值
@@ -108,7 +129,14 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 R.id.drawer_nav_about -> {
                     ActivityUtils.startActivity(getThis(), ActivityAbout::class.java)
                 }
-                else -> jumped = false
+                else -> {
+                    val entry = pluginMenuIds[item.itemId]
+                    if (entry == null) {
+                        jumped = false
+                    } else {
+                        entry.createIntent(getThis())?.let { startActivity(it) }
+                    }
+                }
             }
 //            if (jumped) {
 //                binding.drawer.closeDrawer(GravityCompat.START)
@@ -361,5 +389,10 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
     override fun setTimelineTitleText(string: String) {
         binding.todayTitle.text = string
+    }
+
+    companion object {
+        /** 插件菜单项 id 从这里开始分配，避开 xml 里的资源 id 区间。 */
+        private const val PLUGIN_MENU_ID_BASE = 0x0F000000
     }
 }

@@ -13,6 +13,8 @@ import com.stupidtree.hitax.data.model.timetable.Timetable
 import com.stupidtree.stupiduser.data.repository.LocalUserRepository
 import com.stupidtree.sync.StupidSync
 import com.stupidtree.hitax.data.work.CourseReminderScheduler
+import com.stupidtree.hitax.kernel.PluginCatalog
+import com.stupidtree.hitax.kernel.PluginHost
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.HttpsURLConnection
@@ -22,8 +24,16 @@ import javax.net.ssl.X509TrustManager
 
 class HApplication : Application() {
 
+    /** 微内核。插件只通过它注册服务与导航项。 */
+    lateinit var pluginHost: PluginHost
+        private set
+
     override fun onCreate() {
         super.onCreate()
+        // 万物皆插件：先装配内核，再初始化内核自身依赖的业务。
+        pluginHost = PluginHost(this)
+        pluginHost.installAll(PluginCatalog.plugins())
+
         val database = AppDatabase.getDatabase(this@HApplication)
         val timetableDao = database.timetableDao()
         val subjectDao = database.subjectDao()

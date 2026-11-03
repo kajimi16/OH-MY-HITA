@@ -10,7 +10,6 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
-import com.stupidtree.hita.theta.ThetaActivity
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.repository.EASRepository
 import com.stupidtree.hitax.ui.eas.login.PopUpLoginEAS
@@ -28,7 +27,6 @@ import com.stupidtree.hitax.ui.teacher.ActivityTeacherOfficial
 import com.stupidtree.hitax.ui.timetable.detail.TimetableDetailActivity
 import com.stupidtree.hitax.ui.timetable.manager.TimetableManagerActivity
 import com.stupidtree.stupiduser.data.model.CheckUpdateResult
-import com.stupidtree.stupiduser.data.repository.LocalUserRepository
 import com.stupidtree.style.base.BaseActivity
 import com.stupidtree.style.widgets.PopUpText
 import com.stupidtree.style.widgets.PopUpUpdate
@@ -209,16 +207,6 @@ object ActivityUtils {
         val i = Intent(from, TimetableDetailActivity::class.java)
         i.putExtra("id", id)
         from.startActivity(i)
-    }
-
-    fun startThetaActivity(from: Context) {
-        if(LocalUserRepository.getInstance(from).getLoggedInUser().isValid()){
-            val i = Intent(from, ThetaActivity::class.java)
-            from.startActivity(i)
-        }else{
-            Toast.makeText(from, R.string.eas_login_prompt, Toast.LENGTH_SHORT).show()
-        }
-
     }
 
     fun startProfileActivity(from: Context, userId: String?, imageView: ImageView?=null) {
