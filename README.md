@@ -4,11 +4,28 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 
 [App 下载（Releases）](https://github.com/kajimi16/OH-MY-HITA/releases/latest)
 
-当前版本：`0.0.1`（首个插件化构建，versionCode 1）。
+当前版本：`0.0.2`。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
 
 ## 项目背景
 项目最初来自哈尔滨工业大学（深圳）2018 级本科生大一年度立项，原名 HITSZ 助手，重构版改名为 HITA 课表。
 该项目长期无人维护，本分支为接手维护的延续版本，同时附带了本研抓包逆向出来的api清单（由于更新时为非选课时间，部分选课api不能完全确认功能，同时部分api学校也没做完），便于后续更新。
+
+## 开发与发布流程
+
+```
+分支 / PR ──push──▶ Dev build ──▶ Actions Artifacts（可直接安装的 APK）
+   │
+   └──合并到 master──▶ Release ──▶ 自动 patch+1、打 tag、发布 Release
+```
+
+- **分支开发**：每次 push 触发 `dev-build.yml`，产出 `oh-my-hita-dev-<sha>.apk`（artifact，保留 30 天）。
+  下载：Actions 页面，或 `gh run download <run-id> -n oh-my-hita-dev-<sha>`。
+- **发版**：合并进 `master` 即触发 `release.yml`：读取最近的 `v*` tag，patch +1，构建签名包并创建 Release；
+  也可手动推 `v1.2.3` tag 指定版本。只改文档 / CI 配置的合并不会发版。
+- **版本号**：`versionName` 来自 tag；`versionCode` 取构建时间戳（秒），dev 包与 release 包共用同一条单调序列，
+  可互相覆盖安装。
+- **签名**：CI 从仓库 Secrets 读取（`RELEASE_KEYSTORE_BASE64` / `RELEASE_KEYSTORE_PASSWORD` /
+  `RELEASE_KEY_ALIAS` / `RELEASE_KEY_PASSWORD`），仓库内不含任何密钥。
 
 ## 插件化架构（万物皆插件）
 

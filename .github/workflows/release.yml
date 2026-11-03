@@ -7,6 +7,11 @@ on:
   push:
     branches: [ master ]
     tags: [ 'v*' ]
+    # 纯文档 / CI 配置的合并不发版
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
   workflow_dispatch:
 
 permissions:
