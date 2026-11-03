@@ -24,10 +24,6 @@
 <!--        android:icon="@drawable/ic_home"-->
 <!--        android:title="@string/hita_website" />-->
     <item
-        android:id="@+id/drawer_nav_plugins"
-        android:icon="@drawable/ic_baseline_add_24"
-        android:title="@string/plugin_market_title" />
-    <item
         android:id="@+id/drawer_nav_about"
         android:icon="@drawable/logo"
         android:title="@string/main_drawer_menu_about" />

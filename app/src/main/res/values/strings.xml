@@ -995,6 +995,7 @@
     <string name="load_failed">加载失败</string>
     <string name="percentage">%d%%</string>
     <string name="title_navigation">功能中心</string>
+    <string name="title_plugin">插件</string>
     <string name="title_timetable_manager">课表管理</string>
     <string name="recent_timetable">最近课表</string>
     <string name="timetable_count_format">共%d个课表</string>

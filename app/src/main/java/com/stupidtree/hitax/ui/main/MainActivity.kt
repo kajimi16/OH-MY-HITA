@@ -126,9 +126,6 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 R.id.drawer_nav_timetable_manager -> {
                     ActivityUtils.startTimetableManager(getThis())
                 }
-                R.id.drawer_nav_plugins -> {
-                    startActivity(android.content.Intent(getThis(), com.stupidtree.hitax.market.PluginMarketActivity::class.java))
-                }
                 R.id.drawer_nav_about -> {
                     ActivityUtils.startActivity(getThis(), ActivityAbout::class.java)
                 }
@@ -205,12 +202,13 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     override fun initViews() {
         setUpDrawer()
         //  binding.title.text = binding.navView.menu.getItem(0).title
-        binding.pager.adapter = object : BaseTabAdapter(supportFragmentManager, 3) {
+        binding.pager.adapter = object : BaseTabAdapter(supportFragmentManager, 4) {
             override fun initItem(position: Int): Fragment {
                 return when (position) {
                     0 -> FragmentTimeLine()
                     1 -> TimetableFragment()
-                    else -> NavigationFragment()
+                    2 -> NavigationFragment()
+                    else -> com.stupidtree.hitax.market.FragmentPluginMarket()
                 }
             }
 
@@ -218,7 +216,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 //super.destroyItem(container, position, `object`)
             }
         }
-        binding.pager.offscreenPageLimit = 3
+        binding.pager.offscreenPageLimit = 4
         binding.pager.addOnPageChangeListener(object : OnPageChangeListener {
             override fun onPageScrolled(
                 position: Int,
@@ -244,6 +242,13 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                         binding.timetableLayout.visibility = GONE
                         binding.todayLayout.visibility = GONE
                         binding.navigationLayout.visibility = VISIBLE
+                        binding.pluginLayout.visibility = GONE
+                    }
+                    3 -> {
+                        binding.timetableLayout.visibility = GONE
+                        binding.todayLayout.visibility = GONE
+                        binding.navigationLayout.visibility = GONE
+                        binding.pluginLayout.visibility = VISIBLE
                     }
 
                 }
