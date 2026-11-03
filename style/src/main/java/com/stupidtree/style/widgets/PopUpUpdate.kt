@@ -22,6 +22,23 @@ class PopUpUpdate : TransparentBottomSheetDialog<DialogBottomUpdateBinding>() {
         fun onConfirm()
         fun onCancel()
         fun onSkip()
+
+        /**
+         * 返回键 / 点击外部关闭，且没有点过任何按钮。
+         * 默认与「取消」同义，调用方不必单独实现。
+         */
+        fun onDismissed() {
+            onCancel()
+        }
+    }
+
+    /** 是否已经通过按钮处理过本次弹窗（确认 / 跳过 / 取消）。 */
+    private var actionHandled = false
+
+    override fun onDismiss(dialog: android.content.DialogInterface) {
+        // 返回键、点空白处等"没点按钮"的关闭，也算一次取消。
+        if (!actionHandled) onActionListener?.onDismissed()
+        super.onDismiss(dialog)
     }
 
     override fun onStart() {
@@ -75,16 +92,18 @@ class PopUpUpdate : TransparentBottomSheetDialog<DialogBottomUpdateBinding>() {
             binding.cancel.visibility = View.GONE
         }
         binding.skip.setOnClickListener {
+            actionHandled = true
             onActionListener?.onSkip()
             dismiss()
         }
         binding.cancel.setOnClickListener {
+            actionHandled = true
             onActionListener?.onCancel()
-            dismiss() }
+            dismiss()
+        }
         binding.confirm.setOnClickListener {
-
-                onActionListener?.onConfirm()
-
+            actionHandled = true
+            onActionListener?.onConfirm()
             dismiss()
         }
     }
