@@ -9,8 +9,9 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.stupidtree.hita.theta.ui.list.ArticleListFragment
-import com.stupidtree.hita.theta.ui.user.UserListFragment
+import com.stupidtree.hita.api.SearchTab
+import com.stupidtree.hita.api.SearchTabIds
+import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.databinding.ActivitySearchBinding
 import com.stupidtree.style.base.BaseActivity
@@ -22,6 +23,7 @@ import com.stupidtree.style.base.FragmentSearchResult
 class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
     BasicFragmentSearchResult.SearchRoot {
     var pagerAdapter: SearchPagerAdapter? = null
+    private var tabs: List<SearchTab> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,20 +55,14 @@ class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
         binding.searchview.setText(text)
         val purpose = intent.getStringExtra("type")
         if (text.isNullOrEmpty() || purpose.isNullOrEmpty()) return
-        var index = 0
-        when (purpose) {
-//            "timetable" -> index = 0
-            ActivityUtils.SearchType.TEACHER.name -> index = 0
-            ActivityUtils.SearchType.USER.name -> index = 1
-            ActivityUtils.SearchType.ARTICLE.name -> index = 2
-//            "user" -> index = 2
-//            "location" -> index = 3
-//            "library" -> index = 4
-//            "hitsz" -> index = 5
-//            "hitzs" -> index = 6
+        val tabId = when (purpose) {
+            ActivityUtils.SearchType.TEACHER.name -> SearchTabIds.TEACHER
+            ActivityUtils.SearchType.USER.name -> SearchTabIds.USER
+            ActivityUtils.SearchType.ARTICLE.name -> SearchTabIds.ARTICLE
+            else -> return
         }
-        binding.pager.currentItem = index
-        return
+        val index = tabs.indexOfFirst { it.id == tabId }
+        if (index >= 0) binding.pager.currentItem = index
     }
 
     override fun initViews() {
@@ -85,7 +81,8 @@ class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
                 return false
             }
         })
-        pagerAdapter = SearchPagerAdapter(supportFragmentManager, this)
+        tabs = buildTabs()
+        pagerAdapter = SearchPagerAdapter(supportFragmentManager, this, tabs)
         binding.pager.adapter = pagerAdapter
         binding.tabs.setupWithViewPager(binding.pager)
     }
@@ -110,21 +107,27 @@ class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
         }
     }
 
-    class SearchPagerAdapter(fm: FragmentManager, val context: Context) : BaseTabAdapter(fm, 3) {
-        private var titles: IntArray = intArrayOf(
-            //R.string.tab_search_timetable,
-            R.string.tab_search_teacher,
-            R.string.tab_search_user,
-            R.string.tab_search_article
-//            R.string.tab_search_location,
-//            R.string.tab_search_library,
-//            R.string.tab_hitsz_website_info,
-//            R.string.tab_search_zsw
+    /**
+     * 教师 tab 由宿主提供，其余 tab 来自插件贡献点。
+     */
+    private fun buildTabs(): List<SearchTab> {
+        val result = mutableListOf(
+            SearchTab(SearchTabIds.TEACHER, R.string.tab_search_teacher, order = 10) {
+                FragmentSearchTeacher()
+            }
         )
+        result += (application as HApplication).pluginHost.searchTabs.entries()
+        return result
+    }
 
+    class SearchPagerAdapter(
+        fm: FragmentManager,
+        private val context: Context,
+        private val tabs: List<SearchTab>,
+    ) : BaseTabAdapter(fm, tabs.size) {
 
         override fun getPageTitle(position: Int): CharSequence {
-            return context.getString(titles[position])
+            return context.getString(tabs[position].titleRes)
         }
 
         override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
@@ -133,11 +136,7 @@ class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
         }
 
         override fun initItem(position: Int): Fragment {
-            return when (position) {
-                0 -> FragmentSearchTeacher()
-                1 -> UserListFragment.newInstance("search", "")
-                else -> ArticleListFragment.newInstance("search", "")
-            }
+            return tabs[position].create()
         }
 
     }

@@ -6,7 +6,8 @@ import android.view.View
 import android.widget.Toast
 import com.google.android.material.appbar.AppBarLayout
 import com.stupidtree.component.data.DataState
-import com.stupidtree.hita.theta.utils.ActivityTools
+import com.stupidtree.hita.api.CommunityService
+import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.repository.TimetableRepository
 import com.stupidtree.hitax.databinding.ActivityProfileBinding
@@ -23,6 +24,10 @@ import com.stupidtree.sync.StupidSync
  * 其他用户（好友、搜索结果等）的资料页面Activity
  */
 class ProfileActivity : BaseActivity<ProfileViewModel, ActivityProfileBinding>() {
+
+    /** θ 插件缺席时为 null，入口静默失效。 */
+    private val community: CommunityService?
+        get() = (application as HApplication).pluginHost.service(CommunityService.KEY)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,7 +72,7 @@ class ProfileActivity : BaseActivity<ProfileViewModel, ActivityProfileBinding>()
         }
         binding.followingLayout.setOnClickListener {
             viewModel.userProfileLiveData.value?.data?.let {
-                ActivityTools.startUserListActivity(
+                community?.openUserList(
                     getThis(),
                     getString(R.string.users_following, it.nickname),
                     "following",
@@ -77,7 +82,7 @@ class ProfileActivity : BaseActivity<ProfileViewModel, ActivityProfileBinding>()
         }
         binding.fansLayout.setOnClickListener {
             viewModel.userProfileLiveData.value?.data?.let {
-                ActivityTools.startUserListActivity(
+                community?.openUserList(
                     getThis(),
                     getString(R.string.users_fans, it.nickname),
                     "fans",
@@ -87,7 +92,7 @@ class ProfileActivity : BaseActivity<ProfileViewModel, ActivityProfileBinding>()
         }
         binding.postsLayout.setOnClickListener {
             viewModel.userProfileLiveData.value?.data?.let {
-                ActivityTools.startArticleListActivity(
+                community?.openArticleList(
                     getThis(),
                     getString(R.string.users_posts, it.nickname),
                     "user",

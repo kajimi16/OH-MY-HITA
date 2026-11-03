@@ -7,6 +7,8 @@ import com.stupidtree.hita.api.NavEntry
 import com.stupidtree.hita.api.NavRegistry
 import com.stupidtree.hita.api.Plugin
 import com.stupidtree.hita.api.PluginContext
+import com.stupidtree.hita.api.SearchTab
+import com.stupidtree.hita.api.SearchTabRegistry
 import com.stupidtree.hita.api.ServiceKey
 import java.io.File
 
@@ -22,6 +24,7 @@ class PluginHost(private val appContext: Context) {
 
     private val services = LinkedHashMap<String, Any>()
     private val navEntries = LinkedHashMap<String, NavEntry>()
+    private val searchTabEntries = LinkedHashMap<String, SearchTab>()
     private val installedPlugins = LinkedHashMap<String, Plugin>()
     private val scopes = LinkedHashMap<String, PluginScope>()
     private val failures = LinkedHashMap<String, Throwable>()
@@ -35,6 +38,15 @@ class PluginHost(private val appContext: Context) {
         override fun entries(): List<NavEntry> = navEntries.values.sortedBy { it.order }
 
         override fun find(id: String): NavEntry? = navEntries[id]
+    }
+
+    /** 宿主只读的搜索 tab 视图。 */
+    val searchTabs: SearchTabRegistry = object : SearchTabRegistry {
+        override fun register(tab: SearchTab) {
+            searchTabEntries[tab.id] = tab
+        }
+
+        override fun entries(): List<SearchTab> = searchTabEntries.values.sortedBy { it.order }
     }
 
     fun installAll(plugins: List<Plugin>) {
@@ -121,6 +133,18 @@ class PluginHost(private val appContext: Context) {
             override fun entries(): List<NavEntry> = this@PluginHost.nav.entries()
 
             override fun find(id: String): NavEntry? = this@PluginHost.nav.find(id)
+        }
+
+        override val searchTabs: SearchTabRegistry = object : SearchTabRegistry {
+            override fun register(tab: SearchTab) {
+                val previous = searchTabEntries.put(tab.id, tab)
+                undoStack += {
+                    if (previous == null) searchTabEntries.remove(tab.id)
+                    else searchTabEntries[tab.id] = previous
+                }
+            }
+
+            override fun entries(): List<SearchTab> = this@PluginHost.searchTabs.entries()
         }
 
         fun revokeAll() {

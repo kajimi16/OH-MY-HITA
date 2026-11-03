@@ -29,4 +29,7 @@ interface PluginContext {
 
     /** 导航贡献点。 */
     val nav: NavRegistry
+
+    /** 搜索结果页 tab 贡献点。 */
+    val searchTabs: SearchTabRegistry
 }

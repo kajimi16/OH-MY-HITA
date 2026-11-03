@@ -31,4 +31,6 @@ android {
 // 所有插件都编译在此 ABI 上，这里的任何破坏性改动都要同步 HITA_API_VERSION。
 dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    // SearchTab 的契约里出现 Fragment，插件侧需要同一份类型。
+    api 'androidx.fragment:fragment:1.6.2'
 }

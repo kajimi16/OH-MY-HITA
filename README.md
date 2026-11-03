@@ -16,7 +16,7 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 |---|---|
 | `:api` | 插件契约：`Plugin` / `PluginContext` / `ServiceKey` / `NavEntry`。只有接口，不含实体类 |
 | `:app` | 宿主（shell）：`PluginHost` 装载/卸载插件并撤销其注册；`PluginCatalog` 是构建期插件清单 |
-| `:theta` | 第一个插件样例：只依赖 `:api`，往宿主导航注册「θ社区」入口 |
+| `:theta` | 第一个插件样例：只依赖 `:api`，贡献 `CommunityService`、搜索页两个 tab、抽屉入口 |
 | `:component` `:style` `:user` `:sync` | 待迁移的能力层（P2/P3 目标） |
 
 装配点只有一个 —— `app/src/main/java/com/stupidtree/hitax/kernel/PluginCatalog.kt`：
@@ -30,6 +30,12 @@ object PluginCatalog {
 ```
 
 删掉一行 → 该功能不参与本次构建，宿主代码一行不用改（已用真机/模拟器验证）。
+
+已实现的贡献点：
+
+- `ServiceKey<T>` —— 服务注册/查找（`CommunityService` 即由 θ 插件提供）
+- `NavEntry` —— 抽屉导航项
+- `SearchTab` —— 搜索结果页 tab，按 `SearchTabIds` 语义 id 与宿主对齐
 
 约定：
 

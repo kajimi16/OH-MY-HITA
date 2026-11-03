@@ -5,7 +5,8 @@ import android.graphics.Color
 import android.os.Bundle
 import android.text.Html
 import android.webkit.*
-import com.stupidtree.hita.theta.utils.ActivityTools
+import com.stupidtree.hita.api.CommunityService
+import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.databinding.ActivityNewsDetailBinding
 import com.stupidtree.style.base.BaseActivity
 
@@ -46,7 +47,8 @@ class NewsDetailActivity : BaseActivity<NewsViewModel, ActivityNewsDetailBinding
         binding.webview.addJavascriptInterface(object : JsCallJavaObj {
             @JavascriptInterface
             override fun showBigImg(url: String) {
-                ActivityTools.showMultipleImages(getThis(), listOf(url), 0, abs = true)
+                (application as HApplication).pluginHost.service(CommunityService.KEY)
+                    ?.openImageGallery(getThis(), listOf(url), 0)
             }
         }, "jsCallJavaObj")
         binding.webview.webViewClient = object : WebViewClient() {

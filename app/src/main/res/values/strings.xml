@@ -763,7 +763,6 @@
     <string name="draw_bg_dashed_lines">绘制背景时间虚线</string>
     <string name="upload_done">上传完成</string>
     <string name="upload_failed">上传失败</string>
-    <string name="tab_search_user">用户</string>
     <string name="follow">关注</string>
     <string name="followed">已关注</string>
     <string name="unfollow">取关</string>
@@ -1026,7 +1025,6 @@
     <string name="users_posts">%s的发帖</string>
     <string name="logout_hint">确定退出？</string>
     <string name="starred_article">收藏帖子</string>
-    <string name="tab_search_article">帖子</string>
     <string name="success">成功</string>
     <string name="undergrad_structure">本科生结构</string>
     <string name="postgrad_structure">研究生结构</string>
