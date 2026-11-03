@@ -235,10 +235,19 @@ object ActivityUtils {
 
 
     fun showUpdateNotification(cr:CheckUpdateResult,activity: BaseActivity<*,*>){
-       val preference: SharedPreferences =
+        val preference: SharedPreferences =
             activity.application.getSharedPreferences("update_skip", Context.MODE_PRIVATE)
-        if(preference.getBoolean(cr.latestVersionCode.toString(),false)) return
-        PopUpUpdate().setText("版本：${cr.latestVersionName}\n更新内容：${cr.updateLog}\n" + "是否前往下载？")
+        val versionKey = cr.latestVersionCode.toString()
+        val canceledAtKey = "canceled_at_$versionKey"
+        val now = System.currentTimeMillis()
+        val canceledAt = preference.getLong(canceledAtKey, 0L)
+        if (!UpdatePromptPolicy.shouldPrompt(
+                skipped = preference.getBoolean(versionKey, false),
+                canceledAt = canceledAt,
+                now = now,
+            )
+        ) return
+        PopUpUpdate().setText("**版本：${cr.latestVersionName}**\n\n${cr.updateLog}\n\n是否前往下载？")
             .setTitle(R.string.new_version_available)
             .setOnActionListener(object : PopUpUpdate.OnActionListener {
                 override fun onConfirm() {
@@ -248,11 +257,12 @@ object ActivityUtils {
                 }
 
                 override fun onCancel() {
-
+                    // 取消后一天内不再打扰，而不是下次进入应用立刻再弹。
+                    preference.edit().putLong(canceledAtKey, System.currentTimeMillis()).apply()
                 }
 
                 override fun onSkip() {
-                    preference.edit().putBoolean(cr.latestVersionCode.toString(),true).apply()
+                    preference.edit().putBoolean(versionKey, true).apply()
                 }
             }).show(activity.supportFragmentManager, "update")
     }
