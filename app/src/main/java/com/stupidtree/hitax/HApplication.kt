@@ -1,11 +1,13 @@
 package com.stupidtree.hitax
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
 import android.util.Log
 import androidx.annotation.WorkerThread
 import com.google.gson.JsonObject
 import com.stupidtree.stupiduser.data.repository.LocalUserRepository
 import com.stupidtree.sync.StupidSync
+import com.stupidtree.hita.api.ThemeController
 import com.stupidtree.hita.kernel.PluginHost
 import com.stupidtree.hitax.plugin.PluginCatalog
 import com.stupidtree.hitax.data.work.CourseReminderScheduler
@@ -18,6 +20,8 @@ import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
 
 class HApplication : Application() {
+
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
 
     /** 微内核。插件只通过它注册服务与导航项。 */
     lateinit var pluginHost: PluginHost
@@ -32,6 +36,24 @@ class HApplication : Application() {
                 if (error == null) Log.i(TAG, message) else Log.e(TAG, message, error)
             },
         )
+        // 宿主内建能力：插件只能通过契约使用，不能直接碰 Android 主题 API。
+        pluginHost.provideGlobal(ThemeController.KEY, object : ThemeController {
+            override fun setNightMode(night: Boolean) {
+                // AppCompatDelegate 必须在主线程调用；插件安装发生在后台线程。
+                mainHandler.post {
+                    // 应用有自己的主题模式（theme 偏好），必须先改它，否则
+                    // BaseActivity.onCreate 会按旧模式再设一遍而覆盖掉这里的选择。
+                    com.stupidtree.style.ThemeTools.setThemeMode(
+                        this@HApplication,
+                        if (night) com.stupidtree.style.ThemeTools.MODE.DARK
+                        else com.stupidtree.style.ThemeTools.MODE.LIGHT
+                    )
+                    AppCompatDelegate.setDefaultNightMode(
+                        if (night) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+                    )
+                }
+            }
+        })
         pluginHost.installAll(PluginCatalog.plugins(this))
         // 恢复上次安装的运行时插件（T1）；单个失败不影响其它插件。
         com.stupidtree.hitax.market.PluginInstaller(this, pluginHost).restore()

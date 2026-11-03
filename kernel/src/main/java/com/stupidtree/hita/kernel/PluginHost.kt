@@ -105,6 +105,14 @@ class PluginHost(
         installedPlugins.remove(pluginId)
     }
 
+    /**
+     * 宿主自己提供的服务（不属于任何插件，卸载插件时不会被撤销）。
+     * 插件通过 `ctx.service(key)` 读到同一个实例。
+     */
+    fun <T : Any> provideGlobal(key: ServiceKey<T>, impl: T) {
+        services[key.name] = impl
+    }
+
     fun <T : Any> service(key: ServiceKey<T>): T? = services[key.name] as? T
 
     fun <T : Any> requireService(key: ServiceKey<T>): T =

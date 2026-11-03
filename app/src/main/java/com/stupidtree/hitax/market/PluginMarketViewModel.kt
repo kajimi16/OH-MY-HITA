@@ -22,7 +22,6 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     val items = MutableLiveData<List<Item>>(emptyList())
     val message = MutableLiveData<String?>(null)
-    val indexPath = MutableLiveData("")
 
     init {
         ensureDemoIndex()
@@ -31,12 +30,6 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     fun refresh() {
         val ctx = getApplication<Application>()
-        indexPath.postValue(if (BuildConfig.PLUGIN_INDEX_URL.isNotBlank()) {
-            BuildConfig.PLUGIN_INDEX_URL
-        } else {
-            File(ctx.filesDir, "market/index.json").path
-        })
-
         val installed = installer.installed().map { it.id }.toSet()
         runCatching { readIndex() }
             .onSuccess { (index, _) ->

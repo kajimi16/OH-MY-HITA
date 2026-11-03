@@ -19,7 +19,6 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         FragmentPluginMarketBinding.inflate(layoutInflater)
 
     override fun initViews(view: View) {
-        viewModel.indexPath.observe(this) { binding?.indexPath?.text = "索引：$it" }
         viewModel.items.observe(this) { render(it) }
         viewModel.message.observe(this) { text ->
             text ?: return@observe
