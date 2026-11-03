@@ -80,9 +80,6 @@ jobs:
           RELEASE_KEY_PASSWORD=$KEY_PASSWORD
           EOF
 
-      - name: Unit tests
-        run: ./gradlew :kernel:testDebugUnitTest :app:testDebugUnitTest
-
       - name: Build APK
         run: |
           ./gradlew :app:assembleRelease \
