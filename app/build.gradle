@@ -7,6 +7,8 @@ plugins {
 // 本地默认 versionCode 取当前时间戳（秒），保证本地包能覆盖 CI 包、CI 包也能覆盖本地包。
 def appVersionCodeValue = (project.findProperty("appVersionCode") ?: System.currentTimeMillis().intdiv(1000L)).toInteger()
 def appVersionNameValue = (project.findProperty("appVersionName") ?: "0.0.1") as String
+// 插件市场索引地址；留空时读应用私有目录（仅 debug 有内置演示）
+def pluginIndexUrl = (project.findProperty("pluginIndexUrl") ?: "") as String
 
 // 发布签名从 local.properties 读取（该文件已被 .gitignore 排除）；缺失时打未签名包。
 def keystoreProps = new Properties()
@@ -40,7 +42,7 @@ android {
         buildConfigField "String", "UPDATE_LOG", '""'
         buildConfigField "boolean", "UPDATE_ALLOW_PRERELEASE", "true"
         // 插件市场索引地址；为空时读 filesDir/market/index.json（本地联调）
-        buildConfigField "String", "PLUGIN_INDEX_URL", '""'
+        buildConfigField "String", "PLUGIN_INDEX_URL", "\"${pluginIndexUrl}\""
     }
 //    viewBinding{
 //        enabled = true
