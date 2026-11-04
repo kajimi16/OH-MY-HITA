@@ -108,6 +108,7 @@ dependencies {
     implementation project(path: ':kernel')
     // 插件在运行时打包进 APK，但不在宿主编译期可见（防止宿主越界引用插件实现）
     runtimeOnly project(path: ':plugin-hita')
+    runtimeOnly project(path: ':plugin-eas')
     implementation project(path: ':component')
     implementation project(path: ':user')
     implementation project(path: ':sync')

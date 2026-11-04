@@ -92,4 +92,66 @@
 <string name="no_timetable">无课表</string>
     
 
+<string name="exam_memo_add_title">新增考试备忘</string>
+    
+<string name="exam_memo_title_required">请填写考试/课程名称</string>
+    
+<string name="pick_test_type">重修补考</string>
+    
+<string name="exam_memo_add_confirm">保存</string>
+    
+<string name="hint_eas_login">请登录教务账号以继续</string>
+    
+<string name="load_failed">加载失败</string>
+    
+<string name="pick_exam_type">选择考试类型</string>
+    
+<string name="no_valid_date">请设置开始日期</string>
+    
+<string name="import_success">导入成功</string>
+    
+<string name="import_failed">导入失败</string>
+    
+<string name="undergrad_structure">本科生结构</string>
+    
+<string name="test_type_all">全部</string>
+    
+<string name="test_type_retake">重修</string>
+    
+<string name="number_schedule">第%d节课</string>
+    
+<string name="pick_query_week">选择查询周次</string>
+    
+<string name="postgrad_structure">研究生结构</string>
+    
+<string name="exam_memo_delete_confirm">删除</string>
+    
+<string name="exam_memo_delete_title">删除备忘录？</string>
+    
+<string name="empty_classroom_format">%s 空闲情况</string>
+    
+<string name="exam_type_all">全部</string>
+    
+<string name="pick_import_term">选择导入学期</string>
+    
+<string name="test_type_resit">补考</string>
+    
+<string name="pick_exam_term">选择学期</string>
+    
+<string name="pick_query_building">选择查询教学楼</string>
+    
+<string name="exam_type_final">期末</string>
+    
+<string name="pick_quety_term">选择查询学期</string>
+    
+<string name="exam_type_midterm">期中</string>
+    
+<string name="test_type_normal">正考</string>
+    
+<string name="exam_memo_add_cancel">取消</string>
+    
+<string name="success">成功</string>
+    
+<string name="fail">失败</string>
+    
 </resources>

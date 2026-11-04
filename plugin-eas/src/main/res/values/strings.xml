@@ -1,0 +1,8 @@
+<resources>
+<string name="score_reminder_notification_title">有新成绩</string>
+    
+<string name="score_reminder_notification_more">%s 等%d门课程已出成绩</string>
+    
+<string name="score_reminder_title">成绩提醒</string>
+    
+</resources>

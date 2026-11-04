@@ -7,6 +7,7 @@ import androidx.annotation.WorkerThread
 import com.google.gson.JsonObject
 import com.stupidtree.stupiduser.data.repository.LocalUserRepository
 import com.stupidtree.sync.StupidSync
+import com.stupidtree.hita.api.EasService
 import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.ThemeController
 import com.stupidtree.hita.kernel.PluginHost
@@ -62,10 +63,9 @@ class HApplication : Application() {
             }
 
             override fun openImportTimetable(context: android.content.Context) {
-                com.stupidtree.hitax.utils.ActivityUtils.startActivity(
-                    context,
-                    com.stupidtree.hitax.ui.eas.imp.ImportTimetableActivity::class.java
-                )
+                (context as? androidx.fragment.app.FragmentActivity)?.let { activity ->
+                    pluginHost.service(EasService.KEY)?.openImportTimetable(activity)
+                }
             }
 
             override fun openCourseResourceSearch(context: android.content.Context, keyword: String?, submit: Boolean) {
@@ -130,22 +130,7 @@ class HApplication : Application() {
             }
 
             override fun startAutoReimport(callback: (Boolean) -> Unit) {
-                val token = com.stupidtree.hitax.data.repository.EASRepository
-                    .getInstance(this@HApplication).getEasToken()
-                if (!token.isLogin()) {
-                    callback(false)
-                    return
-                }
-                val isUndergrad = token.stutype == com.stupidtree.hitax.data.model.eas.EASToken.TYPE.UNDERGRAD
-                com.stupidtree.hitax.data.repository.EASRepository
-                    .getInstance(this@HApplication)
-                    .startAutoImportCurrentTimetable(isUndergrad) { success ->
-                        if (success) {
-                            com.stupidtree.hitax.data.repository.EasSettingsRepository(this@HApplication)
-                                .setLastAutoReimportTs(System.currentTimeMillis())
-                        }
-                        callback(success)
-                    }
+                pluginHost.service(EasService.KEY)?.startAutoReimport(callback) ?: callback(false)
             }
 
             override fun showEventInfo(

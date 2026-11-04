@@ -24,12 +24,9 @@ import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.NavEntry
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.R
-import com.stupidtree.hitax.data.repository.EasSettingsRepository
-import com.stupidtree.hitax.data.repository.EASRepository
 import com.stupidtree.hitax.databinding.ActivityMainBinding
 import com.stupidtree.hitax.ui.about.ActivityAbout
 import com.stupidtree.hitax.ui.about.UserAgreementDialog
-import com.stupidtree.hitax.ui.eas.login.PopUpLoginEAS
 import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
 import com.stupidtree.hitax.ui.widgets.WidgetUtils
 import com.stupidtree.hitax.utils.ActivityUtils
@@ -180,21 +177,10 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     }
 
     private fun maybeAutoReimportTimetable() {
-        val settings = EasSettingsRepository.getInstance(application)
-        if (!settings.isAutoReimportEnabled()) return
-        val token = EASRepository.getInstance(application).getEasToken()
-        if (!token.isLogin()) return
         if (autoReimportAttempted) return
-        val now = System.currentTimeMillis()
-        val last = settings.getLastAutoReimportTs()
-        if (now - last < autoReimportIntervalMs) return
         autoReimportAttempted = true
-        val isUndergrad = token.stutype == com.stupidtree.hitax.data.model.eas.EASToken.TYPE.UNDERGRAD
-        EASRepository.getInstance(application).startAutoImportCurrentTimetable(isUndergrad) { success ->
-            if (success) {
-                settings.setLastAutoReimportTs(System.currentTimeMillis())
-            }
-        }
+        // 间隔与登录判断都在插件内完成
+        pluginHost().service(com.stupidtree.hita.api.EasService.KEY)?.autoReimportIfDue()
     }
 
 
@@ -324,29 +310,17 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 }
             } else {
                 //未登录的信息显示
-                val easToken = EASRepository.getInstance(application).getEasToken()
-                if (easToken.isLogin()) {
-                    drawerUsername?.text = easToken.name?.ifBlank { easToken.username }
-                        ?: easToken.username
-                    drawerNickname?.text = easToken.stuId?.ifBlank { easToken.username } ?: ""
+                val eas = pluginHost().service(com.stupidtree.hita.api.EasService.KEY)
+                val easName = eas?.accountName()
+                if (easName != null) {
+                    drawerUsername?.text = easName
+                    drawerNickname?.text = eas.accountSubtitle()
                 } else {
                     drawerUsername?.setText(R.string.eas_account_not_logged_in_title)
                     drawerNickname?.setText(R.string.eas_account_not_logged_in_subtitle)
                 }
                 drawerAvatar?.setImageResource(R.drawable.place_holder_avatar)
-                drawerHeader?.setOnClickListener {
-                    ActivityUtils.showEasVerifyWindow<Activity>(
-                        getThis(),
-                        directTo = null,
-                        onResponseListener = object : PopUpLoginEAS.OnResponseListener {
-                            override fun onSuccess(window: PopUpLoginEAS) {
-                                window.dismiss()
-                            }
-
-                            override fun onFailed(window: PopUpLoginEAS) {}
-                        }
-                    )
-                }
+                drawerHeader?.setOnClickListener { eas?.openAccount(getThis()) }
             }
         }
     }
