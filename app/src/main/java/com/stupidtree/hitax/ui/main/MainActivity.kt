@@ -218,12 +218,14 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                     0 -> {
                         binding.timetableLayout.visibility = GONE
                         binding.navigationLayout.visibility = GONE
+                        binding.pluginLayout.visibility = GONE
                         binding.todayLayout.visibility = VISIBLE
                     }
                     1 -> {
                         binding.timetableLayout.visibility = VISIBLE
                         binding.todayLayout.visibility = GONE
                         binding.navigationLayout.visibility = GONE
+                        binding.pluginLayout.visibility = GONE
                     }
                     2 -> {
                         binding.timetableLayout.visibility = GONE
