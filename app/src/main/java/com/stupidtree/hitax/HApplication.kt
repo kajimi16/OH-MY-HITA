@@ -7,6 +7,7 @@ import androidx.annotation.WorkerThread
 import com.google.gson.JsonObject
 import com.stupidtree.stupiduser.data.repository.LocalUserRepository
 import com.stupidtree.sync.StupidSync
+import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.ThemeController
 import com.stupidtree.hita.kernel.PluginHost
 import com.stupidtree.hitax.plugin.PluginCatalog
@@ -52,6 +53,19 @@ class HApplication : Application() {
                         if (night) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
                     )
                 }
+            }
+        })
+        // 宿主内建跳转能力：迁移期插件请求宿主打开课表详情 / 教务导入
+        pluginHost.provideGlobal(HostUiService.KEY, object : HostUiService {
+            override fun openTimetableDetail(context: android.content.Context, timetableId: String) {
+                com.stupidtree.hitax.utils.ActivityUtils.startTimetableDetailActivity(context, timetableId)
+            }
+
+            override fun openImportTimetable(context: android.content.Context) {
+                com.stupidtree.hitax.utils.ActivityUtils.startActivity(
+                    context,
+                    com.stupidtree.hitax.ui.eas.imp.ImportTimetableActivity::class.java
+                )
             }
         })
         pluginHost.installAll(PluginCatalog.plugins(this))

@@ -9,11 +9,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.appbar.AppBarLayout
 import com.stupidtree.component.data.DataState
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.databinding.ActivityTimetableManagerBinding
-import com.stupidtree.hitax.ui.eas.imp.ImportTimetableActivity
-import com.stupidtree.hitax.utils.ActivityUtils
+import com.stupidtree.hita.plugin.timetable.databinding.ActivityTimetableManagerBinding
 import com.stupidtree.hitax.utils.EditModeHelper
 import com.stupidtree.hitax.utils.FileProviderUtils
 import com.stupidtree.hitax.utils.IcsImportUtils
@@ -73,7 +71,7 @@ class TimetableManagerActivity :
                 if (data == null) {
                     viewModel.startNewTimetable()
                 } else {
-                    ActivityUtils.startTimetableDetailActivity(getThis(), data.id)
+                    com.stupidtree.hitax.plugin.HitaRuntime.hostUi?.openTimetableDetail(getThis(), data.id)
                 }
             }
 
@@ -82,10 +80,8 @@ class TimetableManagerActivity :
             override fun onAddClick(source: TimetableListAdapter.SOURCE) {
                 when (source) {
                     TimetableListAdapter.SOURCE.EAS -> {
-                        ActivityUtils.startActivity(
-                            this@TimetableManagerActivity,
-                            ImportTimetableActivity::class.java
-                        )
+                        com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                            ?.openImportTimetable(this@TimetableManagerActivity)
                     }
                     TimetableListAdapter.SOURCE.ICS -> {
                         selectIcsLauncher.launch(IcsImportUtils.pickerMimeTypes())
@@ -278,7 +274,7 @@ override fun onDelete(toDelete: Collection<Timetable>?) {
                             "已创建课表“${result.timetableName}”，导入 ${result.importedCount} 个课程",
                             Toast.LENGTH_SHORT
                         ).show()
-                        ActivityUtils.startTimetableDetailActivity(this, result.timetableId)
+                        com.stupidtree.hitax.plugin.HitaRuntime.hostUi?.openTimetableDetail(this, result.timetableId)
                     }
                     DataState.STATE.FETCH_FAILED -> {
                         Toast.makeText(this, "导入失败: ${it.message}", Toast.LENGTH_SHORT).show()

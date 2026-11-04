@@ -1,0 +1,8 @@
+<resources>
+<string name="timetable_export_empty">暂无可导出的课表</string>
+    
+<string name="default_timetable_name">新建课表</string>
+    
+<string name="timetable_export_title">导出课表</string>
+    
+</resources>

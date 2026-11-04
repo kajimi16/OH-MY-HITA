@@ -949,7 +949,6 @@
     <string name="eas_verify_title">统一身份认证</string>
     <string name="timetable_structure_label">课表结构</string>
     <string name="timetable_name">课表名称</string>
-    <string name="default_timetable_name">新建课表</string>
     <string name="load_failed">加载失败</string>
     <string name="percentage">%d%%</string>
     <string name="title_navigation">功能中心</string>
@@ -977,8 +976,6 @@
     <string name="title_activity_profile">个人资料</string>
     <string name="edit_my_profile">编辑资料</string>
     <string name="button_sync">导出</string>
-    <string name="timetable_export_title">导出课表</string>
-    <string name="timetable_export_empty">暂无可导出的课表</string>
     <string name="export">导出</string>
     <string name="prompt_import">从教务系统上导入学期课表</string>
     <string name="prompt_empty_classroom">查询校区教室空闲情况</string>

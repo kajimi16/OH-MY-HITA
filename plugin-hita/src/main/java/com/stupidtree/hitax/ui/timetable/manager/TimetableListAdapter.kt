@@ -7,10 +7,10 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.databinding.ActivityTimetableManagerItemAddBinding
-import com.stupidtree.hitax.databinding.ActivityTimetableManagerItemBinding
+import com.stupidtree.hita.plugin.timetable.databinding.ActivityTimetableManagerItemAddBinding
+import com.stupidtree.hita.plugin.timetable.databinding.ActivityTimetableManagerItemBinding
 import com.stupidtree.style.base.BaseCheckableListAdapter
 import com.stupidtree.style.base.BaseViewHolder
 import com.stupidtree.hitax.utils.TimeTools

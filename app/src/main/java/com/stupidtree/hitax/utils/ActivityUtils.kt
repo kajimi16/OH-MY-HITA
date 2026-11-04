@@ -25,7 +25,6 @@ import com.stupidtree.hitax.ui.search.SearchActivity
 import com.stupidtree.hitax.ui.subject.SubjectActivity
 import com.stupidtree.hitax.ui.teacher.ActivityTeacherOfficial
 import com.stupidtree.hitax.ui.timetable.detail.TimetableDetailActivity
-import com.stupidtree.hitax.ui.timetable.manager.TimetableManagerActivity
 import com.stupidtree.stupiduser.data.model.CheckUpdateResult
 import com.stupidtree.style.base.BaseActivity
 import com.stupidtree.style.widgets.PopUpText
@@ -134,8 +133,9 @@ object ActivityUtils {
     }
 
     fun startTimetableManager(from: Context) {
-        val i = Intent(from, TimetableManagerActivity::class.java)
-        from.startActivity(i)
+        (from.applicationContext as com.stupidtree.hitax.HApplication).pluginHost
+            .service(com.stupidtree.hita.api.TimetableUiService.KEY)
+            ?.openManager(from)
     }
 
 
