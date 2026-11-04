@@ -1,7 +1,7 @@
 {
   "id": "com.example.hitaui.sample",
   "name": "示例界面插件",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "entryClass": "com.example.hitaui.sample.SampleUiPlugin",
   "apiVersion": 3,
   "composeVersion": "1.6.8"

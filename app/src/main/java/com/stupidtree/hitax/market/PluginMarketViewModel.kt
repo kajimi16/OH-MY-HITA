@@ -133,6 +133,9 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         executor.execute {
             val app = getApplication<Application>()
             val error = runCatching {
+                require(entry.sha256.matches(Regex("^[a-fA-F0-9]{64}$"))) {
+                    "索引缺少有效的 sha256，拒绝安装"
+                }
                 val url = resolve(entry.url, indexBase)
                 val file = java.io.File(app.cacheDir, "ui-${entry.id}.apk")
                 java.net.URL(url).openStream().use { input ->

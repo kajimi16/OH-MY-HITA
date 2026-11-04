@@ -11,9 +11,12 @@ android {
         targetSdk 33
         compileSdk 35
         versionCode 1
-        versionName "0.2.0"
+        versionName "0.2.1"
     }
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
     composeOptions {
         // 与宿主 Kotlin 1.9.22 匹配的 Compose 编译器
         kotlinCompilerExtensionVersion '1.5.8'

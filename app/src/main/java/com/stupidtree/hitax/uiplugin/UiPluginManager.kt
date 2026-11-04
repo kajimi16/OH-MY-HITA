@@ -73,17 +73,26 @@ class UiPluginManager(private val context: Context) {
             "插件基于 Compose ${meta.composeVersion}，宿主运行时为 $COMPOSE_RUNTIME_VERSION"
         }
         val dir = pluginDir(meta.id).apply { mkdirs() }
-        val apk = File(dir, "plugin.apk")
-        file.copyTo(apk, overwrite = true)
-        // Android 14 起，动态加载的代码文件必须是只读的
-        apk.setReadOnly()
+        // 先落到 staging 并通过校验，再替换旧版本，避免坏包把已装插件弄坏
+        val staging = File(dir, "plugin-new.apk")
+        file.copyTo(staging, overwrite = true)
+        require(sha256(staging) == actual) { "复制后校验失败" }
 
-        val plugin = loadClass(apk, meta.entryClass)
+        val plugin = loadClass(staging, meta.entryClass)
         require(plugin is ComposeUiPlugin) { "入口类未实现 ComposeUiPlugin" }
         require(plugin.id == meta.id) { "id 不一致：${plugin.id} vs ${meta.id}" }
         require(plugin.requiresApi <= HITA_API_VERSION) {
             "插件需要 api ${plugin.requiresApi}，当前宿主 $HITA_API_VERSION"
         }
+
+        // 替换旧 APK 并清掉旧优化产物，避免 DexClassLoader 复用旧 dex
+        File(dir, "plugin.apk").delete()
+        File(dir, "oat").deleteRecursively()
+        val apk = File(dir, "plugin.apk")
+        check(staging.renameTo(apk)) { "替换插件文件失败" }
+        // Android 14 起，动态加载的代码文件必须是只读的
+        apk.setReadOnly()
+        require(sha256(apk) == actual) { "落盘校验失败" }
 
         val installed = InstalledUiPlugin(
             id = meta.id,

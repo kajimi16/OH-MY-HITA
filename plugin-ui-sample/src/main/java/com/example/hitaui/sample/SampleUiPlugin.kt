@@ -56,6 +56,7 @@ class SampleUiPlugin : ComposeUiPlugin {
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text("运行时 Compose 插件", style = MaterialTheme.typography.h5)
+                        Text("插件版本：${BuildConfig.VERSION_NAME}")
                         Text("宿主提供的能力：TimetableService")
                         Text(
                             when {
