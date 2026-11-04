@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.TransformOrigin
 import kotlinx.coroutines.delay
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -225,7 +226,7 @@ private fun ResourceApp(host: PluginUiHost, initialQuery: String) {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun SearchScreen(
     service: ResourceDataService?,
@@ -258,58 +259,46 @@ private fun SearchScreen(
             onValueChange = onInputChange,
             onSearch = {
                 keyboard?.hide()
+                refreshing = true
                 onSubmit(input.trim())
             },
         )
-        Box(Modifier.weight(1f).fillMaxWidth()) {
+        val pullState = rememberPullRefreshState(
+            refreshing = refreshing,
+            onRefresh = {
+                refreshing = true
+                refreshToken++
+            },
+        )
+        Box(Modifier.weight(1f).fillMaxWidth().pullRefresh(pullState)) {
             when {
                 service == null -> CenterHint(tokens, LocalContext.current.hostString("course_resource_failed", "资源服务不可用"))
                 submitted.isBlank() -> Unit
-                result == null -> Row(
-                    Modifier.align(Alignment.TopCenter).padding(top = 24.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CircularProgressIndicator(Modifier.size(20.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("正在加载…", color = tokens.textSecondary, fontSize = 14.sp)
-                }
+                result == null -> Unit // 搜索中由顶部 PullRefreshIndicator 指示
                 result?.state != DataState.STATE.SUCCESS ->
                     CenterHint(tokens, "课程资源加载失败：${result?.message ?: result?.state}")
                 result?.data.isNullOrEmpty() ->
                     CenterHint(tokens, LocalContext.current.hostString("course_resource_empty", "没有找到相关课程资源"))
-                else -> {
-                    val pullState = rememberPullRefreshState(
-                        refreshing = refreshing,
-                        onRefresh = {
-                            refreshing = true
-                            refreshToken++
-                        },
-                    )
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .pullRefresh(pullState),
-                    ) {
-                        LazyColumn(Modifier.fillMaxSize()) {
-                            itemsIndexed(result?.data ?: emptyList()) { index, item ->
-                                EntranceAnimation(
-                                    index = index,
-                                    generation = generation,
-                                    played = played,
-                                ) {
-                                    CourseCard(tokens, item) { onOpenReadme(item) }
-                                }
+                else -> LazyColumn(Modifier.fillMaxSize()) {
+                    itemsIndexed(result?.data ?: emptyList()) { index, item ->
+                        Box(Modifier.animateItemPlacement()) {
+                            EntranceAnimation(
+                                index = index,
+                                generation = generation,
+                                played = played,
+                            ) {
+                                CourseCard(tokens, item) { onOpenReadme(item) }
                             }
                         }
-                        PullRefreshIndicator(
-                            refreshing = refreshing,
-                            state = pullState,
-                            modifier = Modifier.align(Alignment.TopCenter),
-                            contentColor = tokens.primary,
-                        )
                     }
                 }
             }
+            PullRefreshIndicator(
+                refreshing = refreshing,
+                state = pullState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                contentColor = tokens.primary,
+            )
         }
     }
 }
@@ -460,16 +449,26 @@ private fun EntranceAnimation(
     val alreadyPlayed = played[index] == true
     if (!alreadyPlayed) played[index] = true
 
+    val context = LocalContext.current
+    // 跟随系统「动画程序时长缩放」，与内置 View 动画一致
+    val animationScale = remember {
+        android.provider.Settings.Global.getFloat(
+            context.contentResolver,
+            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f,
+        ).coerceIn(0f, 20f)
+    }
+    val durationMs = (400 * animationScale).toInt().coerceAtLeast(1)
     var started by remember(generation, index) { mutableStateOf(alreadyPlayed) }
     LaunchedEffect(generation, index) {
         if (!alreadyPlayed) {
-            delay((index.coerceAtMost(10) * 80).toLong())
+            delay((index.coerceAtMost(10) * (80 * animationScale)).toLong())
             started = true
         }
     }
     val progress by animateFloatAsState(
         targetValue = if (started) 1f else 0f,
-        animationSpec = tween(durationMillis = 400, easing = ResourceDecelerate),
+        animationSpec = tween(durationMillis = durationMs, easing = ResourceDecelerate),
         label = "entrance",
     )
     Box(
