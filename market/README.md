@@ -34,6 +34,12 @@ market/
 - `apiVersion` 必须 ≤ 客户端的 `HITA_API_VERSION`（当前 2）
 - `entryClass` 是 dex 中实现 `com.stupidtree.hita.api.Plugin` 的类
 
+## 插件模板
+
+从这里开始最省事：<https://github.com/kajimi16/hita-plugin-template>
+
+克隆后改 `DemoPlugin` 的 id，执行 `./gradlew :plugin:publishToMarket` 即得到 dex 与索引。
+
 ## 发布一个插件
 
 仓库内的示例插件：

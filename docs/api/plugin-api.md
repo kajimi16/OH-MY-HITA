@@ -83,6 +83,12 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 
 宿主侧已经把线程编排放进实现里（post 到主线程），插件无需关心 Android 主线程约束。
 
+## 插件模板
+
+最小可用的逻辑插件模板（含 Gradle 配置、d8 打包、市场索引生成）：
+
+<https://github.com/kajimi16/hita-plugin-template>
+
 ## 独立 APK 插件（T2）
 
 需要界面或独立进程边界的插件，做成单独安装的 APK，而不是 dex：
