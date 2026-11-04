@@ -4,4 +4,5 @@
     <string name="skip_this_version">不再提示此版本更新</string>
     <string name="skip">不再提示</string>
     <string name="update_cancel">过会儿</string>
+    <string name="none">无</string>
 </resources>
