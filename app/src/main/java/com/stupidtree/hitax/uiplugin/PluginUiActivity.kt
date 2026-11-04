@@ -39,9 +39,17 @@ class PluginUiActivity : AppCompatActivity() {
         }
     }
 
+    private val args: android.os.Bundle by lazy {
+        android.os.Bundle().apply {
+            intent?.getBundleExtra(EXTRA_ARGUMENTS)?.let { putAll(it) }
+        }
+    }
+
     private val host = object : PluginUiHost {
         override fun <T : Any> service(key: ServiceKey<T>): T? =
             (application as HApplication).pluginHost.service(key)
+
+        override val arguments: android.os.Bundle get() = args
 
         override fun close() {
             finish()
@@ -55,6 +63,8 @@ class PluginUiActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_PLUGIN_ID = "pluginId"
+        /** 调用方传参统一放在这个 Bundle 里，避免与宿主内部 extra 冲突。 */
+        const val EXTRA_ARGUMENTS = "pluginArguments"
         private const val TAG = "PluginUiActivity"
     }
 }

@@ -143,6 +143,39 @@ class HApplication : Application() {
                 }
             }
         })
+        // 运行时界面插件入口：构建期插件打开功能前先问它，返回 false 再回退内置实现
+        pluginHost.provideGlobal(com.stupidtree.hita.api.RuntimeUiService.KEY,
+            object : com.stupidtree.hita.api.RuntimeUiService {
+                override fun isAvailable(capability: String): Boolean =
+                    com.stupidtree.hitax.uiplugin.UiPluginManager(this@HApplication)
+                        .findByCapability(capability) != null
+
+                override fun open(
+                    context: android.content.Context,
+                    capability: String,
+                    arguments: android.os.Bundle,
+                ): Boolean {
+                    val record = com.stupidtree.hitax.uiplugin.UiPluginManager(this@HApplication)
+                        .findByCapability(capability) ?: return false
+                    val intent = android.content.Intent(
+                        context,
+                        com.stupidtree.hitax.uiplugin.PluginUiActivity::class.java,
+                    )
+                        .putExtra(
+                            com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_PLUGIN_ID,
+                            record.id,
+                        )
+                        .putExtra(
+                            com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_ARGUMENTS,
+                            arguments,
+                        )
+                    if (context !is android.app.Activity) {
+                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
+                    return true
+                }
+            })
         pluginHost.installAll(PluginCatalog.plugins(this))
         // 组件开关状态由系统持久化，可能与本地禁用标记不一致（如清除应用数据）；
         // 装配完成后按标记收敛一次，避免“插件已装配但组件仍禁用”。

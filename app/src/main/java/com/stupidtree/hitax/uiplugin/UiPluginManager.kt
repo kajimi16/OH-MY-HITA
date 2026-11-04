@@ -25,6 +25,10 @@ class UiPluginManager(private val context: Context) {
     fun installed(): List<InstalledUiPlugin> =
         UiPluginStore.list(context).filter { File(it.apkPath).isFile }
 
+    /** 按 capability 找一个可用的已安装插件；找不到返回 null。 */
+    fun findByCapability(capability: String): InstalledUiPlugin? =
+        installed().firstOrNull { capability in it.capabilities }
+
     data class Metadata(
         val id: String,
         val name: String,
@@ -32,6 +36,7 @@ class UiPluginManager(private val context: Context) {
         val entryClass: String,
         val apiVersion: Int,
         val composeVersion: String,
+        val capabilities: List<String>,
     )
 
     private fun requireValidId(id: String) {
@@ -101,6 +106,7 @@ class UiPluginManager(private val context: Context) {
             entryClass = meta.entryClass,
             apkPath = apk.absolutePath,
             sha256 = actual,
+            capabilities = meta.capabilities,
         )
         UiPluginStore.put(context, installed)
         return installed
@@ -148,6 +154,8 @@ class UiPluginManager(private val context: Context) {
                 entryClass = obj.get("entryClass")?.asString ?: error("metadata.entryClass 缺失"),
                 apiVersion = obj.get("apiVersion")?.asInt ?: 1,
                 composeVersion = obj.get("composeVersion")?.asString ?: "",
+                capabilities = obj.getAsJsonArray("capabilities")
+                    ?.mapNotNull { it.asString } ?: emptyList(),
             )
         }
     }

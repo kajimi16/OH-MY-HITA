@@ -39,6 +39,9 @@ interface ComposeUiPlugin {
 interface PluginUiHost {
     fun <T : Any> service(key: ServiceKey<T>): T?
 
+    /** 宿主打开插件时传入的参数（如搜索关键词、用户 id）。 */
+    val arguments: android.os.Bundle
+
     /** 请求关闭插件页面。 */
     fun close()
 }

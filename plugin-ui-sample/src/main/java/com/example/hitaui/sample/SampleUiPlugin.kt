@@ -46,7 +46,10 @@ class SampleUiPlugin : ComposeUiPlugin {
                 MaterialTheme {
                     val service = remember { host.service(TimetableService.KEY) }
                     val resourceService = remember { host.service(ResourceDataService.KEY) }
-                    val resourceQuery = remember(resourceService) { resourceService?.searchCourses("CS") }
+                    val query = host.arguments.getString("query") ?: "CS"
+                    val resourceQuery = remember(resourceService, query) {
+                        resourceService?.searchCourses(query)
+                    }
                     val emptyResource = remember {
                         androidx.lifecycle.MutableLiveData<DataState<List<CourseResourceItem>>>()
                     }
@@ -79,6 +82,7 @@ class SampleUiPlugin : ComposeUiPlugin {
                         )
                         Text("资源服务：${if (resourceService == null) "不可用" else "已连接"}",
                             style = MaterialTheme.typography.body2)
+                        Text("课程资源搜索：$query", style = MaterialTheme.typography.subtitle1)
                         Text(
                             when {
                                 resourceService == null -> "ResourceDataService 未注册"

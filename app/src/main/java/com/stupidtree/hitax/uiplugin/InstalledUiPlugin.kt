@@ -8,4 +8,5 @@ data class InstalledUiPlugin(
     val entryClass: String,
     val apkPath: String,
     val sha256: String,
+    val capabilities: List<String> = emptyList(),
 )
