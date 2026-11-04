@@ -13,6 +13,10 @@ import android.view.View
  * - 不能声明 Activity / Service / Receiver，界面只能由宿主容器承载；
  * - 不能携带自己的 XML 资源表，UI 用 Compose 代码构建；
  * - 以宿主权限运行，安装前必须校验哈希并提示能力范围。
+ *
+ * 构建侧约定：插件模块对 `:api` 与所有 Compose 依赖使用 `compileOnly`，
+ * 由宿主提供运行时；Compose 编译器版本必须与宿主的 Kotlin 版本匹配
+ * （Kotlin 1.9.22 → compose compiler 1.5.8），并在插件元数据里写 `composeVersion`。
  */
 interface ComposeUiPlugin {
     val id: String

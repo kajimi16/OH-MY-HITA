@@ -31,7 +31,21 @@ class UiPluginManager(private val context: Context) {
         val version: String,
         val entryClass: String,
         val apiVersion: Int,
+        val composeVersion: String,
     )
+
+    private fun requireValidId(id: String) {
+        require(ID_PATTERN.matches(id)) { "非法的插件 id：$id" }
+    }
+
+    /** 插件目录必须严格位于 root 之下，防止 id 里带 ../ 越界。 */
+    private fun pluginDir(id: String): File {
+        requireValidId(id)
+        val rootCanonical = root.canonicalFile
+        val dir = File(rootCanonical, id).canonicalFile
+        require(dir.parentFile == rootCanonical) { "插件目录越界：$id" }
+        return dir
+    }
 
     fun install(uri: Uri): Result<InstalledUiPlugin> = runCatching {
         val tmp = File(context.cacheDir, "incoming-plugin.apk")
@@ -43,10 +57,15 @@ class UiPluginManager(private val context: Context) {
         require(meta.apiVersion <= HITA_API_VERSION) {
             "插件需要 api ${meta.apiVersion}，当前宿主 $HITA_API_VERSION"
         }
-        val dir = File(root, meta.id).apply { mkdirs() }
+        require(meta.composeVersion.isBlank() || meta.composeVersion == COMPOSE_RUNTIME_VERSION) {
+            "插件基于 Compose ${meta.composeVersion}，宿主运行时为 $COMPOSE_RUNTIME_VERSION"
+        }
+        val dir = pluginDir(meta.id).apply { mkdirs() }
         val apk = File(dir, "plugin.apk")
         tmp.copyTo(apk, overwrite = true)
         tmp.delete()
+        // Android 14 起，动态加载的代码文件必须是只读的
+        apk.setReadOnly()
         val digest = sha256(apk)
 
         val plugin = loadClass(apk, meta.entryClass)
@@ -69,8 +88,9 @@ class UiPluginManager(private val context: Context) {
     }
 
     fun uninstall(id: String) {
-        UiPluginStore.find(context, id)?.let { plugin ->
-            runCatching { File(plugin.apkPath).parentFile?.deleteRecursively() }
+        val dir = runCatching { pluginDir(id) }.getOrNull()
+        if (dir != null) {
+            runCatching { dir.deleteRecursively() }
                 .onFailure { Log.w(TAG, "delete plugin dir failed", it) }
         }
         UiPluginStore.remove(context, id)
@@ -108,6 +128,7 @@ class UiPluginManager(private val context: Context) {
                 version = obj.get("version")?.asString ?: "0",
                 entryClass = obj.get("entryClass")?.asString ?: error("metadata.entryClass 缺失"),
                 apiVersion = obj.get("apiVersion")?.asInt ?: 1,
+                composeVersion = obj.get("composeVersion")?.asString ?: "",
             )
         }
     }
@@ -127,5 +148,7 @@ class UiPluginManager(private val context: Context) {
 
     companion object {
         private const val TAG = "UiPluginManager"
+        private const val COMPOSE_RUNTIME_VERSION = com.stupidtree.hitax.BuildConfig.COMPOSE_RUNTIME_VERSION
+        private val ID_PATTERN = Regex("^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$")
     }
 }
