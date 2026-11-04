@@ -1,12 +1,12 @@
 package com.stupidtree.hita.ui.resource
 
 import android.content.Context
-import android.widget.Toast
 import android.util.TypedValue
 import android.view.View
 import android.widget.TextView
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +31,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
+import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
@@ -49,7 +50,9 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -62,6 +65,7 @@ import androidx.lifecycle.MutableLiveData
 import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.ComposeUiPlugin
 import com.stupidtree.hita.api.PluginUiHost
+import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.ResourceDataService
 import com.stupidtree.hitax.data.model.resource.CourseReadmeData
 import com.stupidtree.hitax.data.model.resource.CourseResourceItem
@@ -108,6 +112,7 @@ private data class Tokens(
     val textSecondary: Color,
     val primary: Color,
     val actionBarHeight: Dp,
+    val tagBackground: Color,
 )
 
 @Composable
@@ -121,6 +126,12 @@ private fun rememberTokens(): Tokens {
             textSecondary = Color(context.attrColor("textColorSecondary", 0xFF808080.toInt())),
             primary = Color(context.attrColor("android:colorPrimary", 0xFF304FFE.toInt())),
             actionBarHeight = context.attrDimen("actionBarSize", 56f),
+            tagBackground = Color(
+                blend(
+                    context.attrColor("backgroundColorBottomAsTint", 0xCFFFFFFF.toInt()),
+                    context.attrColor("android:colorControlNormal", 0xFF9E9E9E.toInt()),
+                )
+            ),
         )
     }
 }
@@ -136,6 +147,19 @@ private fun Context.attrColor(name: String, fallback: Int): Int {
     if (!theme.resolveAttribute(id, value, true)) return fallback
     return if (value.resourceId != 0) getColor(value.resourceId) else value.data
 }
+
+private fun blend(overlay: Int, under: Int): Int {
+    val a = (overlay ushr 24) / 255f
+    fun ch(shift: Int): Int {
+        val o = (overlay shr shift) and 0xFF
+        val u = (under shr shift) and 0xFF
+        return (o * a + u * (1 - a) + 0.5f).toInt().coerceIn(0, 255)
+    }
+    return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
+}
+
+private fun Context.drawableId(name: String, pkg: String = packageName): Int =
+    resources.getIdentifier(name, "drawable", pkg)
 
 private fun Context.attrDimen(name: String, fallbackDp: Float): Dp {
     val id = resources.getIdentifier(name, "attr", packageName)
@@ -167,7 +191,7 @@ private fun ResourceApp(host: PluginUiHost, initialQuery: String) {
             onOpenReadme = { openReadme = it },
         )
     } else {
-        ReadmeScreen(service, tokens, openReadme!!)
+        ReadmeScreen(service, host.service(HostUiService.KEY), tokens, openReadme!!)
     }
 }
 
@@ -198,7 +222,7 @@ private fun SearchScreen(
         Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
                 service == null -> CenterHint(tokens, "资源服务不可用")
-                submitted.isBlank() -> CenterHint(tokens, "输入关键词后搜索课程资源")
+                submitted.isBlank() -> Unit
                 result == null -> Row(
                     Modifier.align(Alignment.TopCenter).padding(top = 24.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -228,11 +252,25 @@ private fun TopBar(tokens: Tokens, title: String, showBack: Boolean, onBack: () 
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (showBack) {
+            val ctx = LocalContext.current
+            val backId = remember {
+                ctx.drawableId("abc_ic_ab_back_material").takeIf { it != 0 }
+                    ?: ctx.drawableId("abc_ic_ab_back_material", "androidx.appcompat")
+            }
             Box(
                 Modifier.size(56.dp).clickable(onClick = onBack),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("←", color = Color.White, fontSize = 22.sp)
+                if (backId != 0) {
+                    Icon(
+                        painter = painterResource(backId),
+                        contentDescription = "返回",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp),
+                    )
+                } else {
+                    Text("←", color = Color.White, fontSize = 22.sp)
+                }
             }
             Spacer(Modifier.width(16.dp))
         } else {
@@ -328,7 +366,18 @@ private fun CourseCard(tokens: Tokens, item: CourseResourceItem, onClick: () -> 
             Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
             verticalAlignment = Alignment.Top,
         ) {
-            MenuGlyph(tokens, Modifier.size(46.dp))
+            val ctx = LocalContext.current
+            val menuId = remember { ctx.drawableId("ic_baseline_menu_24") }
+            if (menuId != 0) {
+                Image(
+                    painter = painterResource(menuId),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(46.dp),
+                )
+            } else {
+                MenuGlyph(tokens, Modifier.size(46.dp))
+            }
             Column(Modifier.padding(start = 16.dp, end = 16.dp)) {
                 Text(
                     item.courseName.ifBlank { item.courseCode.ifBlank { item.repoName } },
@@ -358,7 +407,7 @@ private fun CourseCard(tokens: Tokens, item: CourseResourceItem, onClick: () -> 
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
                     modifier = Modifier
-                        .background(Color(0xFFEDEFF2), RoundedCornerShape(24.dp))
+                        .background(tokens.tagBackground, RoundedCornerShape(24.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                 )
             }
@@ -387,6 +436,7 @@ private fun MenuGlyph(tokens: Tokens, modifier: Modifier) {
 @Composable
 private fun ReadmeScreen(
     service: ResourceDataService?,
+    hostForContribution: HostUiService?,
     tokens: Tokens,
     item: CourseResourceItem,
 ) {
@@ -417,18 +467,24 @@ private fun ReadmeScreen(
             Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
         ) {
             Text(item.courseCode, color = tokens.textSecondary, fontSize = 14.sp)
-            val source = result?.data?.source.orEmpty()
-            if (source.isNotBlank()) {
+            if (result?.state == DataState.STATE.SUCCESS) {
                 Text(
-                    source,
+                    "来源：${result?.data?.source.orEmpty()}",
                     color = tokens.textSecondary,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
+            val hostUi = remember { hostForContribution }
             OutlinedButton(
                 onClick = {
-                    Toast.makeText(context, "投稿页尚未迁移，请使用内置入口", Toast.LENGTH_SHORT).show()
+                    hostUi?.openCourseContribution(
+                        context,
+                        repoName,
+                        item.courseName,
+                        item.courseCode,
+                        item.repoType,
+                    )
                 },
                 modifier = Modifier.padding(top = 8.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = tokens.primary),
@@ -441,7 +497,14 @@ private fun ReadmeScreen(
         Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
                 service == null -> CenterHint(tokens, "资源服务不可用")
-                result == null -> CircularProgressIndicator(Modifier.align(Alignment.TopCenter))
+                result == null -> Column(
+                    Modifier.fillMaxWidth().padding(top = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    CircularProgressIndicator()
+                    Spacer(Modifier.height(8.dp))
+                    Text("正在加载 README…", color = tokens.textSecondary, fontSize = 14.sp)
+                }
                 result?.state != DataState.STATE.SUCCESS ->
                     CenterHint(tokens, "README 加载失败：${result?.message ?: result?.state}")
                 result?.data == null -> CenterHint(tokens, "README 不存在")
