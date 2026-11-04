@@ -16,9 +16,6 @@
     <string name="button_import">导入</string>
     <string name="no_valid_date">请设置开始日期</string>
     <string name="title_import_timetable">课表导入</string>
-    <string name="schedule_list_item_pattern">第%d节课</string>
-
-
     <string name="timeline_head_free_title">今日空闲</string>
     <string name="timeline_head_free_subtitle">享受当下！</string>
     <string name="timeline_head_goodnight_title">夜深了</string>
@@ -261,7 +258,6 @@
     <string name="menu_timeable_draw_line">显示当前时间线</string>
     <string name="menu_timeable_color">科目颜色</string>
     <string name="menu_timeable_random_allocate">随机分配颜色</string>
-    <string name="dialog_title_random_allocate">是否随机生成各科目颜色？</string>
     <string name="dialog_title_set_total_weeks">设置总周数</string>
     <string name="attention">注意</string>
     <string name="dialog_message_delete_curriculum">删除课表将删除一切与之关联的事件、科目、任务，确定吗？</string>
@@ -590,7 +586,6 @@
     <string name="curriculum_changed">已切换当前课表</string>
     <string name="curriculum_manager_name">课表名称</string>
     <string name="curriculum_manager_ttweeks">总周数</string>
-    <string name="notifi_curriculum_set_name">设置课表名称</string>
     <string name="choose_or_add_subject">选择或添加科目</string>
     <string name="notifi_atleast_oneweek">请至少指定一周</string>
     <string name="ade_subject_name">输入课程名称...</string>
@@ -853,7 +848,6 @@
     <string name="guid_7p">主页下滑可以展开事件面板</string>
     <string name="guid_7s">待办事项 DDL管理</string>
     <string name="date_format_4">YY年M月d日</string>
-    <string name="unknown_department">未知部门</string>
     <string name="no_info">无信息</string>
     <string name="yes">是</string>
     <string name="no">否</string>
@@ -907,7 +901,6 @@
     <string name="pick_jxl">选择教学楼</string>
     <string name="jz_xnxq">截止学期</string>
     <string name="number_of_class">第%d节课</string>
-    <string name="pick_time_period">选择时间段</string>
     <string name="title_timeline">今日</string>
     <string name="title_timetable">时间表</string>
     <string name="week_title">第%d周</string>

@@ -71,4 +71,8 @@
     
 <string name="dialog_title_sure_delete">确定删除吗？</string>
     
+<string name="schedule_list_item_pattern">第%d节课</string>
+
+
+    
 </resources>

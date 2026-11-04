@@ -8,10 +8,10 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.lifecycle.LifecycleOwner
 import androidx.viewbinding.ViewBinding
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.TermSubject
-import com.stupidtree.hitax.databinding.DynamicSubjectListTitleBinding
-import com.stupidtree.hitax.databinding.DynamicSubjectsItemBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DynamicSubjectListTitleBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DynamicSubjectsItemBinding
 import com.stupidtree.style.base.BaseCheckableListAdapter
 import com.stupidtree.style.base.BaseViewHolder
 import com.stupidtree.hitax.ui.timetable.detail.SubjectsListAdapter.SubjectViewHolder

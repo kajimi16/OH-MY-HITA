@@ -1,6 +1,6 @@
 package com.stupidtree.hitax.ui.timetable.detail
 
-import com.stupidtree.hitax.HitaServices
+import com.stupidtree.hitax.plugin.HitaRuntime
 import com.stupidtree.hitax.data.model.timetable.TeacherInfo
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -16,8 +16,8 @@ class TimetableDetailViewModel(application: Application) : AndroidViewModel(appl
     /**
      * 仓库区
      */
-    private val timetableRepository = HitaServices.timetable(application)
-    private val subjectsRepository = HitaServices.timetable(application)
+    private val timetableRepository = com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow()
+    private val subjectsRepository = com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow()
 
 
     /**

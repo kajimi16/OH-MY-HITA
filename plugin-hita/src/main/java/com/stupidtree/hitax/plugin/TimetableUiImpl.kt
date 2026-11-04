@@ -16,6 +16,10 @@ class TimetableUiImpl : TimetableUiService {
     }
 
     override fun openDetail(context: Context, timetableId: String) {
-        HitaRuntime.hostUi?.openTimetableDetail(context, timetableId)
+        context.startActivity(
+            Intent(context, com.stupidtree.hitax.ui.timetable.detail.TimetableDetailActivity::class.java)
+                .putExtra("id", timetableId)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     }
 }

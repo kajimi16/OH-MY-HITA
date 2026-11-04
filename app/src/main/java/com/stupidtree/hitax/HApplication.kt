@@ -67,6 +67,32 @@ class HApplication : Application() {
                     com.stupidtree.hitax.ui.eas.imp.ImportTimetableActivity::class.java
                 )
             }
+
+            override fun openSubject(context: android.content.Context, subjectId: String) {
+                com.stupidtree.hitax.utils.ActivityUtils.startSubjectActivity(context, subjectId)
+            }
+
+            override fun openCourseResourceSearch(context: android.content.Context, keyword: String?, submit: Boolean) {
+                com.stupidtree.hitax.utils.ActivityUtils.startCourseResourceSearchActivity(
+                    context,
+                    keyword,
+                    if (submit) com.stupidtree.hitax.utils.ActivityUtils.CourseResourceMode.SUBMIT
+                    else com.stupidtree.hitax.utils.ActivityUtils.CourseResourceMode.VIEW,
+                )
+            }
+
+            override fun openTeacherHomepage(context: android.content.Context, teacherName: String) {
+                com.stupidtree.hitax.utils.ActivityUtils.startTeacherHomepageSearch(context, teacherName)
+            }
+
+            override fun openAddEvent(
+                activity: android.app.Activity,
+                timetable: com.stupidtree.hitax.data.model.timetable.Timetable?,
+            ) {
+                com.stupidtree.hitax.ui.event.add.PopupAddEvent(true)
+                    .setInitTimetable(timetable)
+                    .show((activity as androidx.fragment.app.FragmentActivity).supportFragmentManager, "add_subject")
+            }
         })
         pluginHost.installAll(PluginCatalog.plugins(this))
         // 恢复上次安装的运行时插件（T1）；单个失败不影响其它插件。

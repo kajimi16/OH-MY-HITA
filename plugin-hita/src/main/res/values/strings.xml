@@ -5,4 +5,12 @@
     
 <string name="timetable_export_title">导出课表</string>
     
+<string name="unknown_department">未知部门</string>
+    
+<string name="pick_time_period">选择时间段</string>
+    
+<string name="notifi_curriculum_set_name">设置课表名称</string>
+    
+<string name="dialog_title_random_allocate">是否随机生成各科目颜色？</string>
+    
 </resources>

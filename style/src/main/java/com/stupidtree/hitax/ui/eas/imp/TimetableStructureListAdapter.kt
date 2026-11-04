@@ -5,9 +5,9 @@ import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import androidx.viewbinding.ViewBinding
-import com.stupidtree.hitax.R
+import com.stupidtree.style.R
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
-import com.stupidtree.hitax.databinding.ActivityEasImportListItemBinding
+import com.stupidtree.style.databinding.ActivityEasImportListItemBinding
 import com.stupidtree.style.base.BaseListAdapter
 import com.stupidtree.style.base.BaseViewHolder
 

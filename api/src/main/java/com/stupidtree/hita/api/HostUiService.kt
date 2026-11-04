@@ -1,6 +1,7 @@
 package com.stupidtree.hita.api
 
 import android.content.Context
+import com.stupidtree.hitax.data.model.timetable.Timetable
 
 /**
  * 宿主提供给插件的跨域跳转能力。
@@ -11,6 +12,11 @@ import android.content.Context
 interface HostUiService {
     fun openTimetableDetail(context: Context, timetableId: String)
     fun openImportTimetable(context: Context)
+    fun openSubject(context: Context, subjectId: String)
+    fun openCourseResourceSearch(context: Context, keyword: String?, submit: Boolean)
+    fun openTeacherHomepage(context: Context, teacherName: String)
+    /** 打开"添加事件"弹窗；[timetable] 可为空，由用户自行选择 */
+    fun openAddEvent(activity: android.app.Activity, timetable: Timetable?)
 
     companion object {
         val KEY = ServiceKey<HostUiService>("hita.host.ui")

@@ -7,16 +7,15 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stupidtree.component.data.DataState
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.TermSubject
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
-import com.stupidtree.hitax.databinding.ActivityTimetableDetailBinding
+import com.stupidtree.hita.plugin.timetable.databinding.ActivityTimetableDetailBinding
 import com.stupidtree.style.base.BaseActivity
 import com.stupidtree.style.base.BaseListAdapter
 import com.stupidtree.hitax.ui.eas.imp.TimetableStructureListAdapter
 import com.stupidtree.hitax.ui.widgets.PopUpCalendarPicker
 import com.stupidtree.hitax.ui.widgets.PopUpTimePeriodPicker
-import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.EditModeHelper
 import com.stupidtree.hitax.utils.TextTools
 import com.stupidtree.style.widgets.PopUpText
@@ -25,7 +24,6 @@ import kotlin.Comparator
 import android.content.Intent
 import android.view.HapticFeedbackConstants
 import com.google.android.material.appbar.AppBarLayout
-import com.stupidtree.hitax.ui.event.add.PopupAddEvent
 import com.stupidtree.style.widgets.PopUpColorPicker
 import com.stupidtree.hitax.utils.FileProviderUtils
 import com.stupidtree.hitax.utils.ImageUtils
@@ -64,11 +62,8 @@ class TimetableDetailActivity :
         teachersListAdapter?.setOnItemClickListener(object :
             BaseListAdapter.OnItemClickListener<TeacherInfo> {
             override fun onItemClick(data: TeacherInfo?, card: View?, position: Int) {
-                ActivityUtils.startCourseResourceSearchActivity(
-                    getThis(),
-                    data?.name,
-                    ActivityUtils.CourseResourceMode.VIEW,
-                )
+                com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                    ?.openCourseResourceSearch(getThis(), data?.name, submit = false)
             }
 
         })
@@ -76,7 +71,8 @@ class TimetableDetailActivity :
             BaseListAdapter.OnItemLongClickListener<TeacherInfo> {
             override fun onItemLongClick(data: TeacherInfo?, view: View?, position: Int): Boolean {
                 val teacher = data?.name ?: return false
-                ActivityUtils.startTeacherHomepageSearch(getThis(), teacher)
+                com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                    ?.openTeacherHomepage(getThis(), teacher)
                 return true
             }
         })
@@ -85,7 +81,8 @@ class TimetableDetailActivity :
 
             override fun onItemClick(data: TermSubject?, card: View?, position: Int) {
                 if (data != null) {
-                    ActivityUtils.startSubjectActivity(getThis(), data.id)
+                    com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                        ?.openSubject(getThis(), data.id)
                 }
             }
         })
@@ -223,7 +220,8 @@ class TimetableDetailActivity :
             viewModel.exportToIcs()
         }
         binding.add.setOnClickListener {
-            PopupAddEvent(true).setInitTimetable(viewModel.timetableLiveData.value).show(supportFragmentManager,"add_subject")
+            com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                ?.openAddEvent(this, viewModel.timetableLiveData.value)
         }
     }
 

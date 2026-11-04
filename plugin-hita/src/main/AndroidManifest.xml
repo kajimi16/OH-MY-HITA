@@ -4,5 +4,8 @@
         <activity
             android:name="com.stupidtree.hitax.ui.timetable.manager.TimetableManagerActivity"
             android:exported="false" />
+        <activity
+            android:name="com.stupidtree.hitax.ui.timetable.detail.TimetableDetailActivity"
+            android:exported="false" />
     </application>
 </manifest>

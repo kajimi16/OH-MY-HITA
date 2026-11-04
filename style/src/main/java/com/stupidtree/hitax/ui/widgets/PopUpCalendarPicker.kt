@@ -3,8 +3,8 @@ package com.stupidtree.hitax.ui.widgets
 import android.view.View
 import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
-import com.stupidtree.hitax.R
-import com.stupidtree.hitax.databinding.DialogBottomCalendarBinding
+import com.stupidtree.style.R
+import com.stupidtree.style.databinding.DialogBottomCalendarBinding
 import com.stupidtree.style.widgets.TransparentBottomSheetDialog
 import com.stupidtree.hitax.utils.TimeTools
 import com.stupidtree.hitax.utils.TimeTools.TTY_REPLACE

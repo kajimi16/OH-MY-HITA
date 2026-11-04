@@ -2,10 +2,10 @@ package com.stupidtree.hitax.ui.widgets
 
 import android.view.View
 import androidx.annotation.StringRes
-import com.stupidtree.hitax.R
+import com.stupidtree.style.R
 import com.stupidtree.hitax.data.model.timetable.TimeInDay
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
-import com.stupidtree.hitax.databinding.DialogBottomTimePeriodPickerBinding
+import com.stupidtree.style.databinding.DialogBottomTimePeriodPickerBinding
 import com.stupidtree.style.widgets.TransparentBottomSheetDialog
 import java.util.*
 

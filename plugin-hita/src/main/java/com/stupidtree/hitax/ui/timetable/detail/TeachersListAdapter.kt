@@ -5,7 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.view.ViewGroup
 import androidx.viewbinding.ViewBinding
-import com.stupidtree.hitax.databinding.DynamicTeacherBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DynamicTeacherBinding
 import com.stupidtree.style.base.BaseListAdapter
 import com.stupidtree.style.base.BaseViewHolder
 
