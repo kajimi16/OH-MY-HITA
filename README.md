@@ -54,6 +54,11 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
   `RELEASE_KEY_ALIAS` / `RELEASE_KEY_PASSWORD`），仓库内不含任何密钥。
 
 
+### 界面插件的安装
+
+界面插件只能通过市场索引的 `uiPlugins` 安装/更新；客户端不提供本地选 APK 的入口。
+调试使用 debug 广播通道（`scripts/dev-install-ui-plugin.sh`）。
+
 ### 本地联调（运行时插件）
 
 - 课程资源数据契约 `ResourceDataService` 的端点是 `:plugin-resource` 的 BuildConfig。

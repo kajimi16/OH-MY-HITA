@@ -34,6 +34,12 @@ market/
 - `apiVersion` 必须 ≤ 客户端的 `HITA_API_VERSION`（当前 2）
 - `entryClass` 是 dex 中实现 `com.stupidtree.hita.api.Plugin` 的类
 
+## 界面插件的安装方式
+
+界面插件（Compose 容器）**只能通过市场索引的 `uiPlugins` 安装/更新**；
+客户端不再提供「从本地选 APK」的入口（避免任意 APK 的侧载风险）。
+开发调试可用 debug 包的广播通道：`scripts/dev-install-ui-plugin.sh`。
+
 ## 插件模板
 
 从这里开始最省事：<https://github.com/kajimi16/hita-plugin-template>
