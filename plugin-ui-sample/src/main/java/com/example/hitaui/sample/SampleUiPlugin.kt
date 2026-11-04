@@ -16,12 +16,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.stupidtree.hita.api.ComposeUiPlugin
 import com.stupidtree.hita.api.PluginUiHost
+import com.stupidtree.hita.api.ResourceDataService
+import com.stupidtree.component.data.DataState
+import com.stupidtree.hitax.data.model.resource.CourseResourceItem
 import com.stupidtree.hita.api.TimetableService
 
 /**
@@ -40,6 +45,12 @@ class SampleUiPlugin : ComposeUiPlugin {
             setContent {
                 MaterialTheme {
                     val service = remember { host.service(TimetableService.KEY) }
+                    val resourceService = remember { host.service(ResourceDataService.KEY) }
+                    val resourceQuery = remember(resourceService) { resourceService?.searchCourses("CS") }
+                    val emptyResource = remember {
+                        androidx.lifecycle.MutableLiveData<DataState<List<CourseResourceItem>>>()
+                    }
+                    val resourceState by (resourceQuery ?: emptyResource).observeAsState()
                     var today by remember { mutableStateOf<Int?>(null) }
                     var failure by remember { mutableStateOf<String?>(null) }
                     LaunchedEffect(service) {
@@ -65,6 +76,18 @@ class SampleUiPlugin : ComposeUiPlugin {
                                 today != null -> "今日事件：$today 项"
                                 else -> "正在读取课表…"
                             }
+                        )
+                        Text("资源服务：${if (resourceService == null) "不可用" else "已连接"}",
+                            style = MaterialTheme.typography.body2)
+                        Text(
+                            when {
+                                resourceService == null -> "ResourceDataService 未注册"
+                                resourceState == null -> "课程资源查询中…"
+                                resourceState?.state == DataState.STATE.SUCCESS ->
+                                    "课程资源：${resourceState?.data?.size ?: 0} 条"
+                                else -> "课程资源：${resourceState?.message ?: resourceState?.state}"
+                            },
+                            style = MaterialTheme.typography.body2,
                         )
                         Button(onClick = { host.close() }) {
                             Text("关闭")
