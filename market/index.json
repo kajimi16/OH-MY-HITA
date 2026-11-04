@@ -9,5 +9,14 @@
       "sha256": "c37ee3ec5f9a1c26a09fdc722efde5b38bb577ffd5e588149aef1093e9943e2c",
       "entryClass": "com.example.hello.HelloPlugin"
     }
+  ],
+  "uiPlugins": [
+    {
+      "id": "com.stupidtree.hita.ui.resource",
+      "name": "课程资源",
+      "version": "0.4.8",
+      "url": "https://ani2-ext.kajimi.cc/hita/market/course-resource-0.4.8.apk",
+      "sha256": "8fc623f80e63875caf0d4aa28c6a54854b302d3b15be0443fce2415bfdb97a15"
+    }
   ]
 }
