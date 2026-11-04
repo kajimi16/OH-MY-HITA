@@ -240,7 +240,13 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                 }.onSuccess { ok++ }.onFailure { fail++ }
             }
             dexTargets.forEach { item ->
-                runCatching { installer.install(item.entry, lastIndexBase) }
+                runCatching {
+                    val minApi = item.entry.minHostApi ?: 1
+                    require(minApi <= HITA_API_VERSION) {
+                        "插件需要宿主 API $minApi，当前 ${HITA_API_VERSION}"
+                    }
+                    installer.install(item.entry, lastIndexBase)
+                }
                     .onSuccess { ok++ }
                     .onFailure { fail++ }
             }
