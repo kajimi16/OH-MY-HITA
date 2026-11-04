@@ -49,9 +49,14 @@ case "${1:-status}" in
     QUERY="${3:-}"
     $ADB shell am start -n "$PKG/com.stupidtree.hitax.ui.ActivitySplash" >/dev/null
     sleep 1
-    broadcast -a com.stupidtree.hitax.DEV_OPEN_UI_PLUGIN \
-      -n "$PKG/com.stupidtree.hitax.uiplugin.DevUiPluginOpenReceiver" \
-      --es id "$ID" --es query "$QUERY"
+    if [ -n "$QUERY" ]; then
+      broadcast -a com.stupidtree.hitax.DEV_OPEN_UI_PLUGIN \
+        -n "$PKG/com.stupidtree.hitax.uiplugin.DevUiPluginOpenReceiver" \
+        --es id "$ID" --es query "$QUERY"
+    else
+      broadcast -a com.stupidtree.hitax.DEV_OPEN_UI_PLUGIN \
+        -n "$PKG/com.stupidtree.hitax.uiplugin.DevUiPluginOpenReceiver" --es id "$ID"
+    fi
     ;;
   install-ui)
     TARGET="${2:?usage: dev.sh install-ui <module|apk>}"
