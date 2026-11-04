@@ -17,9 +17,5 @@
         <attr name="foregroundColor" />
     </declare-styleable>
 
-    <attr name="pullDownAnimElementColor" format="color" />
-    <declare-styleable name="ExpendPoint">
-        <attr name="pullDownAnimElementColor" />
-    </declare-styleable>
-</resources>
+    </resources>
 

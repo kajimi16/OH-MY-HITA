@@ -7,7 +7,7 @@ import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.stupidtree.hitax.R
+import com.stupidtree.style.R
 import com.stupidtree.hitax.utils.ImageUtils.dp2px
 import kotlin.math.abs
 

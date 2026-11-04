@@ -29,6 +29,9 @@ interface HostUiService {
         period: TimePeriodInDay? = null,
     )
 
+    /** 通知宿主刷新桌面小组件。 */
+    fun notifyWidgets()
+
     /** 立刻触发一次教务课表自动导入（宿主持有 EAS 账号与仓库）。 */
     fun startAutoReimport(callback: (Boolean) -> Unit)
 

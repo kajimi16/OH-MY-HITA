@@ -45,6 +45,9 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'br.com.simplepass:loading-button-android:2.2.0'
     implementation 'tyrantgit:explosionfield:1.0.1'
+    implementation 'com.github.alorma:timelineview:2.3.0'
+    implementation 'com.github.lzyzsd:circleprogress:1.2.1'
+    implementation 'net.cachapa.expandablelayout:expandablelayout:2.9.2'
     implementation project(':component')
     implementation project(':user')
     implementation project(':sync')

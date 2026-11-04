@@ -42,4 +42,54 @@
     
 <string name="week_title">第%d周</string>
     
+<string name="events_incoming">将要进行</string>
+    
+<string name="time_format_1">%d小时%d分钟</string>
+    
+<string name="time_format_2">%d分钟</string>
+    
+<string name="timeline_countdown_template_hour">%.1f小时后</string>
+    
+<string name="timeline_countdown_template_minute">%d分钟后</string>
+    
+<string name="timeline_counting_free">接下来没事了</string>
+    
+<string name="timeline_counting_middle">后进行</string>
+    
+<string name="timeline_gonow_subtitle">%d分钟后开始</string>
+    
+<string name="timeline_head_dinner_subtitle">去哪吃?</string>
+    
+<string name="timeline_head_dinner_title">晚餐时间</string>
+    
+<string name="timeline_head_finish_subtitle">享受生活吧！</string>
+    
+<string name="timeline_head_finish_title">全部结束</string>
+    
+<string name="timeline_head_free_subtitle">享受当下！</string>
+    
+<string name="timeline_head_free_title">今日空闲</string>
+    
+<string name="timeline_head_goodmorning_title">早上好</string>
+    
+<string name="timeline_head_goodnight_subtitle">晚安！</string>
+    
+<string name="timeline_head_goodnight_title">夜深了</string>
+    
+<string name="timeline_head_lunch_subtitle">去哪吃?</string>
+    
+<string name="timeline_head_lunch_title">午餐时间</string>
+    
+<string name="timeline_head_normal_subtitle">自由安排</string>
+    
+<string name="timeline_head_normal_title">暂时没有事件</string>
+    
+<string name="timeline_head_ongoing_subtitle">正在进行</string>
+    
+<string name="timelinr_goodmorning_subtitle">今天共有%d节课</string>
+    
+<string name="unknown_location">未知地点</string>
+    
+<dimen name="timeline_width">8dp</dimen>
+    
 </resources>

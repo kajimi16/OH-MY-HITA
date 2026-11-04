@@ -91,5 +91,11 @@
     
 <attr name="timeLabelSize" format="dimension" />
     
+<attr name="pullDownAnimElementColor" format="color" />
+    
+<declare-styleable name="ExpendPoint">
+        <attr name="pullDownAnimElementColor" />
+    </declare-styleable>
+
 </resources>
 

@@ -29,6 +29,8 @@ class HitaPlugin(private val application: Application) : Plugin {
     companion object {
         /** 主界面第 2 个槽位（时间表） */
         const val TAB_TIMETABLE = "hita.timetable"
+        /** 主界面第 1 个槽位（今日） */
+        const val TAB_TIMELINE = "hita.timeline"
     }
 
     override fun install(ctx: PluginContext) {
@@ -45,6 +47,14 @@ class HitaPlugin(private val application: Application) : Plugin {
         HitaRuntime.timetable = service
         HitaRuntime.hostUi = ctx.service(HostUiService.KEY)
 
+        ctx.tabs.register(
+            TabContribution(
+                id = TAB_TIMELINE,
+                titleRes = 0,
+                iconRes = 0,
+                order = 5,
+            ) { com.stupidtree.hitax.ui.main.timeline.FragmentTimeLine() }
+        )
         ctx.tabs.register(
             TabContribution(
                 id = TAB_TIMETABLE,

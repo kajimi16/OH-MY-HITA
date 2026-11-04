@@ -16,19 +16,6 @@
     <string name="button_import">导入</string>
     <string name="no_valid_date">请设置开始日期</string>
     <string name="title_import_timetable">课表导入</string>
-    <string name="timeline_head_free_title">今日空闲</string>
-    <string name="timeline_head_free_subtitle">享受当下！</string>
-    <string name="timeline_head_goodnight_title">夜深了</string>
-    <string name="timeline_head_goodnight_subtitle">晚安！</string>
-    <string name="timeline_head_goodmorning_title">早上好</string>
-    <string name="timeline_head_lunch_title">午餐时间</string>
-    <string name="timeline_head_lunch_subtitle">去哪吃?</string>
-    <string name="timeline_head_dinner_title">晚餐时间</string>
-    <string name="timeline_head_dinner_subtitle">去哪吃?</string>
-    <string name="timeline_head_normal_title">暂时没有事件</string>
-    <string name="timeline_head_normal_subtitle">自由安排</string>
-    <string name="timeline_head_finish_title">全部结束</string>
-    <string name="timeline_head_finish_subtitle">享受生活吧！</string>
     <string name="timeline_head_nulluser_title">请先登录</string>
     <string name="timeline_head_nulluser_subtitle">登录后享受更多服务</string>
     <string name="timeline_head_nulldata_title">无数据</string>
@@ -394,14 +381,6 @@
     <string name="update_available">检查到更新</string>
     <string name="check_for_update_failed">检查更新失败！</string>
     <string name="delete_installation_package">删除安装包</string>
-    <string name="timeline_head_ongoing_subtitle">正在进行</string>
-    <string name="timelinr_goodmorning_subtitle">今天共有%d节课</string>
-    <string name="timeline_gonow_subtitle">%d分钟后开始</string>
-    <string name="timeline_countdown_template_hour">%.1f小时后</string>
-    <string name="timeline_countdown_template_minute">%d分钟后</string>
-    <string name="timeline_counting_middle">后进行</string>
-    <string name="timeline_counting_free">接下来没事了</string>
-    <string name="unknown_location">未知地点</string>
     <string name="unknown_location_widget">未知</string>
     <string name="progress">进度</string>
     <string name="bind">验证</string>
@@ -476,8 +455,6 @@
     <string name="teacher_temp_label">助手服务器暂存</string>
     <string name="tab_search_location">地点</string>
     <string name="location_total_searched">共找到%d个地点</string>
-    <string name="time_format_1">%d小时%d分钟</string>
-    <string name="time_format_2">%d分钟</string>
     <string name="time_format_2_simplified">%d分</string>
     <string name="time_format_3">%d小时</string>
     <string name="time_format_3_simplified">%d时</string>
@@ -974,7 +951,6 @@
     <string name="loading">加载中</string>
     <string name="widget_loading">组件加载中...</string>
     <string name="belonging_timetable">所属课表</string>
-    <string name="events_incoming">将要进行</string>
     <string name="lecture_title">讲座信息</string>
     <string name="plugin_market_title">插件市场</string>
 </resources>

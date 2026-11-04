@@ -14,12 +14,10 @@ import android.view.View
 import android.widget.ImageView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.EventItem
-import com.stupidtree.hitax.databinding.FragmentTimelineBinding
-import com.stupidtree.hitax.ui.widgets.WidgetUtils
+import com.stupidtree.hita.plugin.timetable.databinding.FragmentTimelineBinding
 import com.stupidtree.hitax.ui.widgets.pullextend.ExtendListHeader
-import com.stupidtree.hitax.utils.EventsUtils
 import com.stupidtree.hitax.utils.HintUtils
 import com.stupidtree.hitax.utils.TimeTools
 import com.stupidtree.hitax.utils.TimeTools.TTY_WK_FOLLOWING
@@ -31,7 +29,7 @@ import kotlin.Comparator
 class FragmentTimeLine : BaseFragmentWithReceiver<FragmentTimelineViewModel, FragmentTimelineBinding>() {
     private var listAdapter: TimelineListAdapter? = null
     private var topListAdapter: TimelineTopListAdapter? = null
-    private var mainPageController: MainPageController? = null
+    private var mainPageController: com.stupidtree.style.base.TimelinePageController? = null
 
 
     override var receiver: BroadcastReceiver = object: BroadcastReceiver() {
@@ -51,7 +49,7 @@ class FragmentTimeLine : BaseFragmentWithReceiver<FragmentTimelineViewModel, Fra
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (context is MainPageController) {
+        if (context is com.stupidtree.style.base.TimelinePageController) {
             mainPageController = context
         }
     }
@@ -80,14 +78,14 @@ class FragmentTimeLine : BaseFragmentWithReceiver<FragmentTimelineViewModel, Fra
         listAdapter?.setOnItemClickListener(object :
             BaseListAdapter.OnItemClickListener<EventItem> {
             override fun onItemClick(data: EventItem?, card: View?, position: Int) {
-                data?.let { EventsUtils.showEventItem(requireContext(), it) }
+                data?.let { com.stupidtree.hitax.plugin.HitaRuntime.hostUi!!.showEventInfo(requireContext(), listOf(it)) }
             }
         })
 
         topListAdapter?.setOnItemClickListener(object :
             BaseListAdapter.OnItemClickListener<EventItem> {
             override fun onItemClick(data: EventItem?, card: View?, position: Int) {
-                data?.let { EventsUtils.showEventItem(requireContext(), it) }
+                data?.let { com.stupidtree.hitax.plugin.HitaRuntime.hostUi!!.showEventInfo(requireContext(), listOf(it)) }
             }
         })
         listAdapter?.setOnHintConfirmedListener(object :
@@ -157,7 +155,7 @@ class FragmentTimeLine : BaseFragmentWithReceiver<FragmentTimelineViewModel, Fra
                     holder as TimelineListAdapter.timelineHeaderHolder
                 header.UpdateHeadView()
             }
-            activity?.let { it1 -> WidgetUtils.sendRefreshToAll(it1) }
+            activity?.let { it1 -> com.stupidtree.hitax.plugin.HitaRuntime.hostUi?.notifyWidgets() }
         }
 
         viewModel.weekEventsLiveData.observe(this){
@@ -178,10 +176,6 @@ class FragmentTimeLine : BaseFragmentWithReceiver<FragmentTimelineViewModel, Fra
 
     override fun getViewModelClass(): Class<FragmentTimelineViewModel> {
         return FragmentTimelineViewModel::class.java
-    }
-
-    interface MainPageController {
-        fun setTimelineTitleText(string: String)
     }
 
     override fun getIntentFilter(): IntentFilter {

@@ -16,10 +16,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.alorma.timeline.TimelineView
 import com.github.lzyzsd.circleprogress.ArcProgress
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TimeInDay
-import com.stupidtree.hitax.databinding.DynamicTimelineTopBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DynamicTimelineTopBinding
 import com.stupidtree.style.base.BaseListAdapterClassic
 import com.stupidtree.hitax.utils.MaterialCircleAnimator
 import com.stupidtree.hitax.utils.TextTools

@@ -32,7 +32,6 @@ import com.stupidtree.hitax.ui.about.UserAgreementDialog
 import com.stupidtree.hitax.ui.eas.login.PopUpLoginEAS
 import com.stupidtree.hitax.ui.event.add.PopupAddEvent
 import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
-import com.stupidtree.hitax.ui.main.timeline.FragmentTimeLine
 import com.stupidtree.hitax.ui.widgets.WidgetUtils
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.ImageUtils
@@ -47,7 +46,8 @@ import me.ibrahimsn.lib.OnItemSelectedListener
  * 很显然，这是主界面
  */
 class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
-    com.stupidtree.style.base.TimetablePageController, FragmentTimeLine.MainPageController {
+    com.stupidtree.style.base.TimetablePageController,
+    com.stupidtree.style.base.TimelinePageController {
 
     /**
      * 插件贡献的抽屉项。id 由宿主按顺序分配，避免菜单 xml 里写死。
@@ -205,7 +205,8 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         binding.pager.adapter = object : BaseTabAdapter(supportFragmentManager, 4) {
             override fun initItem(position: Int): Fragment {
                 return when (position) {
-                    0 -> FragmentTimeLine()
+                    0 -> (application as HApplication).pluginHost.tabs
+                        .find("hita.timeline")?.let { it.create() } ?: Fragment()
                     1 -> (application as HApplication).pluginHost.tabs
                         .find("hita.timetable")?.let { it.create() } ?: Fragment()
                     2 -> NavigationFragment()

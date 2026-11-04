@@ -6,7 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
-import com.stupidtree.hitax.R
+import com.stupidtree.style.R
 
 /**
  * Created by Renny on 2018/1/2.

@@ -101,6 +101,10 @@ class HApplication : Application() {
                 )
             }
 
+            override fun notifyWidgets() {
+                com.stupidtree.hitax.ui.widgets.WidgetUtils.sendRefreshToAll(this@HApplication)
+            }
+
             override fun startAutoReimport(callback: (Boolean) -> Unit) {
                 val token = com.stupidtree.hitax.data.repository.EASRepository
                     .getInstance(this@HApplication).getEasToken()
