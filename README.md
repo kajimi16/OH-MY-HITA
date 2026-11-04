@@ -127,3 +127,13 @@ object PluginCatalog {
 ## License
 
 [MIT](LICENSE) © Stupid Tree
+
+### 下载镜像
+
+`ani2-ext.kajimi.cc` 上的 APK 由服务器每小时通过 GitHub API 自动同步
+（systemd timer，见 `deploy/mirror/`），保留全部历史版本：
+
+- 最新：`https://ani2-ext.kajimi.cc/hita/releases/oh-my-hita-latest.apk`
+- 指定版本：`https://ani2-ext.kajimi.cc/hita/releases/oh-my-hita-<version>.apk`
+- 元数据：`https://ani2-ext.kajimi.cc/hita/releases/index.json`
+

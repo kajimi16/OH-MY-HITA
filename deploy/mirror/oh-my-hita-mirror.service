@@ -1,0 +1,10 @@
+[Unit]
+Description=OH-MY-HITA 发布包镜像同步
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /srv/oh-my-hita/bin/sync-releases.py
+Nice=10
+IOSchedulingClass=idle
