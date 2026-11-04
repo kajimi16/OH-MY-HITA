@@ -108,7 +108,13 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 - 「打开」= 直接启动插件自己的 Activity（插件拥有完整界面与资源）
 - 声明 `<queries>` 以适配 Android 11+ 的包可见性
 
-当前不做签名校验：列表只做展示，打开由用户触发。插件必须单独安装、单独更新。
+### 信任模型
+
+- 所有插件（T1 dex 与 T2 APK）默认标记为「未验证」
+- 未验证插件在安装 / 打开前会弹窗提示：运行后拥有应用完整权限
+- 与 OH-MY-HITA 一起核验过的半官方插件，由维护者加入
+  `app/src/main/assets/verified_plugins.json` 白名单，界面上显示「已验证」
+- 不做签名校验：白名单即信任边界，随应用版本发布
 
 示例模块：`:plugin-apk-sample`（`./gradlew :plugin-apk-sample:assembleDebug`）。
 

@@ -25,6 +25,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     val status = MutableLiveData<String?>(null)
     val apkPlugins = MutableLiveData<List<ApkPlugin>>(emptyList())
     private val apkRepository = ApkPluginRepository(application)
+    private val trustStore = PluginTrustStore(application)
 
     init {
         refresh()
@@ -54,6 +55,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     }
 
     fun supported(plugin: ApkPlugin): Boolean = apkRepository.supported(plugin)
+
+    fun isVerified(id: String): Boolean = trustStore.isVerified(id)
 
     fun install(entry: MarketPlugin) {
         executor.execute {
