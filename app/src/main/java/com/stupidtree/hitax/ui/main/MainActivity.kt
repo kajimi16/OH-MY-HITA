@@ -214,33 +214,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
             override fun onPageSelected(position: Int) {
                 binding.navView.itemActiveIndex = position//.getItem(position).isChecked = true
-                when (position) {
-                    0 -> {
-                        binding.timetableLayout.visibility = GONE
-                        binding.navigationLayout.visibility = GONE
-                        binding.pluginLayout.visibility = GONE
-                        binding.todayLayout.visibility = VISIBLE
-                    }
-                    1 -> {
-                        binding.timetableLayout.visibility = VISIBLE
-                        binding.todayLayout.visibility = GONE
-                        binding.navigationLayout.visibility = GONE
-                        binding.pluginLayout.visibility = GONE
-                    }
-                    2 -> {
-                        binding.timetableLayout.visibility = GONE
-                        binding.todayLayout.visibility = GONE
-                        binding.navigationLayout.visibility = VISIBLE
-                        binding.pluginLayout.visibility = GONE
-                    }
-                    3 -> {
-                        binding.timetableLayout.visibility = GONE
-                        binding.todayLayout.visibility = GONE
-                        binding.navigationLayout.visibility = GONE
-                        binding.pluginLayout.visibility = VISIBLE
-                    }
-
-                }
+                showHeaderFor(position)
 //                val item = binding.navView.menu.getItem(position)
 //                item.isChecked = true
 //                binding.title.text = item.title
@@ -357,6 +331,23 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
     override fun initViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
+    }
+
+    /**
+     * 四个页面头互斥显示：顺序与 pager 的页序一一对应
+     * （0 今日 / 1 时间表 / 2 功能中心 / 3 插件市场）。
+     * 新增标签页时只需在这里加一项，避免某个分支漏关导致标题叠加。
+     */
+    private fun showHeaderFor(position: Int) {
+        val headers = listOf(
+            binding.todayLayout,
+            binding.timetableLayout,
+            binding.navigationLayout,
+            binding.pluginLayout,
+        )
+        headers.forEachIndexed { index, header ->
+            header.visibility = if (index == position) VISIBLE else GONE
+        }
     }
 
     override fun setTitleText(string: String) {
