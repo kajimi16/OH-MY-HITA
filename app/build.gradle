@@ -34,8 +34,6 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField "String", "HOA_BASE_URL", '"http://47.115.160.70:8081"'
-        buildConfigField "String", "HOA_API_KEY", '""'
         buildConfigField "String", "UPDATE_URL", '"https://github.com/kajimi16/OH-MY-HITA/releases/latest"'
         buildConfigField "String", "UPDATE_VERSION_NAME", "\"${appVersionNameValue}\""
         buildConfigField "long", "UPDATE_VERSION_CODE", "${appVersionCodeValue}L"
@@ -109,6 +107,8 @@ dependencies {
     // 插件在运行时打包进 APK，但不在宿主编译期可见（防止宿主越界引用插件实现）
     runtimeOnly project(path: ':plugin-hita')
     runtimeOnly project(path: ':plugin-eas')
+    runtimeOnly project(path: ':plugin-resource')
+    runtimeOnly project(path: ':plugin-user')
     implementation project(path: ':component')
     implementation project(path: ':user')
     implementation project(path: ':sync')

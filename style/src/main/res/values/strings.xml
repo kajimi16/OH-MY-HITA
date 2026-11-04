@@ -154,4 +154,5 @@
     
 <string name="fail">失败</string>
     
+<string name="nothing_found">没有搜索到结果</string>
 </resources>

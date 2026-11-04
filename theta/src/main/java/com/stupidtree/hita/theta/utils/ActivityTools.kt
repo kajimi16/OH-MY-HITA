@@ -2,6 +2,7 @@ package com.stupidtree.hita.theta.utils
 
 import android.app.Activity
 import android.content.Context
+import com.stupidtree.hita.theta.ThetaRuntime
 import android.content.Intent
 import android.view.View
 import android.widget.ImageView
@@ -59,20 +60,7 @@ object ActivityTools {
     }
 
     fun startUserActivity(context: Context, userId: String, imageView: ImageView? = null) {
-        val c = Class.forName("com.stupidtree.hitax.ui.profile.ProfileActivity")
-        val i = Intent(context, c)
-        i.putExtra("id", userId)
-        imageView?.let {
-            val op = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                context as Activity,
-                imageView,
-                "useravatar"
-            )
-            context.startActivity(i, op.toBundle())
-        } ?: kotlin.run {
-            context.startActivity(i)
-        }
-
+        ThetaRuntime.hostUi?.openUserProfile(context, userId)
     }
 
     fun startMessagesActivity(context: Context, title: String, mode: String) {

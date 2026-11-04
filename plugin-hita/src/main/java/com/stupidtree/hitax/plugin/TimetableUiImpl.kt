@@ -55,6 +55,10 @@ class TimetableUiImpl : TimetableUiService {
             .show(activity.supportFragmentManager, "panel")
     }
 
+    override fun refreshWidgets(context: Context) {
+        com.stupidtree.hitax.ui.widgets.WidgetUtils.sendRefreshToAll(context)
+    }
+
     override fun openDetail(context: Context, timetableId: String) {
         context.startActivity(
             Intent(context, com.stupidtree.hitax.ui.timetable.detail.TimetableDetailActivity::class.java)

@@ -59,4 +59,7 @@ dependencies {
     implementation 'com.cncoderx.wheelview:library:1.2.2'
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'//滚轮选择器
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.cardview:cardview:1.0.0'
 }

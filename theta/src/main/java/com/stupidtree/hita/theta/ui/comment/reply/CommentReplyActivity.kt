@@ -1,5 +1,6 @@
 package com.stupidtree.hita.theta.ui.comment.reply
 
+import com.stupidtree.hita.theta.utils.ActivityTools
 import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -46,10 +47,7 @@ class CommentReplyActivity : BaseActivity<CommentReplyViewModel, ActivityComment
         listAdapter = CommentsListAdapter(intent.getStringExtra("commentId"), this, mutableListOf())
         binding.authorLayout.setOnClickListener {
             viewModel.commentLiveData.value?.data?.let {
-                val c = Class.forName("com.stupidtree.hitax.ui.profile.ProfileActivity")
-                val i = Intent(getThis(), c)
-                i.putExtra("id", it.authorId)
-                startActivity(i)
+                ActivityTools.startUserActivity(getThis(), it.authorId)
             }
         }
         binding.clist.adapter = listAdapter

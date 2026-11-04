@@ -29,39 +29,9 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
 
-        <receiver
-            android:name=".ui.widgets.today.normal.TodayWidget"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.stupidtree.hita.WIDGET_EVENT_CLICK" />
-                <action android:name="com.stupidtree.hita.WIDGET_EVENT_REFRESH" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/today_widget_info" />
-        </receiver>
-        <service
-            android:name=".ui.widgets.today.ListWidgetService"
-            android:permission="android.permission.BIND_REMOTEVIEWS" />
-
-        <receiver
-            android:name=".ui.widgets.today.slim.TodayWidgetSlim"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.stupidtree.hita.WIDGET_EVENT_CLICK2" />
-                <action android:name="com.stupidtree.hita.WIDGET_EVENT_REFRESH" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/today_slim_widget_info" />
-        </receiver>
-
         <activity
             android:name=".ui.main.MainActivity"
             android:launchMode="singleTop" />
-        <activity android:name=".ui.myprofile.MyProfileActivity" />
         <activity
             android:name=".ui.ActivitySplash"
             android:exported="true"
@@ -72,7 +42,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.teacher.ActivityTeacherOfficial" />
         <activity
             android:name=".ui.search.SearchActivity"
             android:exported="true"
@@ -90,14 +59,9 @@
                     android:scheme="http" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.profile.ProfileActivity" />
         <activity android:name=".ui.about.ActivityAbout" />
         <activity android:name=".ui.news.lecture.ActivityLecture" />
         <activity android:name=".ui.news.NewsDetailActivity" />
-        <activity android:name=".ui.resource.InternalWebActivity" />
-        <activity android:name=".ui.resource.CourseResourceSearchActivity" />
-        <activity android:name=".ui.resource.CourseReadmeActivity" />
-        <activity android:name=".ui.resource.CourseContributionActivity" />
     </application>
 
 </manifest>

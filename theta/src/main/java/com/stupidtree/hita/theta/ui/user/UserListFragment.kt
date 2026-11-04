@@ -1,5 +1,6 @@
 package com.stupidtree.hita.theta.ui.user
 
+import com.stupidtree.hita.theta.utils.ActivityTools
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -40,10 +41,7 @@ class UserListFragment :
         listAdapter.setOnItemClickListener(object :
             BaseListAdapter.OnItemClickListener<UserProfile> {
             override fun onItemClick(data: UserProfile?, card: View?, position: Int) {
-                val userProfile = Class.forName("com.stupidtree.hitax.ui.profile")
-                val i = Intent(requireContext(), userProfile)
-                i.putExtra("UserId", data?.id)
-                startActivity(i)
+                ActivityTools.startUserActivity(requireContext(), data?.id ?: "")
             }
         })
         binding?.list?.addOnScrollListener(object : RecyclerView.OnScrollListener() {

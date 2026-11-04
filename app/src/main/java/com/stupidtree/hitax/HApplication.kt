@@ -69,16 +69,13 @@ class HApplication : Application() {
             }
 
             override fun openCourseResourceSearch(context: android.content.Context, keyword: String?, submit: Boolean) {
-                com.stupidtree.hitax.utils.ActivityUtils.startCourseResourceSearchActivity(
-                    context,
-                    keyword,
-                    if (submit) com.stupidtree.hitax.utils.ActivityUtils.CourseResourceMode.SUBMIT
-                    else com.stupidtree.hitax.utils.ActivityUtils.CourseResourceMode.VIEW,
-                )
+                pluginHost.service(com.stupidtree.hita.api.ResourceUiService.KEY)
+                    ?.openSearch(context, keyword, submit)
             }
 
             override fun openTeacherHomepage(context: android.content.Context, teacherName: String) {
-                com.stupidtree.hitax.utils.ActivityUtils.startTeacherHomepageSearch(context, teacherName)
+                pluginHost.service(com.stupidtree.hita.api.ResourceUiService.KEY)
+                    ?.openTeacherHomepage(context, teacherName)
             }
 
             override fun openAddEvent(
@@ -99,9 +96,8 @@ class HApplication : Application() {
                 courseCode: String?,
                 courseName: String?,
             ) {
-                com.stupidtree.hitax.utils.CourseResourceLinker.openReadme(
-                    context, lifecycleOwner, courseCode, courseName
-                )
+                pluginHost.service(com.stupidtree.hita.api.ResourceUiService.KEY)
+                    ?.openReadme(context, lifecycleOwner, courseCode, courseName)
             }
 
             override fun openCourseContribution(
@@ -111,26 +107,28 @@ class HApplication : Application() {
                 courseCode: String,
                 repoType: String,
             ) {
-                com.stupidtree.hitax.utils.ActivityUtils.startCourseContributionActivity(
-                    context, repoName, courseName, courseCode, repoType
-                )
+                pluginHost.service(com.stupidtree.hita.api.ResourceUiService.KEY)
+                    ?.openContribution(context, repoName, courseName, courseCode, repoType)
             }
 
             override fun searchTeacherNames(query: String): androidx.lifecycle.LiveData<List<String>> {
-                val out = androidx.lifecycle.MediatorLiveData<List<String>>()
-                out.addSource(
-                    com.stupidtree.hitax.data.repository.TeacherInfoRepository
-                        .getInstance(this@HApplication).searchTeachers(query)
-                ) { state -> out.value = state.data?.map { it.name } ?: emptyList() }
-                return out
+                return pluginHost.service(com.stupidtree.hita.api.ResourceUiService.KEY)
+                    ?.searchTeacherNames(query)
+                    ?: androidx.lifecycle.MutableLiveData(emptyList())
             }
 
             override fun notifyWidgets() {
-                com.stupidtree.hitax.ui.widgets.WidgetUtils.sendRefreshToAll(this@HApplication)
+                pluginHost.service(com.stupidtree.hita.api.TimetableUiService.KEY)
+                    ?.refreshWidgets(this@HApplication)
             }
 
             override fun startAutoReimport(callback: (Boolean) -> Unit) {
                 pluginHost.service(EasService.KEY)?.startAutoReimport(callback) ?: callback(false)
+            }
+
+            override fun openUserProfile(context: android.content.Context, userId: String?) {
+                pluginHost.service(com.stupidtree.hita.api.UserUiService.KEY)
+                    ?.openProfile(context, userId)
             }
 
             override fun showEventInfo(

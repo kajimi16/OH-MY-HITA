@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
+        <receiver
+            android:name="com.stupidtree.hitax.ui.widgets.today.normal.TodayWidget"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.stupidtree.hita.WIDGET_EVENT_CLICK" />
+                <action android:name="com.stupidtree.hita.WIDGET_EVENT_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/today_widget_info" />
+        </receiver>
+        <service
+            android:name="com.stupidtree.hitax.ui.widgets.today.ListWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+        <receiver
+            android:name="com.stupidtree.hitax.ui.widgets.today.slim.TodayWidgetSlim"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.stupidtree.hita.WIDGET_EVENT_CLICK2" />
+                <action android:name="com.stupidtree.hita.WIDGET_EVENT_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/today_slim_widget_info" />
+        </receiver>
         <activity
             android:name="com.stupidtree.hitax.ui.timetable.manager.TimetableManagerActivity"
             android:exported="false" />

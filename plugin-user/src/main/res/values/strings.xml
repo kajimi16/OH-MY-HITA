@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="avatar">头像</string>
+<string name="avatar_change_success">更换成功</string>
+<string name="choose_gender">选择性别</string>
+<string name="choose_signature">我想说</string>
+<string name="edit_my_profile">编辑资料</string>
+<string name="fail">失败</string>
+<string name="fans">粉丝</string>
+<string name="female">女</string>
+<string name="follow">关注</string>
+<string name="following">关注</string>
+<string name="gender">性别</string>
+<string name="its_post">TA的发帖</string>
+<string name="label_basic_profile">基本资料</string>
+<string name="logout">退出登录</string>
+<string name="logout_hint">确定退出？</string>
+<string name="male">男</string>
+<string name="my_profile_title">个人信息</string>
+<string name="navi_campus_title">校园生活</string>
+<string name="no_image_selected">没有选择数据</string>
+<string name="other_gender">其他性别</string>
+<string name="place_holder_no_signature">这个人很佛系，啥都没写</string>
+<string name="prompt_nickname">显示名称</string>
+<string name="set_nickname">设置昵称</string>
+<string name="signature">个人简介</string>
+<string name="unfollow">取关</string>
+<string name="username">账号</string>
+<string name="username2">账号</string>
+<string name="users_fans">%s的粉丝</string>
+<string name="users_following">%s的关注</string>
+<string name="users_posts">%s的发帖</string>
+</resources>

@@ -1,0 +1,55 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
+
+android {
+    defaultConfig {
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 35
+
+        // HOA 课程资源服务端点（与宿主原配置保持一致）
+        buildConfigField "String", "HOA_BASE_URL", '"http://47.115.160.70:8081"'
+        buildConfigField "String", "HOA_API_KEY", '""'
+        buildConfigField "String", "VERSION_NAME", '"resource-plugin"'
+    }
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions { jvmTarget = '1.8' }
+    namespace 'com.stupidtree.hita.plugin.resource'
+}
+
+// 课程资源 / 教师检索插件：HOA 数据与相关界面全部在本模块内。
+dependencies {
+    api project(':api')
+    api project(':model')
+    implementation project(':component')
+    implementation project(':style')
+
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4"
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    implementation 'org.jsoup:jsoup:1.18.2'
+    implementation 'io.noties.markwon:core:4.6.2'
+    implementation 'io.noties.markwon:linkify:4.6.2'
+    implementation 'io.noties.markwon:ext-tables:4.6.2'
+    implementation 'io.noties.markwon:ext-tasklist:4.6.2'
+    implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
+    implementation 'io.noties.markwon:ext-latex:4.6.2'
+    implementation 'io.noties.markwon:image-glide:4.6.2'
+    implementation 'io.noties.markwon:html:4.6.2'
+    implementation 'ru.noties:jlatexmath-android:0.2.0'
+    testImplementation 'junit:junit:4.13.2'
+}

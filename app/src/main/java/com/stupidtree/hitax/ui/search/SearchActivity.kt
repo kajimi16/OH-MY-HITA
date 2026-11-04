@@ -16,7 +16,6 @@ import com.stupidtree.hitax.R
 import com.stupidtree.hitax.databinding.ActivitySearchBinding
 import com.stupidtree.style.base.BaseActivity
 import com.stupidtree.style.base.BaseTabAdapter
-import com.stupidtree.hitax.ui.search.teacher.FragmentSearchTeacher
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.style.base.FragmentSearchResult
 
@@ -107,17 +106,10 @@ class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
         }
     }
 
-    /**
-     * 教师 tab 由宿主提供，其余 tab 来自插件贡献点。
-     */
+    /** 搜索 tab 全部来自插件贡献点，宿主只负责排序与渲染。 */
     private fun buildTabs(): List<SearchTab> {
-        val result = mutableListOf(
-            SearchTab(SearchTabIds.TEACHER, R.string.tab_search_teacher, order = 10) {
-                FragmentSearchTeacher()
-            }
-        )
-        result += (application as HApplication).pluginHost.searchTabs.entries()
-        return result
+        return (application as HApplication).pluginHost.searchTabs.entries()
+            .sortedBy { it.order }
     }
 
     class SearchPagerAdapter(

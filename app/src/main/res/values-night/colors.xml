@@ -1,8 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 小部件夜间模式颜色 -->
-    <color name="widget_background">#FF1E1E1E</color>
-    <color name="widget_text_primary">#FFFFFFFF</color>
-    <color name="widget_text_secondary">#B3FFFFFF</color>
-    <color name="widget_divider">#33FFFFFF</color>
 </resources>

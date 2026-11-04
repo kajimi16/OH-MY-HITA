@@ -28,6 +28,9 @@ interface TimetableUiService {
     /** 打开课表样式面板（插件内的 BottomSheet） */
     fun openStylePanel(activity: androidx.fragment.app.FragmentActivity)
 
+    /** 请求刷新桌面小组件（小组件实现位于课表插件内）。 */
+    fun refreshWidgets(context: Context)
+
     companion object {
         val KEY = ServiceKey<TimetableUiService>("hita.timetable.ui")
     }

@@ -3,6 +3,7 @@ package com.stupidtree.hita.theta
 import android.content.Intent
 import android.widget.Toast
 import com.stupidtree.hita.api.CommunityService
+import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.NavEntry
 import com.stupidtree.hita.api.Plugin
 import com.stupidtree.hita.api.PluginContext
@@ -30,6 +31,7 @@ class ThetaPlugin : Plugin {
 
     override fun install(ctx: PluginContext) {
         ctx.provide(CommunityService.KEY, ThetaCommunityService())
+        ThetaRuntime.hostUi = ctx.service(HostUiService.KEY)
 
         ctx.searchTabs.register(
             SearchTab(

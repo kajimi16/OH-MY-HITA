@@ -28,7 +28,6 @@ import com.stupidtree.hitax.databinding.ActivityMainBinding
 import com.stupidtree.hitax.ui.about.ActivityAbout
 import com.stupidtree.hitax.ui.about.UserAgreementDialog
 import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
-import com.stupidtree.hitax.ui.widgets.WidgetUtils
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.ImageUtils
 import com.stupidtree.stupiduser.data.repository.LocalUserRepository
@@ -254,7 +253,8 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
         binding.switchTheme.setOnClickListener {
             ThemeTools.switchTheme(getThis())
-            WidgetUtils.sendRefreshToAll(this)
+            pluginHost().service(com.stupidtree.hita.api.TimetableUiService.KEY)
+                ?.refreshWidgets(this)
         }
         viewModel.checkUpdateResult.observe(this) {
             if (it.state == DataState.STATE.SUCCESS) {

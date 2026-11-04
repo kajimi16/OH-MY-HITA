@@ -1,5 +1,6 @@
 package com.stupidtree.hita.theta.ui.widgets
 
+import com.stupidtree.hita.theta.utils.ActivityTools
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
@@ -70,10 +71,7 @@ class EmoticonsTextView2 : AppCompatTextView {
                 span.textColor = (context as BaseActivity<*, *>).getColorPrimary()
                 span.spanClickAction = object : (View, DslDrawableSpan) -> Unit {
                     override fun invoke(view: View, span: DslDrawableSpan) {
-                        val c = Class.forName("com.stupidtree.hitax.ui.profile.ProfileActivity")
-                        val i = Intent(context, c)
-                        i.putExtra("id", key)
-                        context.startActivity(i)
+                        ActivityTools.startUserActivity(context, key)
                     }
                 }
                 span.backgroundDrawable = ContextCompat.getDrawable(context,R.drawable.element_rounded_bar_primary_light)

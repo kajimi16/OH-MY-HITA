@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.stupidtree.hita.api.ResourceUiService
 import com.stupidtree.hita.api.TimetableService
 import java.lang.reflect.Proxy
 
@@ -27,6 +28,9 @@ object HitaServices {
                     Log.w("HitaServices", "timetable plugin missing, using no-op service")
                 }
             }
+
+    fun resourceUi(context: Context): ResourceUiService? =
+        (context.applicationContext as HApplication).pluginHost.service(ResourceUiService.KEY)
 
     /** 用动态代理生成 no-op 实现：新增接口方法时无需同步维护。 */
     private fun noopTimetable(): TimetableService {

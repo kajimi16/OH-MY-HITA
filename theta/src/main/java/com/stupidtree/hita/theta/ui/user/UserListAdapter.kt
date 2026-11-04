@@ -1,5 +1,6 @@
 package com.stupidtree.hita.theta.ui.user
 
+import com.stupidtree.hita.theta.utils.ActivityTools
 import android.content.Context
 import android.content.Intent
 import android.view.View
@@ -70,10 +71,7 @@ class UserListAdapter(
             holder.binding.username.text = data.nickname
             holder.binding.description.text = data.signature
             holder.binding.item.setOnClickListener {
-                val c = Class.forName("com.stupidtree.hitax.ui.profile.ProfileActivity")
-                val i = Intent(mContext, c)
-                i.putExtra("id", data?.id)
-                mContext.startActivity(i)
+                ActivityTools.startUserActivity(mContext, data?.id ?: "")
             }
             ImageUtils.loadAvatarInto(mContext, it.avatar, holder.binding.avatar)
             holder.binding.follow.setOnClickListener { v ->

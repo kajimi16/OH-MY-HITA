@@ -63,23 +63,25 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 | `:kernel` | 微内核：`PluginHost` 负责装载/卸载、注册表与回滚；不依赖 Android，可直接跑 JVM 单测 |
 | `:app` | 宿主（shell）：`PluginHost` 装载/卸载插件并撤销其注册；`PluginCatalog` 是构建期插件清单 |
 | `:model` | 共享数据模型：实体与 DTO，宿主 / 契约 / 插件三方共用 |
-| `:plugin-hita` | 课表插件：Room 库、DAO、仓库、ICS、`TimetableService` 实现与同步 codec |
-| `:theta` | 第一个插件样例：只依赖 `:api`，贡献 `CommunityService`、搜索页两个 tab、抽屉入口 |
+| `:plugin-hita` | 课表插件：Room 库、DAO、仓库、ICS、`TimetableService` / `TimetableUiService`、同步 codec，以及今日桌面小组件 |
+| `:plugin-eas` | 教务插件：登录、成绩、考试、空教室、课表导入、成绩提醒 |
+| `:plugin-resource` | 课程资源插件：HOA 课程资料、README 渲染、投稿、教师检索（`ResourceUiService`） |
+| `:plugin-user` | 个人主页插件：资料页与编辑页（`UserUiService`） |
+| `:theta` | 社区插件：贡献 `CommunityService`、搜索页两个 tab、抽屉入口 |
 | `:component` `:style` `:user` `:sync` | 待迁移的能力层（P2/P3 目标） |
 
-装配点只有一个 —— `app/src/main/java/com/stupidtree/hitax/kernel/PluginCatalog.kt`：
+装配点只有一个 —— `app/src/main/assets/plugins.json`：
 
-```kotlin
-object PluginCatalog {
-    fun plugins(): List<Plugin> = listOf(
-        ThetaPlugin(),
-    )
+```json
+{
+  "enabled": ["com.stupidtree.hita.theta", "com.stupidtree.hitax.timetable", "..."],
+  "plugins": [{"id": "...", "class": "...", "needsApplication": true}]
 }
 ```
 
-删掉一行 → 该功能不再被装配，宿主代码一行不用改（已用模拟器验证）。
-注意这只是「不装配」：模块仍会被编译打包；要真正从 APK 里移除，需同时删掉 `app/build.gradle`
-的模块依赖和 `settings.gradle` 的 include。
+`PluginCatalog` 反射实例化这些类，宿主不 import 插件实现（`app` 只以 `runtimeOnly` 依赖插件模块）。
+从 `enabled` 里删掉一项 → 该功能不再被装配，宿主代码一行不用改（已用空壳构建+启动验证）。
+要真正从 APK 里移除，还需删掉 `app/build.gradle` 的 `runtimeOnly` 与 `settings.gradle` 的 include。
 
 已实现的贡献点：
 
@@ -87,6 +89,10 @@ object PluginCatalog {
 - `NavEntry` —— 抽屉导航项
 - `SearchTab` —— 搜索结果页 tab，按 `SearchTabIds` 语义 id 与宿主对齐
 - `SyncCodec` —— 云同步的「一张表」，宿主不再 `when(key)` 硬编码数据表
+- `TimetableUiService` —— 课表界面入口与小组件刷新
+- `ResourceUiService` —— 课程资源 / 教师界面入口
+- `UserUiService` —— 个人主页入口（θ 与宿主都只传 userId）
+- `HostUiService` —— 宿主的跨插件能力（导入、弹窗、跳转），由宿主实现
 
 约定：
 

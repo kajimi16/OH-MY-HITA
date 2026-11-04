@@ -12,9 +12,4 @@
     <attr name="colorPrimaryDisabled" format="color" />
 
     <attr name="colorFade" format="color" />
-    <declare-styleable name="AppWidgetAttrs">
-        <attr name="appWidgetPadding" format="dimension" />
-        <attr name="appWidgetInnerRadius" format="dimension" />
-        <attr name="appWidgetRadius" format="dimension" />
-    </declare-styleable>
 </resources>

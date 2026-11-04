@@ -56,6 +56,9 @@ interface HostUiService {
         repoType: String,
     )
 
+    /** 打开个人主页（用户插件实现）。 */
+    fun openUserProfile(context: Context, userId: String?)
+
     /** 展示事件详情弹窗（宿主负责渲染）。 */
     fun showEventInfo(context: Context, events: List<EventItem>)
 

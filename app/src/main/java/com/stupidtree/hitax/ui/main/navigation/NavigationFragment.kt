@@ -11,7 +11,6 @@ import com.bumptech.glide.Glide
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.databinding.FragmentNavigationBinding
 import com.stupidtree.style.base.BaseFragment
-import com.stupidtree.hitax.utils.ActivityUtils.CourseResourceMode
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.ImageUtils
 import com.stupidtree.stupiduser.data.repository.LocalUserRepository
@@ -76,10 +75,12 @@ class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationB
             eas()?.openExam(requireActivity())
         }
         binding?.cardCourseLookup?.setOnClickListener {
-            ActivityUtils.startCourseResourceSearchActivity(requireContext(), mode = CourseResourceMode.VIEW)
+            com.stupidtree.hitax.HitaServices.resourceUi(requireContext())
+                ?.openSearch(requireContext(), null, submit = false)
         }
         binding?.cardCourseSubmitPr?.setOnClickListener {
-            ActivityUtils.startCourseResourceSearchActivity(requireContext(), mode = CourseResourceMode.SUBMIT)
+            com.stupidtree.hitax.HitaServices.resourceUi(requireContext())
+                ?.openSearch(requireContext(), null, submit = true)
         }
         
         // 课程提醒开关
