@@ -25,8 +25,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.TransformOrigin
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -42,6 +55,7 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -211,6 +225,7 @@ private fun ResourceApp(host: PluginUiHost, initialQuery: String) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun SearchScreen(
     service: ResourceDataService?,
@@ -222,11 +237,18 @@ private fun SearchScreen(
     onOpenReadme: (CourseResourceItem) -> Unit,
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
+    var refreshToken by remember { mutableStateOf(0) }
+    var refreshing by remember { mutableStateOf(false) }
     val empty = remember { MutableLiveData<DataState<List<CourseResourceItem>>>() }
-    val live = remember(submitted, service) {
+    val live = remember(submitted, refreshToken, service) {
         if (service == null || submitted.isBlank()) null else service.searchCourses(submitted)
     }
     val result by (live ?: empty).observeAsState()
+    val generation by remember(submitted, refreshToken) { derivedStateOf { "$submitted#$refreshToken" } }
+    val played = remember(generation) { mutableStateMapOf<Int, Boolean>() }
+    LaunchedEffect(result?.state) {
+        if (result?.state != null) refreshing = false
+    }
 
     Column(Modifier.fillMaxSize().background(tokens.backgroundBottom)) {
         TopBar(tokens, title = LocalContext.current.hostString("course_resource_title", "课程资源"), showBack = false, onBack = {})
@@ -255,9 +277,36 @@ private fun SearchScreen(
                     CenterHint(tokens, "课程资源加载失败：${result?.message ?: result?.state}")
                 result?.data.isNullOrEmpty() ->
                     CenterHint(tokens, LocalContext.current.hostString("course_resource_empty", "没有找到相关课程资源"))
-                else -> LazyColumn(Modifier.fillMaxSize()) {
-                    items(result?.data ?: emptyList()) { item ->
-                        CourseCard(tokens, item) { onOpenReadme(item) }
+                else -> {
+                    val pullState = rememberPullRefreshState(
+                        refreshing = refreshing,
+                        onRefresh = {
+                            refreshing = true
+                            refreshToken++
+                        },
+                    )
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .pullRefresh(pullState),
+                    ) {
+                        LazyColumn(Modifier.fillMaxSize()) {
+                            itemsIndexed(result?.data ?: emptyList()) { index, item ->
+                                EntranceAnimation(
+                                    index = index,
+                                    generation = generation,
+                                    played = played,
+                                ) {
+                                    CourseCard(tokens, item) { onOpenReadme(item) }
+                                }
+                            }
+                        }
+                        PullRefreshIndicator(
+                            refreshing = refreshing,
+                            state = pullState,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            contentColor = tokens.primary,
+                        )
                     }
                 }
             }
@@ -395,6 +444,44 @@ private fun CenterHint(tokens: Tokens, text: String) {
         fontSize = 14.sp,
         textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth().padding(24.dp),
+    )
+}
+
+private val ResourceDecelerate = Easing { t -> 1f - (1f - t) * (1f - t) }
+
+/** 复刻内置 RecyclerView layoutAnimation：400ms、延迟 20%、上移 20% + 淡入 + 105% 缩放。 */
+@Composable
+private fun EntranceAnimation(
+    index: Int,
+    generation: String,
+    played: MutableMap<Int, Boolean>,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    val alreadyPlayed = played[index] == true
+    if (!alreadyPlayed) played[index] = true
+
+    var started by remember(generation, index) { mutableStateOf(alreadyPlayed) }
+    LaunchedEffect(generation, index) {
+        if (!alreadyPlayed) {
+            delay((index.coerceAtMost(10) * 80).toLong())
+            started = true
+        }
+    }
+    val progress by animateFloatAsState(
+        targetValue = if (started) 1f else 0f,
+        animationSpec = tween(durationMillis = 400, easing = ResourceDecelerate),
+        label = "entrance",
+    )
+    Box(
+        Modifier.graphicsLayer {
+            alpha = progress
+            val scale = 1.05f - 0.05f * progress
+            scaleX = scale
+            scaleY = scale
+            transformOrigin = TransformOrigin(0.5f, 0.5f)
+            translationY = -(1f - progress) * size.height * 0.2f
+        },
+        content = content,
     )
 }
 
