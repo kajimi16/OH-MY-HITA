@@ -7,6 +7,8 @@ import com.google.gson.Gson
 import com.stupidtree.hitax.BuildConfig
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.plugin.BuiltinPluginManager
+import com.stupidtree.hitax.uiplugin.InstalledUiPlugin
+import com.stupidtree.hitax.uiplugin.UiPluginManager
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -33,6 +35,11 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     /** 内置插件变更后需要重建界面（tab / 导航项集合已变）。 */
     val reloadUi = MutableLiveData(false)
+
+    private val uiPluginManager = UiPluginManager(application)
+
+    /** 运行时界面插件（Compose 容器，独立 APK）。 */
+    val uiPlugins = MutableLiveData<List<InstalledUiPlugin>>(emptyList())
     private val apkRepository = ApkPluginRepository(application)
     private val trustStore = PluginTrustStore(application)
 
@@ -51,6 +58,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                     .getOrDefault(emptyList())
             )
             builtinPlugins.postValue(builtin.rows())
+            uiPlugins.postValue(uiPluginManager.installed())
             val installed = installer.installed().map { it.id }.toSet()
             runCatching { readIndex() }
                 .onSuccess { (index, _) ->
@@ -88,6 +96,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val error = runCatching { builtin.uninstall(row.id, purgeData) }.exceptionOrNull()
             message.postValue(error?.let { "卸载失败：${it.message}" } ?: "已卸载 ${row.name}")
             builtinPlugins.postValue(builtin.rows())
+            uiPlugins.postValue(uiPluginManager.installed())
             if (error == null) reloadUi.postValue(true)
         }
     }
@@ -97,7 +106,28 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val error = runCatching { builtin.install(row.id) }.exceptionOrNull()
             message.postValue(error?.let { "启用失败：${it.message}" } ?: "已启用 ${row.name}")
             builtinPlugins.postValue(builtin.rows())
+            uiPlugins.postValue(uiPluginManager.installed())
             if (error == null) reloadUi.postValue(true)
+        }
+    }
+
+    fun installUiPlugin(uri: android.net.Uri) {
+        executor.execute {
+            val app = getApplication<Application>()
+            val error = runCatching { uiPluginManager.install(uri) }.exceptionOrNull()
+            message.postValue(
+                error?.let { app.getString(com.stupidtree.hitax.R.string.plugin_ui_install_failed, it.message ?: "") }
+                    ?: app.getString(com.stupidtree.hitax.R.string.plugin_ui_installed, "插件")
+            )
+            uiPlugins.postValue(uiPluginManager.installed())
+        }
+    }
+
+    fun uninstallUiPlugin(plugin: InstalledUiPlugin) {
+        executor.execute {
+            runCatching { uiPluginManager.uninstall(plugin.id) }
+            uiPlugins.postValue(uiPluginManager.installed())
+            message.postValue("已卸载 ${plugin.name}")
         }
     }
 

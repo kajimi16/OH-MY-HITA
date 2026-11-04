@@ -7,10 +7,11 @@ package com.stupidtree.hita.api
  * **破坏性**改动都必须递增此值。插件在 [Plugin.requiresApi] 中声明自己依赖的版本。
  *
  * 变更记录：
+ * - 3: 新增运行时界面插件契约 `ComposeUiPlugin` / `PluginUiHost`（加法，不破坏旧插件）
  * - 2: 移除 `PluginContext.appContext`；新增 `PluginContext.sync`（SyncRegistry）
  * - 1: 首个版本
  */
-const val HITA_API_VERSION = 2
+const val HITA_API_VERSION = 3
 
 /**
  * 一个插件。
