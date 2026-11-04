@@ -16,7 +16,11 @@
       "name": "课程资源",
       "version": "0.4.8",
       "url": "https://ani2-ext.kajimi.cc/hita/market/course-resource-0.4.8.apk",
-      "sha256": "8fc623f80e63875caf0d4aa28c6a54854b302d3b15be0443fce2415bfdb97a15"
+      "sha256": "8fc623f80e63875caf0d4aa28c6a54854b302d3b15be0443fce2415bfdb97a15",
+      "description": "课程资料浏览与搜索（运行时界面插件）。",
+      "changelog": "首个市场版本；支持课程搜索与 README 渲染。",
+      "size": 647061,
+      "minHostApi": 3
     }
   ]
 }
