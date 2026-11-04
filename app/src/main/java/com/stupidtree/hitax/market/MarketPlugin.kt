@@ -16,6 +16,17 @@ data class MarketPlugin(
     val entryClass: String,
 )
 
+/** 市场里的运行时界面插件（独立 APK + Compose 容器）。 */
+data class UiMarketPlugin(
+    val id: String,
+    val name: String,
+    val version: String,
+    /** APK 地址，可为相对索引的路径。 */
+    val url: String,
+    val sha256: String,
+)
+
 data class MarketIndex(
     val plugins: List<MarketPlugin> = emptyList(),
+    val uiPlugins: List<UiMarketPlugin> = emptyList(),
 )

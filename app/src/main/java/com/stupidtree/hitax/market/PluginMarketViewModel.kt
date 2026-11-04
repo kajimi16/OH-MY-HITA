@@ -40,6 +40,9 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     /** 运行时界面插件（Compose 容器，独立 APK）。 */
     val uiPlugins = MutableLiveData<List<InstalledUiPlugin>>(emptyList())
+
+    /** 索引里可安装 / 可更新的界面插件。 */
+    val availableUiPlugins = MutableLiveData<List<UiMarketPlugin>>(emptyList())
     private val apkRepository = ApkPluginRepository(application)
     private val trustStore = PluginTrustStore(application)
 
@@ -59,10 +62,12 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             )
             builtinPlugins.postValue(builtin.rows())
             uiPlugins.postValue(uiPluginManager.installed())
+            availableUiPlugins.postValue(emptyList())
             val installed = installer.installed().map { it.id }.toSet()
             runCatching { readIndex() }
                 .onSuccess { (index, _) ->
                     items.postValue(index.plugins.map { Item(it, it.id in installed) })
+                    availableUiPlugins.postValue(index.uiPlugins)
                     status.postValue(null)
                 }
                 .onFailure {
@@ -121,6 +126,37 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             )
             uiPlugins.postValue(uiPluginManager.installed())
         }
+    }
+
+    /** 从市场索引安装/更新界面插件（相对 URL 按索引地址解析）。 */
+    fun installUiPluginFromUrl(entry: UiMarketPlugin, indexBase: String?) {
+        executor.execute {
+            val app = getApplication<Application>()
+            val error = runCatching {
+                val url = resolve(entry.url, indexBase)
+                val file = java.io.File(app.cacheDir, "ui-${entry.id}.apk")
+                java.net.URL(url).openStream().use { input ->
+                    file.outputStream().use { input.copyTo(it) }
+                }
+                try {
+                    uiPluginManager.installFile(file, entry.sha256)
+                } finally {
+                    file.delete()
+                }
+            }.exceptionOrNull()
+            message.postValue(
+                error?.let { app.getString(com.stupidtree.hitax.R.string.plugin_ui_install_failed, it.message ?: "") }
+                    ?: app.getString(com.stupidtree.hitax.R.string.plugin_ui_installed, entry.name)
+            )
+            uiPlugins.postValue(uiPluginManager.installed())
+        }
+    }
+
+    private fun resolve(url: String, base: String?): String {
+        if (url.startsWith("http://") || url.startsWith("https://")) return url
+        if (base.isNullOrBlank()) return url
+        val slash = base.lastIndexOf('/')
+        return if (slash < 0) url else base.substring(0, slash + 1) + url
     }
 
     fun uninstallUiPlugin(plugin: InstalledUiPlugin) {

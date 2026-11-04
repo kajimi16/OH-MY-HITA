@@ -52,8 +52,20 @@ class UiPluginManager(private val context: Context) {
         context.contentResolver.openInputStream(uri)?.use { input ->
             tmp.outputStream().use { input.copyTo(it) }
         } ?: error("无法读取所选文件")
+        installFile(tmp, expectedSha256 = null).also { tmp.delete() }
+    }
 
-        val meta = readMetadata(tmp)
+    /**
+     * 从已落盘的文件安装；[expectedSha256] 来自市场索引，下载后先比对再落库。
+     */
+    fun installFile(file: File, expectedSha256: String?): InstalledUiPlugin {
+        val actual = sha256(file)
+        if (expectedSha256 != null) {
+            require(actual.equals(expectedSha256, ignoreCase = true)) {
+                "sha256 校验失败：期望 $expectedSha256，实际 $actual"
+            }
+        }
+        val meta = readMetadata(file)
         require(meta.apiVersion <= HITA_API_VERSION) {
             "插件需要 api ${meta.apiVersion}，当前宿主 $HITA_API_VERSION"
         }
@@ -62,11 +74,9 @@ class UiPluginManager(private val context: Context) {
         }
         val dir = pluginDir(meta.id).apply { mkdirs() }
         val apk = File(dir, "plugin.apk")
-        tmp.copyTo(apk, overwrite = true)
-        tmp.delete()
+        file.copyTo(apk, overwrite = true)
         // Android 14 起，动态加载的代码文件必须是只读的
         apk.setReadOnly()
-        val digest = sha256(apk)
 
         val plugin = loadClass(apk, meta.entryClass)
         require(plugin is ComposeUiPlugin) { "入口类未实现 ComposeUiPlugin" }
@@ -81,10 +91,10 @@ class UiPluginManager(private val context: Context) {
             version = meta.version,
             entryClass = meta.entryClass,
             apkPath = apk.absolutePath,
-            sha256 = digest,
+            sha256 = actual,
         )
         UiPluginStore.put(context, installed)
-        installed
+        return installed
     }
 
     fun uninstall(id: String) {

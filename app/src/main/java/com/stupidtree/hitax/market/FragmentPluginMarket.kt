@@ -35,7 +35,8 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         viewModel.items.observe(this) { render(it) }
         viewModel.apkPlugins.observe(this) { renderApkPlugins(it) }
         viewModel.builtinPlugins.observe(this) { renderBuiltin(it) }
-        viewModel.uiPlugins.observe(this) { renderUiPlugins(it) }
+        viewModel.uiPlugins.observe(this) { renderUiRows(it, latestUiAvailable) }
+        viewModel.availableUiPlugins.observe(this) { renderUiRows(latestUiInstalled, it) }
         binding?.installUiPlugin?.setOnClickListener {
             pickUiPluginApk.launch(
                 arrayOf(
@@ -124,6 +125,66 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             }
             .setNeutralButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private var latestUiInstalled: List<com.stupidtree.hitax.uiplugin.InstalledUiPlugin> = emptyList()
+    private var latestUiAvailable: List<UiMarketPlugin> = emptyList()
+
+    private fun renderUiRows(installed: List<com.stupidtree.hitax.uiplugin.InstalledUiPlugin>, available: List<UiMarketPlugin>) {
+        latestUiInstalled = installed
+        latestUiAvailable = available
+        val container = binding?.uiContainer ?: return
+        val empty = binding?.uiEmpty
+        val indexBase = com.stupidtree.hitax.BuildConfig.PLUGIN_INDEX_URL.takeIf { it.isNotBlank() }
+        val installedById = installed.associateBy { it.id }
+        val pending = available.filter { av -> installedById[av.id]?.version != av.version }
+        empty?.visibility = if (installed.isEmpty() && pending.isEmpty()) View.VISIBLE else View.GONE
+        container.removeAllViews()
+        val inflater = LayoutInflater.from(requireContext())
+
+        pending.forEach { av ->
+            val row = com.stupidtree.hitax.databinding.ItemUiPluginBinding.inflate(inflater, container, false)
+            val isUpdate = installedById.containsKey(av.id)
+            row.name.text = av.name
+            row.meta.text = "${av.version} · ${if (isUpdate) "可更新" else "可安装"}"
+            row.uninstall.visibility = View.GONE
+            row.open.text = getString(
+                if (isUpdate) com.stupidtree.hitax.R.string.plugin_ui_update
+                else com.stupidtree.hitax.R.string.plugin_ui_install_action
+            )
+            row.open.setOnClickListener {
+                AlertDialog.Builder(requireContext())
+                    .setMessage(com.stupidtree.hitax.R.string.plugin_ui_warning)
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        viewModel.installUiPluginFromUrl(av, indexBase)
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+            container.addView(row.root)
+        }
+
+        installed.forEach { plugin ->
+            val row = com.stupidtree.hitax.databinding.ItemUiPluginBinding.inflate(inflater, container, false)
+            row.name.text = plugin.name
+            row.meta.text = "${plugin.version} · ${plugin.id}"
+            row.open.text = getString(com.stupidtree.hitax.R.string.plugin_builtin_open)
+            row.open.setOnClickListener {
+                startActivity(
+                    android.content.Intent(requireContext(), com.stupidtree.hitax.uiplugin.PluginUiActivity::class.java)
+                        .putExtra(com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_PLUGIN_ID, plugin.id)
+                )
+            }
+            row.uninstall.setOnClickListener {
+                AlertDialog.Builder(requireContext())
+                    .setTitle(com.stupidtree.hitax.R.string.plugin_builtin_uninstall)
+                    .setMessage(plugin.name)
+                    .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.uninstallUiPlugin(plugin) }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+            container.addView(row.root)
+        }
     }
 
     private fun renderUiPlugins(plugins: List<com.stupidtree.hitax.uiplugin.InstalledUiPlugin>) {
