@@ -794,7 +794,7 @@
     <string name="title_plugin">插件</string>
     <string name="plugin_apk_section">已安装的独立插件（APK）</string>
     <string name="plugin_apk_empty">没有发现独立插件。安装插件 APK 后会自动出现在这里。</string>
-    <string name="plugin_market_section">在线插件（逻辑插件）</string>
+    <string name="plugin_market_section">市场插件</string>
     <string name="plugin_untrusted_title">未验证的插件</string>
     <string name="plugin_untrusted_message">「%1$s」未经过 OH-MY-HITA 核验。安装或运行后，它将拥有本应用的完整权限，请确认来源可信。是否继续？</string>
     <string name="plugin_trust_verified">已验证</string>

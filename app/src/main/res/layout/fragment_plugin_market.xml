@@ -24,44 +24,6 @@
             android:visibility="gone" />
 
         <TextView
-            android:id="@+id/empty_hint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="24dp"
-            android:text="@string/plugin_market_empty"
-            android:textColor="?attr/textColorSecondary"
-            android:textSize="14sp"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/apk_section_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingTop="16dp"
-            android:paddingEnd="16dp"
-            android:text="@string/plugin_apk_section"
-            android:textColor="?attr/textColorPrimary"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/apk_empty_hint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:text="@string/plugin_apk_empty"
-            android:textColor="?attr/textColorSecondary"
-            android:textSize="13sp"
-            android:visibility="gone" />
-
-        <LinearLayout
-            android:id="@+id/apk_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <TextView
             android:id="@+id/builtin_section_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -80,28 +42,29 @@
             android:orientation="vertical" />
 
         <TextView
-            android:id="@+id/ui_section_title"
+            android:id="@+id/market_section_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="16dp"
-            android:paddingTop="16dp"
+            android:paddingTop="20dp"
             android:paddingEnd="16dp"
-            android:text="@string/plugin_ui_section"
+            android:text="@string/plugin_market_section"
             android:textColor="?attr/textColorPrimary"
             android:textSize="16sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/ui_empty"
+            android:id="@+id/market_empty"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:text="@string/plugin_ui_empty"
+            android:text="@string/plugin_market_empty"
             android:textColor="?attr/textColorSecondary"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            android:visibility="gone" />
 
         <LinearLayout
-            android:id="@+id/ui_container"
+            android:id="@+id/market_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
@@ -114,23 +77,5 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="4dp"
             android:text="@string/plugin_ui_install" />
-
-        <TextView
-            android:id="@+id/market_section_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingTop="16dp"
-            android:paddingEnd="16dp"
-            android:text="@string/plugin_market_section"
-            android:textColor="?attr/textColorPrimary"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:id="@+id/container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
