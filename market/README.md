@@ -1,7 +1,7 @@
 # 插件市场索引
 
 客户端通过 `PLUGIN_INDEX_URL` 读取这个目录下的 `index.json`（CI 构建默认指向
-`https://raw.githubusercontent.com/kajimi16/OH-MY-HITA/master/market/index.json`）。
+`https://raw.githubusercontent.com/kajimi16/OH-MY-HITA/market/market/index.json`）。
 
 ## 目录结构
 
