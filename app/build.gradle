@@ -69,6 +69,12 @@ android {
         }
     }
 
+    lint {
+        // 存量问题固定下来；新增问题仍然会让 CI 失败。
+        baseline = file("lint-baseline.xml")
+        abortOnError true
+    }
+
     buildTypes {
         release {
             minifyEnabled false

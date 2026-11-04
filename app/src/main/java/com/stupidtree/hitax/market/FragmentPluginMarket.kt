@@ -44,6 +44,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             binding?.status?.text = text
             binding?.status?.visibility = if (text == null) View.GONE else View.VISIBLE
         }
+        binding?.updateAll?.setOnClickListener { viewModel.updateAll() }
         viewModel.message.observe(this) { text ->
             text ?: return@observe
             Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
@@ -133,13 +134,19 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         val entries = mutableListOf<MarketCard>()
         latestUiInstalled.forEach { entries += MarketCard.UiInstalled(it) }
         latestUiAvailable
-            .filter { av -> installedById[av.id]?.version != av.version }
+            .filter { av -> PluginVersion.isNewer(av.version, installedById[av.id]?.version ?: "") }
             .forEach { entries += MarketCard.UiAvailable(it, installedById.containsKey(it.id)) }
         latestDex.forEach { entries += MarketCard.Dex(it) }
         latestApk.forEach { entries += MarketCard.Apk(it) }
 
+        val hasUpdates = latestUiAvailable.any { av ->
+            val installed = installedById[av.id] ?: return@any false
+            PluginVersion.isNewer(av.version, installed.version)
+        } || latestDex.any { it.installed && it.update }
+        binding?.updateAll?.visibility = if (hasUpdates) View.VISIBLE else View.GONE
+
         binding?.marketEmpty?.visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
-        val indexBase = com.stupidtree.hitax.BuildConfig.PLUGIN_INDEX_URL.takeIf { it.isNotBlank() }
+        val indexBase = viewModel.indexBase()
         renderGrid(binding?.marketContainer, entries) { card, entry ->
             when (entry) {
                 is MarketCard.UiInstalled -> bindUiInstalled(card, entry.plugin)
@@ -198,28 +205,77 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             else com.stupidtree.hitax.R.string.plugin_ui_install_action
         )
         card.toggle.visibility = View.GONE
-        card.action.setOnClickListener {
-            AlertDialog.Builder(requireContext())
-                .setMessage(com.stupidtree.hitax.R.string.plugin_ui_warning)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    viewModel.installUiPluginFromUrl(entry.plugin, indexBase)
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
+        card.action.setOnClickListener { installUi(entry.plugin, indexBase) }
+        card.root.setOnClickListener {
+            showDetails(
+                name = entry.plugin.name,
+                version = entry.plugin.version,
+                description = entry.plugin.description,
+                changelog = entry.plugin.changelog,
+                size = entry.plugin.size,
+                minHostApi = entry.plugin.minHostApi ?: 1,
+                actionLabel = getString(
+                    if (entry.update) com.stupidtree.hitax.R.string.plugin_ui_update
+                    else com.stupidtree.hitax.R.string.plugin_ui_install_action
+                ),
+            ) { installUi(entry.plugin, indexBase) }
         }
+    }
+
+    private fun installUi(plugin: UiMarketPlugin, indexBase: String?) {
+        AlertDialog.Builder(requireContext())
+            .setMessage(com.stupidtree.hitax.R.string.plugin_ui_warning)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                viewModel.installUiPluginFromUrl(plugin, indexBase)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showDetails(
+        name: String,
+        version: String,
+        description: String?,
+        changelog: String?,
+        size: Long,
+        minHostApi: Int,
+        actionLabel: String? = null,
+        action: (() -> Unit)? = null,
+    ) {
+        val parts = mutableListOf<String>()
+        parts += description?.takeIf { it.isNotBlank() }
+            ?: getString(com.stupidtree.hitax.R.string.plugin_details_no_description)
+        if (!changelog.isNullOrBlank()) {
+            parts += getString(com.stupidtree.hitax.R.string.plugin_details_changelog, changelog)
+        }
+        if (size > 0) {
+            parts += getString(com.stupidtree.hitax.R.string.plugin_details_size, (size / 1024).toInt())
+        }
+        parts += getString(com.stupidtree.hitax.R.string.plugin_details_min_api, minHostApi)
+        val dialog = AlertDialog.Builder(requireContext())
+            .setTitle(getString(com.stupidtree.hitax.R.string.plugin_details_title, name, version))
+            .setMessage(parts.joinToString("\n\n"))
+        if (action != null) {
+            if (actionLabel != null) {
+                dialog.setPositiveButton(actionLabel) { _, _ -> action() }
+            } else {
+                dialog.setPositiveButton(android.R.string.ok) { _, _ -> action() }
+            }
+            dialog.setNegativeButton(android.R.string.cancel, null)
+        } else {
+            dialog.setPositiveButton(android.R.string.ok) { _, _ -> }
+        }
+        dialog.show()
     }
 
     private fun bindDex(card: ItemMarketPluginCardBinding, item: PluginMarketViewModel.Item) {
         card.name.text = item.entry.name
-        card.meta.text = "在线插件 · v${item.entry.version} · api ${item.entry.apiVersion}"
+        card.meta.text = "在线插件 · v${item.entry.version} · api ${item.entry.apiVersion}" +
+            if (item.update) " · 可更新" else ""
         card.action.visibility = View.VISIBLE
         card.action.text = if (item.installed) "卸载" else "安装"
         card.action.setOnClickListener {
-            when {
-                item.installed -> viewModel.uninstall(item.entry)
-                viewModel.isVerified(item.entry.id) -> viewModel.install(item.entry)
-                else -> confirmUntrusted(item.entry.name) { viewModel.install(item.entry) }
-            }
+            if (item.installed) viewModel.uninstall(item.entry) else installDex(item.entry)
         }
         if (item.installed) {
             card.toggle.visibility = View.VISIBLE
@@ -228,6 +284,25 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             }
         } else {
             card.toggle.visibility = View.GONE
+        }
+        card.root.setOnClickListener {
+            val label = when {
+                item.update -> getString(com.stupidtree.hitax.R.string.plugin_ui_update)
+                !item.installed -> getString(com.stupidtree.hitax.R.string.plugin_ui_install_action)
+                else -> null
+            }
+            showDetails(
+                name = item.entry.name,
+                version = item.entry.version,
+                description = item.entry.description,
+                changelog = item.entry.changelog,
+                size = item.entry.size,
+                minHostApi = item.entry.minHostApi ?: 1,
+                actionLabel = label,
+                action = if (label != null) {
+                    { installDex(item.entry) }
+                } else null,
+            )
         }
     }
 
@@ -264,6 +339,14 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
                 Unit
             }
             if (viewModel.isVerified(plugin.id)) launch() else confirmUntrusted(plugin.name, launch)
+        }
+    }
+
+    private fun installDex(entry: MarketPlugin) {
+        if (viewModel.isVerified(entry.id)) {
+            viewModel.install(entry)
+        } else {
+            confirmUntrusted(entry.name) { viewModel.install(entry) }
         }
     }
 

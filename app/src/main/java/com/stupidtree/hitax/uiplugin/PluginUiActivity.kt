@@ -38,7 +38,9 @@ class PluginUiActivity : AppCompatActivity() {
             setContentView(instance.createView(this, host))
         } catch (t: Throwable) {
             Log.e(TAG, "load ui plugin failed: $id", t)
-            Toast.makeText(this, "插件加载失败：${t.message}", Toast.LENGTH_LONG).show()
+            // 坏插件不应反复拖垮入口：停用后下次直接回退内置页面。
+            UiPluginStore.setEnabled(this, id, false)
+            Toast.makeText(this, "插件加载失败，已停用：${t.message}", Toast.LENGTH_LONG).show()
             finish()
         }
     }

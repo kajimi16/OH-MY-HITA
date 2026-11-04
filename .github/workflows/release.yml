@@ -92,6 +92,12 @@ jobs:
           RELEASE_KEY_PASSWORD=$KEY_PASSWORD
           EOF
 
+      - name: Run unit tests
+        run: >
+          ./gradlew :app:testDebugUnitTest :kernel:testDebugUnitTest
+          :plugin-hita:testDebugUnitTest :component:testDebugUnitTest
+          :style:testDebugUnitTest
+
       - name: Build APK
         run: |
           ./gradlew :app:assembleRelease \

@@ -29,8 +29,24 @@ class UiPluginManager(private val context: Context) {
     /** 按 capability 找一个可用的已安装插件；找不到返回 null。 */
     fun enabled(): List<InstalledUiPlugin> = installed().filter { it.enabled }
 
-    fun findByCapability(capability: String): InstalledUiPlugin? =
-        enabled().firstOrNull { capability in it.capabilities }
+    /**
+     * 路由前预检：文件必须存在且哈希与安装记录一致。
+     *
+     * 损坏的插件直接停用并返回 null，让调用方回退内置页面，而不是等
+     * [com.stupidtree.hitax.uiplugin.PluginUiActivity] 打开后才失败。
+     */
+    fun resolveForCapability(capability: String): InstalledUiPlugin? {
+        val candidate = enabled().firstOrNull { capability in it.capabilities } ?: return null
+        if (isUsable(candidate)) return candidate
+        Log.w(TAG, "plugin ${candidate.id} is corrupt, disable and fall back")
+        setEnabled(candidate.id, false)
+        return null
+    }
+
+    fun isUsable(record: InstalledUiPlugin): Boolean = runCatching {
+        val apk = File(record.apkPath)
+        apk.isFile && sha256(apk).equals(record.sha256, ignoreCase = true)
+    }.getOrDefault(false)
 
     /** 启用/停用已安装插件；停用后不再参与能力路由，但文件保留。 */
     fun setEnabled(id: String, enabled: Boolean): Boolean {

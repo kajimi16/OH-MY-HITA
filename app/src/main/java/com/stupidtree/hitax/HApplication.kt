@@ -148,7 +148,7 @@ class HApplication : Application() {
             object : com.stupidtree.hita.api.RuntimeUiService {
                 override fun isAvailable(capability: String): Boolean =
                     com.stupidtree.hitax.uiplugin.UiPluginManager(this@HApplication)
-                        .findByCapability(capability) != null
+                        .resolveForCapability(capability) != null
 
                 override fun open(
                     context: android.content.Context,
@@ -156,7 +156,7 @@ class HApplication : Application() {
                     arguments: android.os.Bundle,
                 ): Boolean {
                     val record = com.stupidtree.hitax.uiplugin.UiPluginManager(this@HApplication)
-                        .findByCapability(capability) ?: return false
+                        .resolveForCapability(capability) ?: return false
                     val intent = android.content.Intent(
                         context,
                         com.stupidtree.hitax.uiplugin.PluginUiActivity::class.java,

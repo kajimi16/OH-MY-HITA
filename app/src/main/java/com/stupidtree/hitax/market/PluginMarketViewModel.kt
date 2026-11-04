@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
+import com.stupidtree.hita.api.HITA_API_VERSION
 import com.stupidtree.hitax.BuildConfig
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.plugin.BuiltinPluginManager
@@ -18,7 +19,12 @@ import java.util.concurrent.Executors
  */
 class PluginMarketViewModel(application: Application) : AndroidViewModel(application) {
 
-    data class Item(val entry: MarketPlugin, val installed: Boolean, val enabled: Boolean)
+    data class Item(
+        val entry: MarketPlugin,
+        val installed: Boolean,
+        val enabled: Boolean,
+        val update: Boolean = false,
+    )
 
     private val installer = PluginInstaller(application, (application as HApplication).pluginHost)
     private val executor = Executors.newSingleThreadExecutor()
@@ -47,6 +53,14 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     private val apkRepository = ApkPluginRepository(application)
     private val trustStore = PluginTrustStore(application)
 
+    /** 当前索引位置（远端 URL 或本地目录），供相对地址解析。 */
+    @Volatile
+    private var lastIndexBase: String? = null
+
+    fun indexBase(): String? = lastIndexBase
+
+    private val cacheDir: File = File(application.filesDir, "market-cache")
+
     init {
         refresh()
     }
@@ -67,16 +81,27 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val installedList = installer.installed()
             val installed = installedList.map { it.id }.toSet()
             val enabled = installedList.filter { installer.isEnabled(it.id) }.map { it.id }.toSet()
+            val installedVersions = installedList.associate { it.id to it.version }
             runCatching { readIndex() }
-                .onSuccess { (index, _) ->
+                .onSuccess { (index, base, offline) ->
+                    lastIndexBase = base
                     items.postValue(
-                        index.plugins.map { Item(it, it.id in installed, it.id in enabled) }
+                        index.plugins.map {
+                            Item(
+                                it,
+                                it.id in installed,
+                                it.id in enabled,
+                                it.id in installedVersions &&
+                                    PluginVersion.isNewer(it.version, installedVersions.getValue(it.id)),
+                            )
+                        }
                     )
                     availableUiPlugins.postValue(index.uiPlugins)
-                    status.postValue(null)
+                    status.postValue(if (offline) "网络不可用，正在显示缓存索引" else null)
                 }
                 .onFailure {
                     items.postValue(emptyList())
+                    availableUiPlugins.postValue(emptyList())
                     status.postValue("读取索引失败：${it.message}")
                 }
         }
@@ -88,8 +113,13 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     fun install(entry: MarketPlugin) {
         executor.execute {
-            val base = runCatching { readIndex().second }.getOrNull()
-            val error = runCatching { installer.install(entry, base) }.exceptionOrNull()
+            val error = runCatching {
+                val minApi = entry.minHostApi ?: 1
+                require(minApi <= HITA_API_VERSION) {
+                    "插件需要宿主 API $minApi，当前 ${HITA_API_VERSION}"
+                }
+                installer.install(entry, lastIndexBase)
+            }.exceptionOrNull()
             post(error?.let { "安装失败：${it.message}" } ?: "已安装 ${entry.name}")
         }
     }
@@ -160,6 +190,10 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                 require(entry.sha256.matches(Regex("^[a-fA-F0-9]{64}$"))) {
                     "索引缺少有效的 sha256，拒绝安装"
                 }
+                val minApi = entry.minHostApi ?: 1
+                require(minApi <= HITA_API_VERSION) {
+                    "插件需要宿主 API $minApi，当前 ${HITA_API_VERSION}"
+                }
                 val file = java.io.File(app.cacheDir, "ui-${entry.id}.apk")
                 PluginFetch.download(entry.url, indexBase, file)
                 try {
@@ -176,6 +210,51 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+
+    /** 一键更新所有有更新版本的界面插件与逻辑插件。 */
+    fun updateAll() {
+        executor.execute {
+            val app = getApplication<Application>()
+            val uiInstalled = uiPluginManager.installed().associateBy { it.id }
+            // 只更新已安装的插件；未安装的仍然必须由用户显式点击并确认。
+            val uiTargets = availableUiPlugins.value.orEmpty().filter { candidate ->
+                val current = uiInstalled[candidate.id] ?: return@filter false
+                PluginVersion.isNewer(candidate.version, current.version)
+            }
+            val dexTargets = items.value.orEmpty().filter { it.installed && it.update }
+            var ok = 0
+            var fail = 0
+            uiTargets.forEach { entry ->
+                runCatching {
+                    val minApi = entry.minHostApi ?: 1
+                    require(minApi <= HITA_API_VERSION) {
+                        "插件需要宿主 API $minApi，当前 ${HITA_API_VERSION}"
+                    }
+                    val file = java.io.File(app.cacheDir, "ui-${entry.id}.apk")
+                    PluginFetch.download(entry.url, lastIndexBase, file)
+                    try {
+                        uiPluginManager.installFile(file, entry.sha256)
+                    } finally {
+                        file.delete()
+                    }
+                }.onSuccess { ok++ }.onFailure { fail++ }
+            }
+            dexTargets.forEach { item ->
+                runCatching { installer.install(item.entry, lastIndexBase) }
+                    .onSuccess { ok++ }
+                    .onFailure { fail++ }
+            }
+            uiPlugins.postValue(uiPluginManager.installed())
+            message.postValue(
+                when {
+                    ok == 0 && fail == 0 -> "没有可更新的插件"
+                    fail == 0 -> "已更新 $ok 个插件"
+                    else -> "更新完成：成功 $ok，失败 $fail"
+                }
+            )
+            refresh()
+        }
+    }
 
     fun uninstallUiPlugin(plugin: InstalledUiPlugin) {
         executor.execute {
@@ -199,16 +278,46 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         refresh()
     }
 
-    /** @return 索引内容 + 用于解析相对插件地址的基准（远端 URL 或本地目录） */
-    private fun readIndex(): Pair<MarketIndex, String?> {
+    /**
+     * @return 索引内容、解析相对地址的基准、以及是否来自本地缓存。
+     * 远端读取失败时回退到上次成功缓存，缓存也没有才抛错。
+     */
+    private fun readIndex(): Triple<MarketIndex, String?, Boolean> {
         val ctx = getApplication<Application>()
-        return if (BuildConfig.PLUGIN_INDEX_URL.isNotBlank()) {
-            val text = java.net.URL(BuildConfig.PLUGIN_INDEX_URL).openStream()
-                .bufferedReader().use { it.readText() }
-            gson.fromJson(text, MarketIndex::class.java) to BuildConfig.PLUGIN_INDEX_URL
-        } else {
+        if (BuildConfig.PLUGIN_INDEX_URL.isBlank()) {
             val file = File(ctx.filesDir, "market/index.json")
-            gson.fromJson(file.readText(), MarketIndex::class.java) to file.parentFile.absolutePath
+            return Triple(
+                gson.fromJson(file.readText(), MarketIndex::class.java),
+                file.parentFile.absolutePath,
+                false,
+            )
+        }
+        return runCatching {
+            val text = fetchIndex(BuildConfig.PLUGIN_INDEX_URL)
+            IndexCache.save(cacheDir, BuildConfig.PLUGIN_INDEX_URL, text)
+            Triple(
+                gson.fromJson(text, MarketIndex::class.java),
+                BuildConfig.PLUGIN_INDEX_URL,
+                false,
+            )
+        }.getOrElse { error ->
+            val cached = IndexCache.load(cacheDir) ?: throw error
+            Triple(
+                gson.fromJson(cached.raw, MarketIndex::class.java),
+                cached.base,
+                true,
+            )
+        }
+    }
+
+    private fun fetchIndex(url: String): String {
+        val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+        conn.connectTimeout = 10_000
+        conn.readTimeout = 15_000
+        return try {
+            conn.inputStream.bufferedReader().use { it.readText() }
+        } finally {
+            conn.disconnect()
         }
     }
 

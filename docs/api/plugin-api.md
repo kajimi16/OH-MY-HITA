@@ -128,7 +128,7 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 
 - `HITA_API_VERSION` 是契约的二进制版本；任何破坏性改动必须递增。
 - 内核装载时检查 `requiresApi <= HITA_API_VERSION`，不满足直接拒绝并记录原因。
-- 当前版本 **2**（2：移除 `PluginContext.appContext`，新增 `sync`）。
+- 当前版本 **3**（3：新增运行时界面插件 `ComposeUiPlugin` / `PluginUiHost` / `RuntimeUiService`）。
 
 变更记录：
 
@@ -136,8 +136,9 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 |---|---|
 | 1 | 首个版本 |
 | 2 | 移除 `appContext`；新增 `SyncRegistry` |
+| 3 | 新增 `ComposeUiPlugin`、`PluginUiHost`、`RuntimeUiService`，支持运行时界面插件 |
 
-## 运行时插件（T1）
+## 运行时逻辑插件（T1）
 
 除构建期插件外，还支持从 dex 动态装载**逻辑插件**：
 
@@ -146,19 +147,58 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 - 索引与发布流程见 [`market/README.md`](../../market/README.md)
 - 与宿主同进程，拥有宿主全部权限，只应上架可信代码
 
+## 运行时界面插件（T1 UI）
+
+界面插件是**独立 APK**（`assets/plugin.json` + dex），由宿主的 Compose 容器承载：
+
+```kotlin
+interface ComposeUiPlugin {
+    val id: String
+    val displayName: String
+    val requiresApi: Int get() = 1
+    fun createView(context: Context, host: PluginUiHost): View
+    fun onDestroy() {}
+}
+```
+
+`assets/plugin.json` 示例：
+
+```json
+{
+  "id": "com.example.ui",
+  "name": "示例界面",
+  "version": "0.1.0",
+  "entryClass": "com.example.ui.MyUiPlugin",
+  "apiVersion": 3,
+  "composeVersion": "1.6.8",
+  "capabilities": ["hita.ui.resourceSearch"]
+}
+```
+
+- 宿主按 `capabilities` 路由：声明了对应能力的插件启用时优先接管，返回 `false` 或插件损坏时回退内置页面。
+- 界面插件不注册 Activity，也不能携带资源表；所有 UI 用 Compose 代码构建。
+- 安装前校验 `sha256`，并要求 `apiVersion`、`composeVersion` 与宿主一致。
+- 信任模型与逻辑插件相同：索引是信任源，`verified_plugins.json` 目前为空。
+
 ## 最小示例
 
 ```kotlin
+interface GreetingService {
+    fun greet(): String
+}
+
 class HelloPlugin : Plugin {
     override val id = "com.example.hello"
     override val requiresApi = 2
 
     override fun install(ctx: PluginContext) {
-        ctx.service(ThemeController.KEY)?.setNightMode(true)
-    }
-
-    override fun uninstall(ctx: PluginContext) {
-        ctx.service(ThemeController.KEY)?.setNightMode(false)
+        // 无副作用：只注册一个服务，演示契约与回滚。
+        ctx.provide(
+            ServiceKey<GreetingService>("demo.greeting"),
+            object : GreetingService {
+                override fun greet() = "hello from plugin"
+            },
+        )
     }
 }
 ```

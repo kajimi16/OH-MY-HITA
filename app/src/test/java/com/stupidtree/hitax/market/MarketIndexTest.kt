@@ -2,6 +2,7 @@ package com.stupidtree.hitax.market
 
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -47,6 +48,10 @@ class MarketIndexTest {
 
         assertEquals(1, index.plugins.size)
         assertTrue(index.uiPlugins.isEmpty())
+        // 旧索引没有新增元数据字段，必须有安全的默认值。
+        assertNull(index.plugins[0].description)
+        assertEquals(0L, index.plugins[0].size)
+        assertNull(index.plugins[0].minHostApi)
     }
 
     @Test

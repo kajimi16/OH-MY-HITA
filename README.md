@@ -5,26 +5,42 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 [App 下载（Releases）](https://github.com/kajimi16/OH-MY-HITA/releases/latest) ·
 [国内镜像](https://ani2-ext.kajimi.cc/hita/releases/oh-my-hita-latest.apk)
 
-当前版本：`0.2.0`。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
+当前版本：`0.3.0`。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
 
 ### 运行时插件（T1）
 
-`kernel` 的 `PluginLoader` 支持从 dex 装载**纯逻辑插件**：
+`kernel` 的 `PluginLoader` 支持从 dex 装载**纯逻辑插件**；另外宿主提供 Compose 容器，
+可以把独立 APK 作为**界面插件**装载（不声明四大组件、不携带资源表）。
+
+逻辑插件：
 
 1. `PluginInstaller` 读取索引（构建期 `PLUGIN_INDEX_URL`，为空时读 `filesDir/market/index.json`）
 2. 下载 → 校验 `sha256` → 复制到 `filesDir/runtime-plugins/<id>/plugin.dex`
 3. `DexClassLoader` 装载 `entryClass` → `PluginHost.install(ctx)`
 4. 应用启动时 `restore()` 自动恢复上次安装的插件
 
-索引格式：
+界面插件：
+
+1. 索引的 `uiPlugins` 提供 APK 地址与 `sha256`
+2. 校验后写入 `filesDir/ui-plugins/<id>/plugin.apk`，保留 `plugin.json` 元数据
+3. 打开功能时 `RuntimeUiService` 按 `capabilities` 路由到 `PluginUiActivity`，
+   在宿主的 Compose 容器里渲染；插件停用或文件损坏时自动回退内置页面
+
+索引格式（线上索引在 `market` 分支维护）：
 
 ```json
-{"plugins":[{"id":"com.example.hello","name":"示例逻辑插件","version":"0.1.0",
-"apiVersion":2,"url":"plugin.dex","sha256":"...","entryClass":"com.example.hello.HelloPlugin"}]}
+{
+  "plugins": [{"id":"com.example.hello","name":"示例逻辑插件","version":"0.1.0",
+    "apiVersion":2,"url":"plugin.dex","sha256":"...","entryClass":"com.example.hello.HelloPlugin"}],
+  "uiPlugins": [{"id":"com.stupidtree.hita.ui.resource","name":"课程资源","version":"0.4.8",
+    "url":"https://ani2-ext.kajimi.cc/hita/market/course-resource-0.4.8.apk",
+    "sha256":"...","description":"...","minHostApi":3}]
+}
 ```
 
-限制（Android 硬边界，不是实现取舍）：运行时插件不能声明四大组件、不能携带资源，
-且与宿主同进程共享权限。因此市场只上架逻辑插件；需要界面的功能走独立 APK（T2）。
+限制（Android 硬边界，不是实现取舍）：运行时逻辑插件不能声明四大组件、不能携带资源，
+且与宿主同进程共享权限；界面插件同样不注册组件、不合并资源，只能通过宿主容器渲染。
+需要真正独立进程/资源的插件仍走独立 APK（T2）。
 
 示例逻辑插件在 `:sample-plugin`，产出 dex：
 

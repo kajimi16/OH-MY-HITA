@@ -844,4 +844,10 @@
     <string name="plugin_ui_install_action">安装</string>
     <string name="plugin_ui_warning">该插件将以本应用权限运行，只能使用宿主提供的接口。仅安装你信任来源的 APK。</string>
     <string name="plugin_builtin_open">打开</string>
+    <string name="plugin_update_all">全部更新</string>
+    <string name="plugin_details_title">%1$s · v%2$s</string>
+    <string name="plugin_details_size">体积：%1$d KB</string>
+    <string name="plugin_details_min_api">最低宿主 API：%1$d</string>
+    <string name="plugin_details_changelog">更新日志：\n%1$s</string>
+    <string name="plugin_details_no_description">暂无说明</string>
 </resources>

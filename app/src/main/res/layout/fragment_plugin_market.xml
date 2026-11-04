@@ -41,17 +41,39 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" />
 
-        <TextView
-            android:id="@+id/market_section_title"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:paddingStart="16dp"
             android:paddingTop="20dp"
-            android:paddingEnd="16dp"
-            android:text="@string/plugin_market_section"
-            android:textColor="?attr/textColorPrimary"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:paddingEnd="16dp">
+
+            <TextView
+                android:id="@+id/market_section_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/plugin_market_section"
+                android:textColor="?attr/textColorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/update_all"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="12dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="4dp"
+                android:paddingBottom="6dp"
+                android:text="@string/plugin_update_all"
+                android:textColor="?attr/colorAccent"
+                android:textSize="13sp"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/market_empty"

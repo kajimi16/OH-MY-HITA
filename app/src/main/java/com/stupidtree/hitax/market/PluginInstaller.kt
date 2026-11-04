@@ -64,27 +64,68 @@ class PluginInstaller(
      */
     fun install(entry: MarketPlugin, indexBase: String?): Unit {
         val dir = File(root, entry.id)
-        dir.deleteRecursively()
-        dir.mkdirs()
+        val staging = File(root, ".staging-${entry.id}")
+        val backup = File(root, ".backup-${entry.id}")
+        staging.deleteRecursively()
+        backup.deleteRecursively()
+        staging.mkdirs()
+        val wasEnabled = isEnabled(entry.id)
+        val wasInstalledInHost = host.isInstalled(entry.id)
+        val oldEntry = installed().firstOrNull { it.id == entry.id }
+        var swapped = false
+        var hostDetached = false
 
         try {
-            val dex = File(dir, "plugin.dex")
-            fetch(entry, indexBase, dex)
+            val newDex = File(staging, "plugin.dex")
+            fetch(entry, indexBase, newDex)
 
-            val actual = PluginLoader.sha256(dex)
+            val actual = PluginLoader.sha256(newDex)
             if (!actual.equals(entry.sha256, ignoreCase = true)) {
                 throw IllegalStateException("sha256 校验失败：期望 ${entry.sha256}，实际 $actual")
             }
 
+            // 旧版本仍在内存里时先卸载，否则 PluginHost.install 会直接忽略新实例。
+            if (wasInstalledInHost) {
+                host.uninstall(entry.id)
+                hostDetached = true
+            }
+            if (dir.exists()) {
+                check(dir.renameTo(backup)) { "无法备份旧版本，取消安装" }
+                swapped = true
+            }
+            dir.mkdirs()
+            check(newDex.renameTo(File(dir, "plugin.dex"))) { "插件落盘失败" }
+
             PluginLoader(host, logger = { m, e -> log(m, e) })
-                .loadAndInstall(dex, entry.entryClass, File(dir, "opt"))
+                .loadAndInstall(File(dir, "plugin.dex"), entry.entryClass, File(dir, "opt"))
+            if (!wasEnabled) host.uninstall(entry.id)
 
             saveInstalled(installed().filterNot { it.id == entry.id } + entry)
-            saveDisabled(disabledIds() - entry.id)
+            saveDisabled(if (wasEnabled) disabledIds() - entry.id else disabledIds() + entry.id)
+            backup.deleteRecursively()
+            staging.deleteRecursively()
             Log.i(TAG, "installed ${entry.id}@${entry.version}")
         } catch (t: Throwable) {
-            runCatching { host.uninstall(entry.id) }
-            dir.deleteRecursively()
+            // 下载/校验/备份失败发生在替换之前：旧插件与旧文件都还在，不要动它们。
+            if (swapped) {
+                host.uninstall(entry.id)
+                hostDetached = true
+                dir.deleteRecursively()
+                if (backup.exists()) backup.renameTo(dir)
+            }
+            if (hostDetached) {
+                host.uninstall(entry.id)
+                if (wasEnabled && oldEntry != null && File(dir, "plugin.dex").isFile) {
+                    runCatching {
+                        PluginLoader(host, logger = { m, e -> log(m, e) }).loadAndInstall(
+                            File(dir, "plugin.dex"),
+                            oldEntry.entryClass,
+                            File(dir, "opt"),
+                        )
+                    }.onFailure { log("rollback failed: ${entry.id}", it) }
+                }
+            }
+            staging.deleteRecursively()
             throw t
         }
     }
