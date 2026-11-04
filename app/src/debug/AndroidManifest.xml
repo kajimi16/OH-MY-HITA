@@ -16,5 +16,14 @@
                 <action android:name="com.stupidtree.hitax.DEV_OPEN_UI_PLUGIN" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".market.DevMarketReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.stupidtree.hitax.DEV_INSTALL_DEX" />
+                <action android:name="com.stupidtree.hitax.DEV_UNINSTALL_DEX" />
+                <action android:name="com.stupidtree.hitax.DEV_ENABLE_DEX" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

@@ -70,6 +70,7 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 
 ### 运行时界面插件的快速调试
 
+- 一键调试：`./scripts/dev.sh status|reset|open|install-ui|install-dex|uninstall-dex|enable-dex|logs`
 - 安装（debug 包）：`./scripts/dev-install-ui-plugin.sh plugin-ui-resource`
   构建 → `adb push` → `run-as` 落盘 → 广播安装 → 冷启动，单次约 3–5 秒，跳过市场下载。
 - 对比截图：
