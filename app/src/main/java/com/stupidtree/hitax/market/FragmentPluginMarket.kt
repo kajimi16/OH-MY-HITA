@@ -20,6 +20,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
 
     override fun initViews(view: View) {
         viewModel.items.observe(this) { render(it) }
+        viewModel.apkPlugins.observe(this) { renderApkPlugins(it) }
         viewModel.status.observe(this) { text ->
             binding?.status?.text = text
             binding?.status?.visibility = if (text == null) View.GONE else View.VISIBLE
@@ -35,6 +36,28 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         super.onResume()
         // 从详情/外部返回时重新拉一次索引，避免看到过期列表
         viewModel.refresh()
+    }
+
+    private fun renderApkPlugins(plugins: List<ApkPlugin>) {
+        val container = binding?.apkContainer ?: return
+        binding?.apkEmptyHint?.visibility = if (plugins.isEmpty()) View.VISIBLE else View.GONE
+        container.removeAllViews()
+        val inflater = LayoutInflater.from(requireContext())
+        plugins.forEach { plugin ->
+            val row = com.stupidtree.hitax.databinding.ItemApkPluginBinding.inflate(inflater, container, false)
+            row.apkName.text = plugin.name
+            row.apkMeta.text = "${plugin.versionName} · ${plugin.packageName} · api ${plugin.apiVersion}"
+            val supported = viewModel.supported(plugin)
+            row.apkAction.text = if (supported) "打开" else "版本不兼容"
+            row.apkAction.isEnabled = supported
+            row.apkAction.setOnClickListener {
+                val intent = android.content.Intent()
+                    .setComponent(plugin.entry)
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                runCatching { requireContext().startActivity(intent) }
+            }
+            container.addView(row.root)
+        }
     }
 
     private fun render(items: List<PluginMarketViewModel.Item>) {

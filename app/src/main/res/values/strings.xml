@@ -996,6 +996,9 @@
     <string name="percentage">%d%%</string>
     <string name="title_navigation">功能中心</string>
     <string name="title_plugin">插件</string>
+    <string name="plugin_apk_section">已安装的独立插件（APK）</string>
+    <string name="plugin_apk_empty">没有发现独立插件。安装插件 APK 后会自动出现在这里。</string>
+    <string name="plugin_market_section">在线插件（逻辑插件）</string>
     <string name="plugin_market_empty">暂无可安装的插件。配置索引地址后，这里会列出可用的逻辑插件。</string>
     <string name="title_timetable_manager">课表管理</string>
     <string name="recent_timetable">最近课表</string>

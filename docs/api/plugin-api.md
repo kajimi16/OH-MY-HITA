@@ -83,6 +83,35 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 
 宿主侧已经把线程编排放进实现里（post 到主线程），插件无需关心 Android 主线程约束。
 
+## 独立 APK 插件（T2）
+
+需要界面或独立进程边界的插件，做成单独安装的 APK，而不是 dex：
+
+```xml
+<application>
+    <meta-data android:name="hita.plugin.id" android:value="com.example.sample" />
+    <meta-data android:name="hita.plugin.apiVersion" android:value="2" />
+
+    <activity android:name=".SamplePluginActivity" android:exported="true">
+        <intent-filter>
+            <action android:name="com.stupidtree.hita.action.PLUGIN_APK" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+    </activity>
+</application>
+```
+
+宿主侧：
+
+- 通过 `queryIntentActivities` 发现插件，读取 `<meta-data>` 得到 id 与契约版本
+- 版本高于 `HITA_API_VERSION` 的插件显示为「版本不兼容」，按钮禁用
+- 「打开」= 直接启动插件自己的 Activity（插件拥有完整界面与资源）
+- 声明 `<queries>` 以适配 Android 11+ 的包可见性
+
+当前不做签名校验：列表只做展示，打开由用户触发。插件必须单独安装、单独更新。
+
+示例模块：`:plugin-apk-sample`（`./gradlew :plugin-apk-sample:assembleDebug`）。
+
 ## 版本策略
 
 - `HITA_API_VERSION` 是契约的二进制版本；任何破坏性改动必须递增。

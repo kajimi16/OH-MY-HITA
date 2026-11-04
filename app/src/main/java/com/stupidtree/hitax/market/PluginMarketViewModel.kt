@@ -23,6 +23,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     val items = MutableLiveData<List<Item>>(emptyList())
     val message = MutableLiveData<String?>(null)
     val status = MutableLiveData<String?>(null)
+    val apkPlugins = MutableLiveData<List<ApkPlugin>>(emptyList())
+    private val apkRepository = ApkPluginRepository(application)
 
     init {
         refresh()
@@ -33,6 +35,11 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         status.postValue("正在读取插件索引…")
         executor.execute {
             ensureDemoIndex()
+            apkPlugins.postValue(
+                runCatching { apkRepository.discover() }
+                    .onFailure { android.util.Log.e("PluginMarket", "discover apk plugins failed", it) }
+                    .getOrDefault(emptyList())
+            )
             val installed = installer.installed().map { it.id }.toSet()
             runCatching { readIndex() }
                 .onSuccess { (index, _) ->
@@ -45,6 +52,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                 }
         }
     }
+
+    fun supported(plugin: ApkPlugin): Boolean = apkRepository.supported(plugin)
 
     fun install(entry: MarketPlugin) {
         executor.execute {
