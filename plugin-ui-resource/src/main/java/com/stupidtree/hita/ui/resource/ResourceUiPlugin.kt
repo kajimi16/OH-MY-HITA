@@ -52,11 +52,11 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -112,7 +112,6 @@ private data class Tokens(
     val textSecondary: Color,
     val primary: Color,
     val actionBarHeight: Dp,
-    val tagBackground: Color,
 )
 
 @Composable
@@ -124,16 +123,19 @@ private fun rememberTokens(): Tokens {
             backgroundSecond = Color(context.attrColor("backgroundColorSecond", 0xFFFFFFFF.toInt())),
             textPrimary = Color(context.attrColor("textColorPrimary", 0xFF000000.toInt())),
             textSecondary = Color(context.attrColor("textColorSecondary", 0xFF808080.toInt())),
-            primary = Color(context.attrColor("android:colorPrimary", 0xFF304FFE.toInt())),
+            primary = Color(context.androidAttrColor(android.R.attr.colorPrimary, 0xFF304FFE.toInt())),
             actionBarHeight = context.attrDimen("actionBarSize", 56f),
-            tagBackground = Color(
-                blend(
-                    context.attrColor("backgroundColorBottomAsTint", 0xCFFFFFFF.toInt()),
-                    context.attrColor("android:colorControlNormal", 0xFF9E9E9E.toInt()),
-                )
-            ),
         )
     }
+}
+
+private fun Context.androidAttrColor(attrId: Int, fallback: Int): Int {
+    val value = TypedValue()
+    if (!theme.resolveAttribute(attrId, value, true)) return fallback
+    if (value.resourceId != 0) {
+        return runCatching { getColorStateList(value.resourceId).defaultColor }.getOrElse { fallback }
+    }
+    return if (value.data != 0) value.data else fallback
 }
 
 private fun Context.attrColor(name: String, fallback: Int): Int {
@@ -146,16 +148,6 @@ private fun Context.attrColor(name: String, fallback: Int): Int {
     val value = TypedValue()
     if (!theme.resolveAttribute(id, value, true)) return fallback
     return if (value.resourceId != 0) getColor(value.resourceId) else value.data
-}
-
-private fun blend(overlay: Int, under: Int): Int {
-    val a = (overlay ushr 24) / 255f
-    fun ch(shift: Int): Int {
-        val o = (overlay shr shift) and 0xFF
-        val u = (under shr shift) and 0xFF
-        return (o * a + u * (1 - a) + 0.5f).toInt().coerceIn(0, 255)
-    }
-    return (0xFF shl 24) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
 }
 
 private fun Context.drawableId(name: String, pkg: String = packageName): Int =
@@ -224,6 +216,7 @@ private fun SearchScreen(
     onSubmit: (String) -> Unit,
     onOpenReadme: (CourseResourceItem) -> Unit,
 ) {
+    val keyboard = LocalSoftwareKeyboardController.current
     val empty = remember { MutableLiveData<DataState<List<CourseResourceItem>>>() }
     val live = remember(submitted, service) {
         if (service == null || submitted.isBlank()) null else service.searchCourses(submitted)
@@ -236,7 +229,10 @@ private fun SearchScreen(
             tokens = tokens,
             value = input,
             onValueChange = onInputChange,
-            onSearch = { onSubmit(input.trim()) },
+            onSearch = {
+                keyboard?.hide()
+                onSubmit(input.trim())
+            },
         )
         Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
@@ -267,7 +263,7 @@ private fun SearchScreen(
 @Composable
 private fun TopBar(tokens: Tokens, title: String, showBack: Boolean, onBack: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().height(tokens.actionBarHeight).background(tokens.primary),
+        Modifier.fillMaxWidth().height(tokens.actionBarHeight).background(tokens.backgroundBottom),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (showBack) {
@@ -284,7 +280,7 @@ private fun TopBar(tokens: Tokens, title: String, showBack: Boolean, onBack: () 
                     Icon(
                         painter = painterResource(backId),
                         contentDescription = "返回",
-                        tint = Color.White,
+                        tint = tokens.textPrimary,
                         modifier = Modifier.size(24.dp),
                     )
                 } else {
@@ -297,9 +293,8 @@ private fun TopBar(tokens: Tokens, title: String, showBack: Boolean, onBack: () 
         }
         Text(
             title,
-            color = Color.White,
+            color = tokens.textPrimary,
             fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
             maxLines = 1,
         )
     }
@@ -316,8 +311,10 @@ private fun SearchBar(
         Modifier
             .fillMaxWidth()
             .padding(16.dp)
+            // 内置 EditText 在 420dpi 下为 69px（≈26.3dp），固定容器高度以对齐
+            .height(26.3.dp)
             .background(Color(0x54FFFFFF), RoundedCornerShape(24.dp))
-            .padding(horizontal = 12.dp, vertical = 2.dp),
+            .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Canvas(Modifier.size(24.dp).padding(2.dp)) {
@@ -420,18 +417,34 @@ private fun CourseCard(tokens: Tokens, item: CourseResourceItem, onClick: () -> 
                     maxLines = 1,
                 )
                 Spacer(Modifier.height(8.dp))
-                Text(
-                    if (item.repoType == "multi-project") "多课程" else "课程",
-                    color = tokens.textSecondary,
-                    fontSize = 12.sp,
-                    lineHeight = LocalContext.current.hostLineHeight(12f),
-                    modifier = Modifier
-                        .background(tokens.tagBackground, RoundedCornerShape(24.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                TagView(
+                    text = if (item.repoType == "multi-project") "多课程" else "课程",
+                    tokens = tokens,
                 )
             }
         }
     }
+}
+
+@Composable
+private fun TagView(text: String, tokens: Tokens) {
+    val context = LocalContext.current
+    val bgId = remember { context.drawableId("element_rounded_button_bg_grey") }
+    val density = context.resources.displayMetrics.density
+    AndroidView(
+        factory = { ctx ->
+            TextView(ctx).apply {
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                setTextColor(tokens.textSecondary.toArgbCompat())
+                includeFontPadding = true
+                setPadding((8 * density).toInt(), (4 * density).toInt(), (8 * density).toInt(), (4 * density).toInt())
+                // 与内置 tag 的 70px 高度对齐（26.7dp）
+                minHeight = (26.7f * density).toInt()
+                if (bgId != 0) setBackgroundResource(bgId)
+            }
+        },
+        update = { it.text = text },
+    )
 }
 
 @Composable

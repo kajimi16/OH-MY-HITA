@@ -62,6 +62,24 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 - 运行时界面插件从市场索引的 `uiPlugins` 下载；联调时可用本地 HTTP 索引：
   `-PpluginIndexUrl=http://10.0.2.2:8000/index.json`。
 
+
+### 运行时界面插件的快速调试
+
+- 安装（debug 包）：`./scripts/dev-install-ui-plugin.sh plugin-ui-resource`
+  构建 → `adb push` → `run-as` 落盘 → 广播安装 → 冷启动，单次约 3–5 秒，跳过市场下载。
+- 对比截图：
+
+  ```bash
+  ./scripts/visual_diff.py builtin.png plugin.png --out diff.png \
+      --crop-top 130 --crop-bottom 130 --tolerance 10
+  ```
+
+  输出差异像素数、比例与差异包围盒，并生成热力图。
+- 本地 mock：`-PhoaBaseUrl=http://10.0.2.2:18001`（仅联调，不要提交本地地址）。
+
+当前课程资源搜索页与内置版（同一 mock 数据）截图差异约 1.1%，
+剩余差异集中在 Compose 与 `TextView` 的字形栅格，几何与颜色已对齐。
+
 ## 插件化架构（万物皆插件）
 
 目标：把每位同学的改版从「fork 一个仓库」变成「选一组插件」。
