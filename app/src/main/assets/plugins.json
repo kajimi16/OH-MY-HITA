@@ -9,27 +9,32 @@
   "plugins": [
     {
       "id": "com.stupidtree.hita.theta",
-      "class": "com.stupidtree.hita.theta.ThetaPlugin"
+      "class": "com.stupidtree.hita.theta.ThetaPlugin",
+      "name": "θ 社区"
     },
     {
       "id": "com.stupidtree.hitax.timetable",
       "class": "com.stupidtree.hitax.plugin.HitaPlugin",
-      "needsApplication": true
+      "needsApplication": true,
+      "name": "课表"
     },
     {
       "id": "com.stupidtree.hitax.eas",
       "class": "com.stupidtree.hitax.eas.EasPlugin",
-      "needsApplication": true
+      "needsApplication": true,
+      "name": "教务"
     },
     {
       "id": "com.stupidtree.hitax.resource",
       "class": "com.stupidtree.hitax.plugin.ResourcePlugin",
-      "needsApplication": true
+      "needsApplication": true,
+      "name": "课程资源"
     },
     {
       "id": "com.stupidtree.hitax.user",
       "class": "com.stupidtree.hitax.plugin.UserPlugin",
-      "needsApplication": true
+      "needsApplication": true,
+      "name": "个人主页"
     }
   ]
 }

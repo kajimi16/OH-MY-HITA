@@ -31,6 +31,8 @@ class HApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // 上次卸载时请求清除的数据，必须在任何插件装配、界面创建之前处理掉
+        com.stupidtree.hitax.plugin.PluginPurge.runPending(this)
         // 万物皆插件：先装配内核，再初始化内核自身依赖的业务。
         pluginHost = PluginHost(
             pluginsDir = File(filesDir, "plugins"),

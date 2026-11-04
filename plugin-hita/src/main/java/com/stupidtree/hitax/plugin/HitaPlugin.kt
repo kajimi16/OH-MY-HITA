@@ -33,6 +33,23 @@ class HitaPlugin(private val application: Application) : Plugin {
         const val TAB_TIMELINE = "hita.timeline"
     }
 
+    /** 用户选择「卸载并清除数据」：课表库、样式偏好、插件私有目录。 */
+    override fun purgeData() {
+        AppDatabase.reset()
+        TimetableRepository.resetInstance()
+        SubjectRepository.resetInstance()
+        if (!application.deleteDatabase("hita")) {
+            // 仍有连接时 deleteDatabase 会返回 false，兜底直接删文件
+            val path = application.getDatabasePath("hita")
+            listOf("", "-wal", "-shm", "-journal").forEach { suffix ->
+                java.io.File(path.path + suffix).delete()
+            }
+        }
+        application.getSharedPreferences("timetable_style", android.content.Context.MODE_PRIVATE)
+            .edit().clear().apply()
+        java.io.File(application.filesDir, "plugins/$id").deleteRecursively()
+    }
+
     override fun install(ctx: PluginContext) {
         val database = AppDatabase.getDatabase(application)
 

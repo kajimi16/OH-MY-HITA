@@ -109,9 +109,18 @@ class PluginHost(
         }
     }
 
-    fun uninstall(pluginId: String) {
+    fun plugin(pluginId: String): Plugin? = installedPlugins[pluginId]
+
+    fun isInstalled(pluginId: String): Boolean = installedPlugins.containsKey(pluginId)
+
+    /** [purgeData] 为真时先让插件清理自己的持久化数据，再撤销注册。 */
+    fun uninstall(pluginId: String, purgeData: Boolean = false) {
         val plugin = installedPlugins[pluginId] ?: return
         val scope = scopes[pluginId] ?: return
+        if (purgeData) {
+            runCatching { plugin.purgeData() }
+                .onFailure { logger("plugin purge failed: $pluginId", it) }
+        }
         runCatching { plugin.uninstall(scope) }
             .onFailure { logger("plugin uninstall hook failed: $pluginId", it) }
         scope.revokeAll()

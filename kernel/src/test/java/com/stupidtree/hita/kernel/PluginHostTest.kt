@@ -32,9 +32,14 @@ class PluginHostTest {
         private val body: (PluginContext) -> Unit,
     ) : Plugin {
         var installs = 0
+        var purges = 0
         override fun install(ctx: PluginContext) {
             installs++
             body(ctx)
+        }
+
+        override fun purgeData() {
+            purges++
         }
     }
 
@@ -156,6 +161,32 @@ class PluginHostTest {
 
         assertEquals("own", seenInUninstall)
         assertNull(host.service(key2))
+    }
+
+    @Test
+    fun uninstallWithPurgeClearsRegistrationsAndCallsPurge() {
+        val host = newHost()
+        val plugin = TestPlugin("p-purge") { ctx -> ctx.provide(key, "impl") }
+        host.install(plugin)
+
+        host.uninstall("p-purge", purgeData = true)
+
+        assertEquals(1, plugin.purges)
+        assertNull(host.service(key))
+        assertTrue(!host.isInstalled("p-purge"))
+        assertNull(host.plugin("p-purge"))
+    }
+
+    @Test
+    fun uninstallWithoutPurgeKeepsPluginOwnedData() {
+        val host = newHost()
+        val plugin = TestPlugin("p-keep") { ctx -> ctx.provide(key, "impl") }
+        host.install(plugin)
+
+        host.uninstall("p-keep")
+
+        assertEquals(0, plugin.purges)
+        assertNull(host.service(key))
     }
 
     @Test

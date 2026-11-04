@@ -36,4 +36,12 @@ interface Plugin {
 
     /** 卸载前清理非注册型资源；注册型的由内核统一回滚。 */
     fun uninstall(ctx: PluginContext) {}
+
+    /**
+     * 用户选择「卸载并清除数据」时由内核调用。
+     *
+     * 插件自己知道数据落在哪（Room 库、SharedPreferences、WorkManager 任务），
+     * 宿主不碰插件内部存储。默认无数据可清。
+     */
+    fun purgeData() {}
 }

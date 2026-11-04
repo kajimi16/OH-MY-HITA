@@ -44,6 +44,15 @@ abstract class AppDatabase : RoomDatabase() {
             return INSTANCE!!
         }
 
+        /** 关闭并丢弃单例；清空数据后必须调用，否则会拿到已关闭的库。 */
+        @JvmStatic
+        fun reset() {
+            synchronized(AppDatabase::class.java) {
+                runCatching { INSTANCE?.close() }
+                INSTANCE = null
+            }
+        }
+
         private val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE subject ADD COLUMN selectCategory TEXT")

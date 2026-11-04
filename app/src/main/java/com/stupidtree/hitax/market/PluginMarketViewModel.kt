@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.stupidtree.hitax.BuildConfig
 import com.stupidtree.hitax.HApplication
+import com.stupidtree.hitax.plugin.BuiltinPluginManager
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -24,6 +25,14 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     val message = MutableLiveData<String?>(null)
     val status = MutableLiveData<String?>(null)
     val apkPlugins = MutableLiveData<List<ApkPlugin>>(emptyList())
+
+    private val builtin = BuiltinPluginManager(application)
+
+    /** 内置插件（可卸载/恢复）。 */
+    val builtinPlugins = MutableLiveData<List<BuiltinPluginManager.Row>>(emptyList())
+
+    /** 内置插件变更后需要重建界面（tab / 导航项集合已变）。 */
+    val reloadUi = MutableLiveData(false)
     private val apkRepository = ApkPluginRepository(application)
     private val trustStore = PluginTrustStore(application)
 
@@ -41,6 +50,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                     .onFailure { android.util.Log.e("PluginMarket", "discover apk plugins failed", it) }
                     .getOrDefault(emptyList())
             )
+            builtinPlugins.postValue(builtin.rows())
             val installed = installer.installed().map { it.id }.toSet()
             runCatching { readIndex() }
                 .onSuccess { (index, _) ->
@@ -71,6 +81,28 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val error = runCatching { installer.uninstall(entry.id) }.exceptionOrNull()
             post(error?.let { "卸载失败：${it.message}" } ?: "已卸载 ${entry.name}")
         }
+    }
+
+    fun uninstallBuiltin(row: BuiltinPluginManager.Row, purgeData: Boolean) {
+        executor.execute {
+            val error = runCatching { builtin.uninstall(row.id, purgeData) }.exceptionOrNull()
+            message.postValue(error?.let { "卸载失败：${it.message}" } ?: "已卸载 ${row.name}")
+            builtinPlugins.postValue(builtin.rows())
+            if (error == null) reloadUi.postValue(true)
+        }
+    }
+
+    fun installBuiltin(row: BuiltinPluginManager.Row) {
+        executor.execute {
+            val error = runCatching { builtin.install(row.id) }.exceptionOrNull()
+            message.postValue(error?.let { "启用失败：${it.message}" } ?: "已启用 ${row.name}")
+            builtinPlugins.postValue(builtin.rows())
+            if (error == null) reloadUi.postValue(true)
+        }
+    }
+
+    fun consumeReloadUi() {
+        reloadUi.value = false
     }
 
     /** 消息只消费一次，避免旋转屏幕后重复弹。 */

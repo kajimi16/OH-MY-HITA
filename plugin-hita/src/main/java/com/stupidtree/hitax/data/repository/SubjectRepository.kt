@@ -156,6 +156,10 @@ class SubjectRepository(application: Application) {
 
     companion object {
         private var instance: SubjectRepository? = null
+        fun resetInstance() {
+            instance = null
+        }
+
         fun getInstance(application: Application): SubjectRepository {
             if (instance == null) instance = SubjectRepository(application)
             return instance!!

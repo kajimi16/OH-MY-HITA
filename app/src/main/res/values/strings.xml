@@ -820,4 +820,15 @@
     <string name="belonging_timetable">所属课表</string>
     <string name="lecture_title">讲座信息</string>
     <string name="plugin_market_title">插件市场</string>
+
+    <!-- 内置插件的卸载 / 恢复 -->
+    <string name="plugin_builtin_section">内置插件</string>
+    <string name="plugin_builtin_running">运行中</string>
+    <string name="plugin_builtin_removed">已卸载</string>
+    <string name="plugin_builtin_uninstall">卸载</string>
+    <string name="plugin_builtin_enable">启用</string>
+    <string name="plugin_uninstall_title">卸载内置插件</string>
+    <string name="plugin_uninstall_message">将「%1$s」从界面中移除。已放在桌面的小组件需要手动删除；重新启用后可恢复。</string>
+    <string name="plugin_uninstall_clear">卸载并清除数据</string>
+    <string name="plugin_uninstall_keep">卸载，保留数据</string>
 </resources>

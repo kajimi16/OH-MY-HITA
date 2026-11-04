@@ -5,6 +5,8 @@ import android.view.View
 import android.widget.Toast
 import com.stupidtree.hitax.databinding.FragmentPluginMarketBinding
 import com.stupidtree.hitax.databinding.ItemPluginMarketBinding
+import androidx.appcompat.app.AlertDialog
+import com.stupidtree.hitax.plugin.BuiltinPluginManager
 import com.stupidtree.style.base.BaseFragment
 
 /**
@@ -21,6 +23,14 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     override fun initViews(view: View) {
         viewModel.items.observe(this) { render(it) }
         viewModel.apkPlugins.observe(this) { renderApkPlugins(it) }
+        viewModel.builtinPlugins.observe(this) { renderBuiltin(it) }
+        viewModel.reloadUi.observe(this) { reload ->
+            if (reload) {
+                viewModel.consumeReloadUi()
+                // 卸载/启用会改变 tab 与导航项集合，重建界面最稳妥
+                requireActivity().recreate()
+            }
+        }
         viewModel.status.observe(this) { text ->
             binding?.status?.text = text
             binding?.status?.visibility = if (text == null) View.GONE else View.VISIBLE
@@ -52,6 +62,48 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
                 override fun OnConfirm() = action()
             })
             .show(parentFragmentManager, "plugin_untrusted")
+    }
+
+    private fun renderBuiltin(rows: List<BuiltinPluginManager.Row>) {
+        val container = binding?.builtinContainer ?: return
+        container.removeAllViews()
+        val inflater = LayoutInflater.from(requireContext())
+        rows.forEach { row ->
+            val v = com.stupidtree.hitax.databinding.ItemApkPluginBinding.inflate(inflater, container, false)
+            v.apkName.text = row.name
+            v.apkMeta.text = "${row.id} · " + getString(
+                if (row.installed) com.stupidtree.hitax.R.string.plugin_builtin_running
+                else com.stupidtree.hitax.R.string.plugin_builtin_removed
+            )
+            v.apkAction.text = getString(
+                if (row.installed) com.stupidtree.hitax.R.string.plugin_builtin_uninstall
+                else com.stupidtree.hitax.R.string.plugin_builtin_enable
+            )
+            v.apkAction.setOnClickListener {
+                if (row.installed) confirmUninstallBuiltin(row) else viewModel.installBuiltin(row)
+            }
+            container.addView(v.root)
+        }
+    }
+
+    /** 卸载是破坏性操作：默认保留数据，清除数据作为次要选项。 */
+    private fun confirmUninstallBuiltin(row: BuiltinPluginManager.Row) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(com.stupidtree.hitax.R.string.plugin_uninstall_title)
+            .setMessage(
+                getString(
+                    com.stupidtree.hitax.R.string.plugin_uninstall_message,
+                    row.name,
+                )
+            )
+            .setPositiveButton(com.stupidtree.hitax.R.string.plugin_uninstall_keep) { _, _ ->
+                viewModel.uninstallBuiltin(row, purgeData = false)
+            }
+            .setNegativeButton(com.stupidtree.hitax.R.string.plugin_uninstall_clear) { _, _ ->
+                viewModel.uninstallBuiltin(row, purgeData = true)
+            }
+            .setNeutralButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun renderApkPlugins(plugins: List<ApkPlugin>) {

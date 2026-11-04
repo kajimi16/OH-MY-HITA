@@ -29,6 +29,9 @@ class ThetaPlugin : Plugin {
 
     override val displayName: String = "θ社区"
 
+    /** θ 只消费远端接口与宿主共享的账号数据。 */
+    override fun purgeData() = Unit
+
     override fun install(ctx: PluginContext) {
         ctx.provide(CommunityService.KEY, ThetaCommunityService())
         ThetaRuntime.hostUi = ctx.service(HostUiService.KEY)

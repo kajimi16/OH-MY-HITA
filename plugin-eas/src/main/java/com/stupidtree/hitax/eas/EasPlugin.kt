@@ -14,9 +14,20 @@ class EasPlugin(private val application: Application) : Plugin {
 
     override val displayName = "教务"
 
+    /** 用户选择「卸载并清除数据」：教务凭据、成绩提醒、考试备忘与本插件目录。 */
+    override fun purgeData() {
+        runCatching {
+            com.stupidtree.hitax.data.work.ScoreReminderScheduler.cancel(application)
+        }
+        listOf("local_eas_token", "score_reminder", "exam_memo").forEach { name ->
+            application.getSharedPreferences(name, android.content.Context.MODE_PRIVATE)
+                .edit().clear().apply()
+        }
+        java.io.File(application.filesDir, "plugins/$id").deleteRecursively()
+    }
+
     override fun install(ctx: PluginContext) {
-        EasRuntime.timetable = ctx.service(TimetableService.KEY)
-        EasRuntime.hostUi = ctx.service(HostUiService.KEY)
+        EasRuntime.ctx = ctx
         ctx.provide(EasService.KEY, EasServiceImpl(application))
     }
 }

@@ -62,6 +62,24 @@
             android:orientation="vertical" />
 
         <TextView
+            android:id="@+id/builtin_section_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/plugin_builtin_section"
+            android:textColor="?attr/textColorPrimary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/builtin_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
             android:id="@+id/market_section_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

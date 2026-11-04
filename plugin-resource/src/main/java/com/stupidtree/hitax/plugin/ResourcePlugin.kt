@@ -20,6 +20,11 @@ class ResourcePlugin(private val application: Application) : Plugin {
 
     override val displayName = "课程资源"
 
+    /** 课程资源插件不落盘业务数据，仅清理内核分配的私有目录。 */
+    override fun purgeData() {
+        java.io.File(application.filesDir, "plugins/$id").deleteRecursively()
+    }
+
     override fun install(ctx: PluginContext) {
         ctx.provide(ResourceUiService.KEY, ResourceUiServiceImpl(application))
 

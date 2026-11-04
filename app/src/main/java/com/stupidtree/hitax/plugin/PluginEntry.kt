@@ -11,6 +11,8 @@ data class PluginEntry(
     val id: String,
     val className: String,
     val needsApplication: Boolean,
+    /** 市场里展示用；缺省回落到 id。 */
+    val displayName: String = id,
 )
 
 object PluginEntries {
@@ -26,6 +28,7 @@ object PluginEntries {
                 id = id,
                 className = obj.get("class")?.asString ?: return@mapNotNull null,
                 needsApplication = obj.get("needsApplication")?.asBoolean ?: false,
+                displayName = obj.get("name")?.asString ?: id,
             )
         }
     }.getOrDefault(emptyList())
