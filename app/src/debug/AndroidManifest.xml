@@ -9,5 +9,12 @@
                 <action android:name="com.stupidtree.hitax.DEV_INSTALL_UI_PLUGIN" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".uiplugin.DevUiPluginOpenReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.stupidtree.hitax.DEV_OPEN_UI_PLUGIN" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

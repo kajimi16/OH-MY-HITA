@@ -3,10 +3,15 @@ package com.stupidtree.hita.ui.resource
 import android.content.Context
 import android.util.TypedValue
 import android.view.View
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -291,12 +296,7 @@ private fun TopBar(tokens: Tokens, title: String, showBack: Boolean, onBack: () 
         } else {
             Spacer(Modifier.width(72.dp))
         }
-        Text(
-            title,
-            color = tokens.textPrimary,
-            fontSize = 20.sp,
-            maxLines = 1,
-        )
+        HostText(text = title, sp = 20f, color = tokens.textPrimary)
     }
 }
 
@@ -317,42 +317,73 @@ private fun SearchBar(
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Canvas(Modifier.size(24.dp).padding(2.dp)) {
-            val stroke = 2.dp.toPx()
-            drawCircle(
-                color = tokens.primary,
-                radius = size.minDimension * 0.3f,
-                center = Offset(size.width * 0.42f, size.height * 0.42f),
-                style = Stroke(width = stroke),
+        val searchCtx = LocalContext.current
+        val searchIconId = remember(searchCtx) { searchCtx.drawableId("ic_baseline_search_24") }
+        if (searchIconId != 0) {
+            Image(
+                painter = painterResource(searchIconId),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(tokens.primary),
+                modifier = Modifier.size(24.dp).padding(2.dp),
             )
-            drawLine(
-                color = tokens.primary,
-                start = Offset(size.width * 0.63f, size.height * 0.63f),
-                end = Offset(size.width * 0.88f, size.height * 0.88f),
-                strokeWidth = stroke,
-                cap = StrokeCap.Round,
-            )
-        }
-        Spacer(Modifier.width(8.dp))
-        Box(Modifier.weight(1f)) {
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                singleLine = true,
-                textStyle = TextStyle(fontSize = 14.sp, color = tokens.textPrimary),
-                cursorBrush = SolidColor(tokens.primary),
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { onSearch() }),
-            )
-            if (value.isEmpty()) {
-                Text(
-                    LocalContext.current.hostString("course_resource_hint", "输入课程名、课程代码或教师名"),
-                    color = tokens.textSecondary,
-                    fontSize = 14.sp,
+        } else {
+            Canvas(Modifier.size(24.dp).padding(2.dp)) {
+                val stroke = 2.dp.toPx()
+                drawCircle(
+                    color = tokens.primary,
+                    radius = size.minDimension * 0.3f,
+                    center = Offset(size.width * 0.42f, size.height * 0.42f),
+                    style = Stroke(width = stroke),
+                )
+                drawLine(
+                    color = tokens.primary,
+                    start = Offset(size.width * 0.63f, size.height * 0.63f),
+                    end = Offset(size.width * 0.88f, size.height * 0.88f),
+                    strokeWidth = stroke,
+                    cap = StrokeCap.Round,
                 )
             }
         }
+        Spacer(Modifier.width(8.dp))
+        val ctx = LocalContext.current
+        AndroidView(
+            modifier = Modifier.weight(1f),
+            factory = { appCtx ->
+                EditText(appCtx).apply {
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                    setTextColor(tokens.textPrimary.toArgbCompat())
+                    setHintTextColor(tokens.textSecondary.toArgbCompat())
+                    hint = appCtx.hostString("course_resource_hint", "输入课程名、课程代码或教师名")
+                    background = null
+                    isSingleLine = true
+                    inputType = android.text.InputType.TYPE_CLASS_TEXT
+                    imeOptions = EditorInfo.IME_ACTION_SEARCH
+                    setPadding(0, 0, 0, 0)
+                    setOnEditorActionListener { _, actionId, _ ->
+                        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                            onSearch()
+                            true
+                        } else false
+                    }
+                    addTextChangedListener(object : TextWatcher {
+                        override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
+                        override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
+                        override fun afterTextChanged(s: Editable?) {
+                            onValueChange(s?.toString().orEmpty())
+                        }
+                    })
+                }
+            },
+            update = { view ->
+                val current = view.text?.toString().orEmpty()
+                if (current != value) {
+                    view.setText(value)
+                    view.setSelection(view.text.length)
+                }
+                view.setTextColor(tokens.textPrimary.toArgbCompat())
+                view.setHintTextColor(tokens.textSecondary.toArgbCompat())
+            },
+        )
     }
 }
 
@@ -395,11 +426,10 @@ private fun CourseCard(tokens: Tokens, item: CourseResourceItem, onClick: () -> 
                 MenuGlyph(tokens, Modifier.size(46.dp))
             }
             Column(Modifier.padding(start = 16.dp, end = 16.dp)) {
-                Text(
-                    item.courseName.ifBlank { item.courseCode.ifBlank { item.repoName } },
+                HostText(
+                    text = item.courseName.ifBlank { item.courseCode.ifBlank { item.repoName } },
+                    sp = 16f,
                     color = tokens.textPrimary,
-                    fontSize = 16.sp,
-                    maxLines = 1,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
@@ -424,6 +454,35 @@ private fun CourseCard(tokens: Tokens, item: CourseResourceItem, onClick: () -> 
             }
         }
     }
+}
+
+/** 用宿主 TextView 渲染文本，字形/抗锯齿与内置页面完全一致。 */
+@Composable
+private fun HostText(
+    text: String,
+    sp: Float,
+    color: Color,
+    modifier: Modifier = Modifier,
+    maxLines: Int = 1,
+    typefaceName: String? = null,
+) {
+    AndroidView(
+        modifier = modifier,
+        factory = { ctx ->
+            TextView(ctx).apply {
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
+                includeFontPadding = true
+                setTextColor(color.toArgbCompat())
+                typefaceName?.let { typeface = android.graphics.Typeface.create(it, android.graphics.Typeface.NORMAL) }
+                this.maxLines = maxLines
+                ellipsize = android.text.TextUtils.TruncateAt.END
+            }
+        },
+        update = {
+            it.text = text
+            it.maxLines = maxLines
+        },
+    )
 }
 
 @Composable
