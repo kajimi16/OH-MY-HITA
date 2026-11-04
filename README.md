@@ -19,14 +19,14 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 索引格式：
 
 ```json
-{"plugins":[{"id":"com.example.hello","name":"示例插件","version":"0.1.0",
+{"plugins":[{"id":"com.example.hello","name":"示例逻辑插件","version":"0.1.0",
 "apiVersion":2,"url":"plugin.dex","sha256":"...","entryClass":"com.example.hello.HelloPlugin"}]}
 ```
 
 限制（Android 硬边界，不是实现取舍）：运行时插件不能声明四大组件、不能携带资源，
 且与宿主同进程共享权限。因此市场只上架逻辑插件；需要界面的功能走独立 APK（T2）。
 
-示例插件在 `:sample-plugin`，产出 dex：
+示例逻辑插件在 `:sample-plugin`，产出 dex：
 
 ```bash
 ./gradlew :sample-plugin:buildPluginDex   # -> sample-plugin/build/plugin-dex/classes.dex
