@@ -22,7 +22,6 @@ import com.stupidtree.hitax.ui.resource.InternalWebActivity
 import com.stupidtree.hitax.ui.news.NewsDetailActivity
 import com.stupidtree.hitax.ui.profile.ProfileActivity
 import com.stupidtree.hitax.ui.search.SearchActivity
-import com.stupidtree.hitax.ui.subject.SubjectActivity
 import com.stupidtree.hitax.ui.teacher.ActivityTeacherOfficial
 import com.stupidtree.stupiduser.data.model.CheckUpdateResult
 import com.stupidtree.style.base.BaseActivity
@@ -139,9 +138,9 @@ object ActivityUtils {
 
 
     fun startSubjectActivity(from: Context, id: String) {
-        val i = Intent(from, SubjectActivity::class.java)
-        i.putExtra("subjectId", id)
-        from.startActivity(i)
+        (from.applicationContext as com.stupidtree.hitax.HApplication).pluginHost
+            .service(com.stupidtree.hita.api.TimetableUiService.KEY)
+            ?.openSubject(from, id)
     }
 
     fun startCourseResourceSearchActivity(

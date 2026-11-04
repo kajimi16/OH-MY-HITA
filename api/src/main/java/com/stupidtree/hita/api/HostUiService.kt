@@ -2,6 +2,7 @@ package com.stupidtree.hita.api
 
 import android.content.Context
 import com.stupidtree.hitax.data.model.timetable.EventItem
+import com.stupidtree.hitax.data.model.timetable.TermSubject
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.data.model.timetable.Timetable
 
@@ -14,7 +15,6 @@ import com.stupidtree.hitax.data.model.timetable.Timetable
 interface HostUiService {
     fun openTimetableDetail(context: Context, timetableId: String)
     fun openImportTimetable(context: Context)
-    fun openSubject(context: Context, subjectId: String)
     fun openCourseResourceSearch(context: Context, keyword: String?, submit: Boolean)
     fun openTeacherHomepage(context: Context, teacherName: String)
     /**
@@ -27,6 +27,7 @@ interface HostUiService {
         dow: Int = -1,
         week: Int = 1,
         period: TimePeriodInDay? = null,
+        subject: TermSubject? = null,
     )
 
     /** 通知宿主刷新桌面小组件。 */
@@ -34,6 +35,23 @@ interface HostUiService {
 
     /** 立刻触发一次教务课表自动导入（宿主持有 EAS 账号与仓库）。 */
     fun startAutoReimport(callback: (Boolean) -> Unit)
+
+    /** 打开课程资料 README（宿主持有 HOA 仓库）。 */
+    fun openCourseReadme(
+        context: Context,
+        lifecycleOwner: androidx.lifecycle.LifecycleOwner,
+        courseCode: String?,
+        courseName: String?,
+    )
+
+    /** 打开课程资料投稿页。 */
+    fun openCourseContribution(
+        context: Context,
+        repoName: String,
+        courseName: String,
+        courseCode: String,
+        repoType: String,
+    )
 
     /** 展示事件详情弹窗（宿主负责渲染）。 */
     fun showEventInfo(context: Context, events: List<EventItem>)

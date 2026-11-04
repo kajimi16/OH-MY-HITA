@@ -68,10 +68,6 @@ class HApplication : Application() {
                 )
             }
 
-            override fun openSubject(context: android.content.Context, subjectId: String) {
-                com.stupidtree.hitax.utils.ActivityUtils.startSubjectActivity(context, subjectId)
-            }
-
             override fun openCourseResourceSearch(context: android.content.Context, keyword: String?, submit: Boolean) {
                 com.stupidtree.hitax.utils.ActivityUtils.startCourseResourceSearchActivity(
                     context,
@@ -91,13 +87,38 @@ class HApplication : Application() {
                 dow: Int,
                 week: Int,
                 period: com.stupidtree.hitax.data.model.timetable.TimePeriodInDay?,
+                subject: com.stupidtree.hitax.data.model.timetable.TermSubject?,
             ) {
                 val popup = com.stupidtree.hitax.ui.event.add.PopupAddEvent(true)
                     .setInitTimetable(timetable)
+                subject?.let { popup.setInitSubject(it) }
                 if (dow >= 0 && period != null) popup.setInitTime(dow, week, period)
                 popup.show(
                     (activity as androidx.fragment.app.FragmentActivity).supportFragmentManager,
                     "add_subject"
+                )
+            }
+
+            override fun openCourseReadme(
+                context: android.content.Context,
+                lifecycleOwner: androidx.lifecycle.LifecycleOwner,
+                courseCode: String?,
+                courseName: String?,
+            ) {
+                com.stupidtree.hitax.utils.CourseResourceLinker.openReadme(
+                    context, lifecycleOwner, courseCode, courseName
+                )
+            }
+
+            override fun openCourseContribution(
+                context: android.content.Context,
+                repoName: String,
+                courseName: String,
+                courseCode: String,
+                repoType: String,
+            ) {
+                com.stupidtree.hitax.utils.ActivityUtils.startCourseContributionActivity(
+                    context, repoName, courseName, courseCode, repoType
                 )
             }
 

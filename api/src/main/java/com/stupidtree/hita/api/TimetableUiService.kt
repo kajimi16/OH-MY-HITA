@@ -6,6 +6,8 @@ import android.content.Context
 interface TimetableUiService {
     fun openManager(context: Context)
     fun openDetail(context: Context, timetableId: String)
+    fun openSubject(context: Context, subjectId: String)
+
     /** 打开课表样式面板（插件内的 BottomSheet） */
     fun openStylePanel(activity: androidx.fragment.app.FragmentActivity)
 

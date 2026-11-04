@@ -15,6 +15,14 @@ class TimetableUiImpl : TimetableUiService {
         )
     }
 
+    override fun openSubject(context: Context, subjectId: String) {
+        context.startActivity(
+            Intent(context, com.stupidtree.hitax.ui.subject.SubjectActivity::class.java)
+                .putExtra("id", subjectId)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    }
+
     override fun openStylePanel(activity: androidx.fragment.app.FragmentActivity) {
         com.stupidtree.hitax.ui.main.timetable.panel.FragmentTimetablePanel()
             .show(activity.supportFragmentManager, "panel")

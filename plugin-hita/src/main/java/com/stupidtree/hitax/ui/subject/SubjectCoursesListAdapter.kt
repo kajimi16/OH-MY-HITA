@@ -9,9 +9,9 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.viewbinding.ViewBinding
 import com.stupidtree.hitax.data.model.timetable.EventItem
-import com.stupidtree.hitax.databinding.DynamicSubjectCourseitemBinding
-import com.stupidtree.hitax.databinding.DynamicSubjectCourseitemPassedBinding
-import com.stupidtree.hitax.databinding.DynamicSubjectCourseitemTagBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DynamicSubjectCourseitemBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DynamicSubjectCourseitemPassedBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DynamicSubjectCourseitemTagBinding
 import com.stupidtree.style.base.BaseCheckableListAdapter
 import com.stupidtree.style.base.BaseViewHolder
 import com.stupidtree.hitax.utils.TimeTools

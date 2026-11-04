@@ -8,18 +8,14 @@ import android.view.View
 import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
 import com.beloo.widget.chipslayoutmanager.ChipsLayoutManager
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TermSubject
-import com.stupidtree.hitax.databinding.ActivitySubjectBinding
-import com.stupidtree.hitax.ui.event.add.PopupAddEvent
+import com.stupidtree.hita.plugin.timetable.databinding.ActivitySubjectBinding
 import com.stupidtree.style.widgets.PopUpFloatPicker
-import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.EditModeHelper
-import com.stupidtree.hitax.utils.EventsUtils
 import com.stupidtree.hitax.utils.TimeTools
 import com.stupidtree.hitax.utils.CourseCodeUtils
-import com.stupidtree.hitax.utils.CourseResourceLinker
 import com.stupidtree.style.base.BaseActivity
 import com.stupidtree.style.base.BaseListAdapter
 import com.stupidtree.style.widgets.PopUpSelectableList
@@ -176,15 +172,15 @@ class SubjectActivity : BaseActivity<SubjectViewModel, ActivitySubjectBinding>()
         binding.cardTeacher.onCardClickListener = View.OnClickListener {
             viewModel.teachersLiveData.value?.let {
                 val keyword = it.firstOrNull() ?: return@let
-                ActivityUtils.startCourseResourceSearchActivity(
-                    getThis(), keyword, ActivityUtils.CourseResourceMode.VIEW
-                )
+                com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                    ?.openCourseResourceSearch(getThis(), keyword, submit = false)
             }
 
         }
         binding.cardTeacher.setOnLongClickListener {
             viewModel.teachersLiveData.value?.firstOrNull()?.let { teacher ->
-                ActivityUtils.startTeacherHomepageSearch(getThis(), teacher)
+                com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                    ?.openTeacherHomepage(getThis(), teacher)
             }
             true
         }
@@ -208,17 +204,18 @@ class SubjectActivity : BaseActivity<SubjectViewModel, ActivitySubjectBinding>()
         }
         binding.timetableCard.setOnClickListener {
             viewModel.timetableLiveData.value?.let {
-                ActivityUtils.startTimetableDetailActivity(this, it.id)
+                com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                    ?.openTimetableDetail(this, it.id)
             }
 
         }
         binding.buttonCourseResource.setOnClickListener {
             viewModel.subjectLiveData.value?.let { subject ->
-                CourseResourceLinker.openReadme(
+                com.stupidtree.hitax.plugin.HitaRuntime.hostUi?.openCourseReadme(
                     context = getThis(),
-                    owner = this,
-                    courseCodeRaw = subject.code,
-                    courseNameRaw = subject.name,
+                    lifecycleOwner = this,
+                    courseCode = subject.code,
+                    courseName = subject.name,
                 )
             }
         }
@@ -228,7 +225,7 @@ class SubjectActivity : BaseActivity<SubjectViewModel, ActivitySubjectBinding>()
                 val repoName = normalizedCode?.takeIf { it.isNotBlank() }
                     ?: subject.code?.takeIf { it.isNotBlank() }
                     ?: subject.name
-                ActivityUtils.startCourseContributionActivity(
+                com.stupidtree.hitax.plugin.HitaRuntime.hostUi?.openCourseContribution(
                     getThis(),
                     repoName,
                     subject.name,
@@ -294,7 +291,8 @@ class SubjectActivity : BaseActivity<SubjectViewModel, ActivitySubjectBinding>()
                     if (it.type === EventItem.TYPE.TAG) {
                         toggleCourseExpand()
                     } else {
-                        EventsUtils.showEventItem(getThis(), it)
+                        com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                            ?.showEventInfo(getThis(), listOf(it))
                     }
                 }
             }
@@ -314,8 +312,8 @@ class SubjectActivity : BaseActivity<SubjectViewModel, ActivitySubjectBinding>()
         binding.courseAdd.setOnClickListener {
             viewModel.subjectLiveData.value?.let { ts ->
                 viewModel.timetableLiveData.value?.let { tt ->
-                    PopupAddEvent().setInitTimetable(tt).setInitSubject(ts)
-                        .show(supportFragmentManager, "add_event")
+                    com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                        ?.openAddEvent(this, tt, subject = ts)
                 }
 
             }

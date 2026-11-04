@@ -92,4 +92,32 @@
     
 <dimen name="timeline_width">8dp</dimen>
     
+<color name="autumn_text">#ffb157</color>
+    
+<string name="percentage">%d%%</string>
+    
+<color name="spring_text">#60af17</color>
+    
+<color name="summer_text">#37a7df</color>
+    
+<color name="winter_text">#01579B</color>
+
+    
+<string name="subject_credit">课程学分</string>
+    
+<string name="subject_exam">考试课</string>
+    
+<string name="subject_mooc">MOOC</string>
+    
+<color name="spring">#a0ff57</color>
+    
+<color name="summer">#57c7ff</color>
+    
+<color name="autumn">#ffb157</color>
+    
+<color name="winter">#3381ff</color>
+
+    
+<string name="not_counted_in_GPA" translatable="false">考查课</string>
+    
 </resources>

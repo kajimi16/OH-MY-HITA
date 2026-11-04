@@ -312,9 +312,7 @@
     <string name="label_activity_score_inquiry">成绩查询</string>
     <string name="label_activity_exam_inquiry">考试查询</string>
     <string name="subject_compulsory">性质</string>
-    <string name="subject_credit">课程学分</string>
     <string name="subject_total">总学时</string>
-    <string name="subject_exam">考试课</string>
     <string name="subject_title_info">科目信息</string>
     <string name="subject_code">课程代码</string>
     <string name="subject_xnxq">学年学期</string>
@@ -580,7 +578,6 @@
     <string name="import_from_excel">Excel文件导入</string>
     <string name="import_excel_success">成功从Excel文件中导入%d个课表</string>
     <string name="curriculum_created">已新建课表</string>
-    <string name="subject_mooc">MOOC</string>
     <string name="main_drawer_menu_user">账号</string>
     <string name="sync_subjects_info_to_curriculum">同步课程详情到当前课表</string>
     <string name="subject_sync_success">成功同步%d个科目的信息！</string>
@@ -812,7 +809,6 @@
     <string name="yes">是</string>
     <string name="no">否</string>
     <string name="counted_in_GPA" translatable="false">考试课</string>
-    <string name="not_counted_in_GPA" translatable="false">考查课</string>
     <string name="ade_title_edit">编辑%s</string>
     <string name="edit_event_done">已保存</string>
     <string name="jw_tabs_xxjd" translatable="false">学习进度</string>
@@ -900,7 +896,6 @@
     <string name="timetable_structure_label">课表结构</string>
     <string name="timetable_name">课表名称</string>
     <string name="load_failed">加载失败</string>
-    <string name="percentage">%d%%</string>
     <string name="title_navigation">功能中心</string>
     <string name="title_plugin">插件</string>
     <string name="plugin_apk_section">已安装的独立插件（APK）</string>

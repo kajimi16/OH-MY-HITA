@@ -61,7 +61,6 @@
         <activity
             android:name=".ui.main.MainActivity"
             android:launchMode="singleTop" />
-        <activity android:name=".ui.subject.SubjectActivity" />
         <activity android:name=".ui.myprofile.MyProfileActivity" />
         <activity
             android:name=".ui.ActivitySplash"

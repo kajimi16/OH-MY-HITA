@@ -81,8 +81,7 @@ class TimetableDetailActivity :
 
             override fun onItemClick(data: TermSubject?, card: View?, position: Int) {
                 if (data != null) {
-                    com.stupidtree.hitax.plugin.HitaRuntime.hostUi
-                        ?.openSubject(getThis(), data.id)
+                    startActivity(android.content.Intent(this@TimetableDetailActivity, com.stupidtree.hitax.ui.subject.SubjectActivity::class.java).putExtra("id", data.id))
                 }
             }
         })

@@ -7,5 +7,8 @@
         <activity
             android:name="com.stupidtree.hitax.ui.timetable.detail.TimetableDetailActivity"
             android:exported="false" />
+        <activity
+            android:name="com.stupidtree.hitax.ui.subject.SubjectActivity"
+            android:exported="false" />
     </application>
 </manifest>
