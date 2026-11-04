@@ -190,9 +190,11 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
             override fun initItem(position: Int): Fragment {
                 return when (position) {
                     0 -> (application as HApplication).pluginHost.tabs
-                        .find("hita.timeline")?.let { it.create() } ?: Fragment()
+                        .find("hita.timeline")?.let { it.create() }
+                        ?: PluginUnavailableFragment.newInstance("com.stupidtree.hitax.timetable")
                     1 -> (application as HApplication).pluginHost.tabs
-                        .find("hita.timetable")?.let { it.create() } ?: Fragment()
+                        .find("hita.timetable")?.let { it.create() }
+                        ?: PluginUnavailableFragment.newInstance("com.stupidtree.hitax.timetable")
                     2 -> NavigationFragment()
                     else -> com.stupidtree.hitax.market.FragmentPluginMarket()
                 }
@@ -303,6 +305,11 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
 
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+    /** 供占位页跳转到插件市场（第 4 个 tab）。 */
+    fun openPluginMarket() {
+        binding.pager.currentItem = 3
+    }
+
     override fun onBackPressed() {
         //super.onBackPressed();
         if (binding.drawer.isDrawerOpen(GravityCompat.END)) {

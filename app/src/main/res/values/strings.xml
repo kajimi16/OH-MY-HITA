@@ -831,4 +831,8 @@
     <string name="plugin_uninstall_message">将「%1$s」从界面中移除。已放在桌面的小组件需要手动删除；重新启用后可恢复。</string>
     <string name="plugin_uninstall_clear">卸载并清除数据</string>
     <string name="plugin_uninstall_keep">卸载，保留数据</string>
+
+    <string name="plugin_unavailable_title">「%1$s」已卸载</string>
+    <string name="plugin_unavailable_hint">该功能由内置插件提供，可在插件市场重新启用。</string>
+    <string name="plugin_unavailable_action">去插件市场</string>
 </resources>

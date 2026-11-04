@@ -32,7 +32,8 @@ object PluginComponents {
         val match = prefixes[pluginId] ?: return
         val pm = context.packageManager
         val pkg = context.packageName
-        val state = if (enabled) PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        // 恢复时用 DEFAULT，避免覆盖 Manifest 里声明的原始状态
+        val state = if (enabled) PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
         else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
         // 必须带 MATCH_DISABLED_COMPONENTS：否则已被禁用的组件读不到，无法重新启用
         val flags = PackageManager.GET_ACTIVITIES or

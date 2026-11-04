@@ -144,6 +144,13 @@ class HApplication : Application() {
             }
         })
         pluginHost.installAll(PluginCatalog.plugins(this))
+        // 组件开关状态由系统持久化，可能与本地禁用标记不一致（如清除应用数据）；
+        // 装配完成后按标记收敛一次，避免“插件已装配但组件仍禁用”。
+        com.stupidtree.hitax.plugin.PluginCatalog.entries(this).forEach { entry ->
+            com.stupidtree.hitax.plugin.PluginComponents.setEnabled(
+                this, entry.id, !com.stupidtree.hitax.plugin.PluginPrefs.isDisabled(this, entry.id)
+            )
+        }
         // 恢复上次安装的运行时插件（T1）；单个失败不影响其它插件。
         com.stupidtree.hitax.market.PluginInstaller(this, pluginHost).restore()
 
