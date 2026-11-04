@@ -20,10 +20,30 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     override fun initViewBinding(): FragmentPluginMarketBinding =
         FragmentPluginMarketBinding.inflate(layoutInflater)
 
+    private val pickUiPluginApk =
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.OpenDocument()) { uri ->
+            uri ?: return@registerForActivityResult
+            AlertDialog.Builder(requireContext())
+                .setTitle(com.stupidtree.hitax.R.string.plugin_ui_section)
+                .setMessage(com.stupidtree.hitax.R.string.plugin_ui_warning)
+                .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.installUiPlugin(uri) }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+
     override fun initViews(view: View) {
         viewModel.items.observe(this) { render(it) }
         viewModel.apkPlugins.observe(this) { renderApkPlugins(it) }
         viewModel.builtinPlugins.observe(this) { renderBuiltin(it) }
+        viewModel.uiPlugins.observe(this) { renderUiPlugins(it) }
+        binding?.installUiPlugin?.setOnClickListener {
+            pickUiPluginApk.launch(
+                arrayOf(
+                    "application/vnd.android.package-archive",
+                    "application/octet-stream",
+                )
+            )
+        }
         viewModel.reloadUi.observe(this) { reload ->
             if (reload) {
                 viewModel.consumeReloadUi()
@@ -104,6 +124,34 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             }
             .setNeutralButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun renderUiPlugins(plugins: List<com.stupidtree.hitax.uiplugin.InstalledUiPlugin>) {
+        val container = binding?.uiContainer ?: return
+        val empty = binding?.uiEmpty
+        empty?.visibility = if (plugins.isEmpty()) View.VISIBLE else View.GONE
+        container.removeAllViews()
+        val inflater = LayoutInflater.from(requireContext())
+        plugins.forEach { plugin ->
+            val row = com.stupidtree.hitax.databinding.ItemUiPluginBinding.inflate(inflater, container, false)
+            row.name.text = plugin.name
+            row.meta.text = "${plugin.version} · ${plugin.id}"
+            row.open.setOnClickListener {
+                startActivity(
+                    android.content.Intent(requireContext(), com.stupidtree.hitax.uiplugin.PluginUiActivity::class.java)
+                        .putExtra(com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_PLUGIN_ID, plugin.id)
+                )
+            }
+            row.uninstall.setOnClickListener {
+                AlertDialog.Builder(requireContext())
+                    .setTitle(com.stupidtree.hitax.R.string.plugin_builtin_uninstall)
+                    .setMessage(plugin.name)
+                    .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.uninstallUiPlugin(plugin) }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+            container.addView(row.root)
+        }
     }
 
     private fun renderApkPlugins(plugins: List<ApkPlugin>) {

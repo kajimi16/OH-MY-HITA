@@ -1,0 +1,37 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+android {
+    namespace 'com.example.hitaui.sample'
+    defaultConfig {
+        applicationId "com.example.hitaui.sample"
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 35
+        versionCode 1
+        versionName "0.1.0"
+    }
+    buildFeatures { compose = true }
+    composeOptions {
+        // 与宿主 Kotlin 1.9.22 匹配的 Compose 编译器
+        kotlinCompilerExtensionVersion '1.5.8'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions { jvmTarget = '1.8' }
+}
+
+// 运行时界面插件：不依赖宿主任何实现，compose 全部 compileOnly（宿主提供运行时）。
+dependencies {
+    compileOnly project(':api')
+    compileOnly "androidx.compose.runtime:runtime:1.6.8"
+    compileOnly "androidx.compose.ui:ui:1.6.8"
+    compileOnly "androidx.compose.foundation:foundation:1.6.8"
+    compileOnly "androidx.compose.material:material:1.6.8"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+}
