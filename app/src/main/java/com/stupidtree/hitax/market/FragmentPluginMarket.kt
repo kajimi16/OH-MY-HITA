@@ -8,6 +8,7 @@ import androidx.appcompat.app.AlertDialog
 import com.stupidtree.hitax.databinding.FragmentPluginMarketBinding
 import com.stupidtree.hitax.databinding.ItemMarketPluginCardBinding
 import com.stupidtree.hitax.plugin.BuiltinPluginManager
+import com.stupidtree.hitax.plugin.PluginPrefs
 import com.stupidtree.hitax.uiplugin.InstalledUiPlugin
 import com.stupidtree.style.base.BaseFragment
 
@@ -241,7 +242,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             }
             if (item.installed) {
                 card.toggle.visibility = View.VISIBLE
-                bindToggle(card, true) { enabled ->
+                bindToggle(card, item.enabled) { enabled ->
                     viewModel.setMarketEnabled(item.entry, enabled)
                 }
             } else {
@@ -255,13 +256,32 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     private fun renderApkPlugins(plugins: List<ApkPlugin>) {
         binding?.apkEmptyHint?.visibility = if (plugins.isEmpty()) View.VISIBLE else View.GONE
         renderGrid(binding?.apkContainer, plugins) { card, plugin ->
+            val disabledKey = "apk:${plugin.packageName}"
             card.name.text = plugin.name
             card.meta.text = "v${plugin.versionName} · api ${plugin.apiVersion}"
-            card.toggle.visibility = View.INVISIBLE
-            val supported = viewModel.supported(plugin)
-            card.action.text = if (supported) "打开" else "版本不兼容"
-            card.action.isEnabled = supported
+            card.action.text = getString(com.stupidtree.hitax.R.string.plugin_builtin_uninstall)
+            card.action.isEnabled = true
+            // 卸载独立 APK：走系统卸载确认
             card.action.setOnClickListener {
+                runCatching {
+                    startActivity(
+                        android.content.Intent(
+                            android.content.Intent.ACTION_DELETE,
+                            android.net.Uri.parse("package:${plugin.packageName}"),
+                        )
+                    )
+                }
+            }
+            card.toggle.visibility = View.VISIBLE
+            bindToggle(card, !PluginPrefs.isDisabled(requireContext(), disabledKey)) { enabled ->
+                viewModel.setApkEnabled(plugin.packageName, enabled)
+            }
+            // 点击卡片本体打开插件；停用时拦截
+            card.root.setOnClickListener {
+                if (PluginPrefs.isDisabled(requireContext(), disabledKey)) {
+                    Toast.makeText(requireContext(), "插件已停用", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
                 val launch: () -> Unit = {
                     val intent = android.content.Intent()
                         .setComponent(plugin.entry)

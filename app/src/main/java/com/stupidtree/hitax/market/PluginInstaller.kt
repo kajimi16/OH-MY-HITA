@@ -21,7 +21,39 @@ class PluginInstaller(
 
     private val root = File(context.filesDir, "runtime-plugins")
     private val installedFile = File(root, "installed.json")
+    private val disabledFile = File(root, "disabled.json")
     private val gson = Gson()
+
+    /** 停用集合：保留 plugin.dex，只是不装载。 */
+    private fun disabledIds(): Set<String> = runCatching {
+        if (!disabledFile.isFile) emptySet()
+        else gson.fromJson(disabledFile.readText(), Array<String>::class.java).toSet()
+    }.getOrDefault(emptySet())
+
+    private fun saveDisabled(ids: Set<String>) {
+        root.mkdirs()
+        disabledFile.writeText(gson.toJson(ids.toList()))
+    }
+
+    fun isEnabled(id: String): Boolean = id !in disabledIds()
+
+    /** 开关语义：停用只卸载出内核并保留文件；启用从已落盘 dex 重新装载。 */
+    fun setEnabled(id: String, enabled: Boolean) {
+        val entry = installed().firstOrNull { it.id == id }
+            ?: throw IllegalStateException("插件未安装")
+        if (enabled) {
+            val dir = File(root, id)
+            val dex = File(dir, "plugin.dex")
+            if (!dex.isFile) throw IllegalStateException("插件文件不存在，请重新安装")
+            PluginLoader(host, logger = { m, e -> log(m, e) })
+                .loadAndInstall(dex, entry.entryClass, File(dir, "opt"))
+            saveDisabled(disabledIds() - id)
+        } else {
+            runCatching { host.uninstall(id) }
+            saveDisabled(disabledIds() + id)
+        }
+        Log.i(TAG, "setEnabled ${entry.id}=$enabled")
+    }
 
     fun installed(): List<MarketPlugin> = runCatching {
         if (!installedFile.isFile) return emptyList()
@@ -49,6 +81,7 @@ class PluginInstaller(
                 .loadAndInstall(dex, entry.entryClass, File(dir, "opt"))
 
             saveInstalled(installed().filterNot { it.id == entry.id } + entry)
+            saveDisabled(disabledIds() - entry.id)
             Log.i(TAG, "installed ${entry.id}@${entry.version}")
         } catch (t: Throwable) {
             runCatching { host.uninstall(entry.id) }
@@ -61,11 +94,16 @@ class PluginInstaller(
         runCatching { host.uninstall(id) }
         File(root, id).deleteRecursively()
         saveInstalled(installed().filterNot { it.id == id })
+        saveDisabled(disabledIds() - id)
     }
 
     /** 应用启动时恢复上次安装过的运行时插件。单个失败不影响其它插件。 */
     fun restore() {
         installed().forEach { entry ->
+            if (!isEnabled(entry.id)) {
+                Log.i(TAG, "skip ${entry.id}: disabled")
+                return@forEach
+            }
             val dex = File(File(root, entry.id), "plugin.dex")
             if (!dex.isFile) {
                 Log.w(TAG, "skip ${entry.id}: plugin.dex missing")

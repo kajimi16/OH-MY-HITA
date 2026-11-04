@@ -7,6 +7,7 @@ import com.google.gson.Gson
 import com.stupidtree.hitax.BuildConfig
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.plugin.BuiltinPluginManager
+import com.stupidtree.hitax.plugin.PluginPrefs
 import com.stupidtree.hitax.uiplugin.InstalledUiPlugin
 import com.stupidtree.hitax.uiplugin.UiPluginManager
 import java.io.File
@@ -17,7 +18,7 @@ import java.util.concurrent.Executors
  */
 class PluginMarketViewModel(application: Application) : AndroidViewModel(application) {
 
-    data class Item(val entry: MarketPlugin, val installed: Boolean)
+    data class Item(val entry: MarketPlugin, val installed: Boolean, val enabled: Boolean)
 
     private val installer = PluginInstaller(application, (application as HApplication).pluginHost)
     private val executor = Executors.newSingleThreadExecutor()
@@ -63,10 +64,14 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             builtinPlugins.postValue(builtin.rows())
             uiPlugins.postValue(uiPluginManager.installed())
             availableUiPlugins.postValue(emptyList())
-            val installed = installer.installed().map { it.id }.toSet()
+            val installedList = installer.installed()
+            val installed = installedList.map { it.id }.toSet()
+            val enabled = installedList.filter { installer.isEnabled(it.id) }.map { it.id }.toSet()
             runCatching { readIndex() }
                 .onSuccess { (index, _) ->
-                    items.postValue(index.plugins.map { Item(it, it.id in installed) })
+                    items.postValue(
+                        index.plugins.map { Item(it, it.id in installed, it.id in enabled) }
+                    )
                     availableUiPlugins.postValue(index.uiPlugins)
                     status.postValue(null)
                 }
@@ -123,8 +128,17 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    /** 停用保留已下载文件，只从内核卸载；启用重新装载。 */
     fun setMarketEnabled(entry: MarketPlugin, enabled: Boolean) {
-        if (enabled) install(entry) else uninstall(entry)
+        executor.execute {
+            val error = runCatching { installer.setEnabled(entry.id, enabled) }.exceptionOrNull()
+            message.postValue(error?.let { "操作失败：${it.message}" } ?: null)
+            refresh()
+        }
+    }
+
+    fun setApkEnabled(packageName: String, enabled: Boolean) {
+        PluginPrefs.setDisabled(getApplication(), "apk:$packageName", !enabled)
     }
 
     fun installBuiltin(row: BuiltinPluginManager.Row) {
