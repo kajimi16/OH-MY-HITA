@@ -47,6 +47,7 @@ class SampleUiPlugin : ComposeUiPlugin {
                     val service = remember { host.service(TimetableService.KEY) }
                     val resourceService = remember { host.service(ResourceDataService.KEY) }
                     val query = host.arguments.getString("query") ?: "CS"
+                    val submitMode = host.arguments.getBoolean("submit", false)
                     val resourceQuery = remember(resourceService, query) {
                         resourceService?.searchCourses(query)
                     }
@@ -83,6 +84,8 @@ class SampleUiPlugin : ComposeUiPlugin {
                         Text("资源服务：${if (resourceService == null) "不可用" else "已连接"}",
                             style = MaterialTheme.typography.body2)
                         Text("课程资源搜索：$query", style = MaterialTheme.typography.subtitle1)
+                        Text("提交模式：${if (submitMode) "是" else "否"}",
+                            style = MaterialTheme.typography.body2)
                         Text(
                             when {
                                 resourceService == null -> "ResourceDataService 未注册"
