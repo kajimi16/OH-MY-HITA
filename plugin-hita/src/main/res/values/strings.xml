@@ -7,8 +7,6 @@
     
 <string name="unknown_department">未知部门</string>
     
-<string name="pick_time_period">选择时间段</string>
-    
 <string name="notifi_curriculum_set_name">设置课表名称</string>
     
 <string name="dialog_title_random_allocate">是否随机生成各科目颜色？</string>
@@ -38,10 +36,6 @@
     
 <string name="holiday">假期</string>
     
-<string name="no_timetable">无课表</string>
-    
-<string name="week_title">第%d周</string>
-    
 <string name="events_incoming">将要进行</string>
     
 <string name="time_format_1">%d小时%d分钟</string>
@@ -67,8 +61,6 @@
 <string name="timeline_head_finish_title">全部结束</string>
     
 <string name="timeline_head_free_subtitle">享受当下！</string>
-    
-<string name="timeline_head_free_title">今日空闲</string>
     
 <string name="timeline_head_goodmorning_title">早上好</string>
     
@@ -124,15 +116,12 @@
     
 <string name="dialog_this_course_p">为本科目的第%d次课</string>
     
-<string name="loading">加载中</string>
-    
 <string name="add_subject">添加科目与课时</string>
     
 <string name="ade_title">添加课时</string>
     <string name="ade_arrangement">日程</string>
     <string name="ade_ddl">DDL</string>
     <string name="ade_course">课程</string>
-    <string name="ade_exam">考试</string>
     <string name="ade_namehint">输入名称…</string>
     <string name="ade_tag2">标签2</string>
     <string name="ade_tag3">标签3</string>

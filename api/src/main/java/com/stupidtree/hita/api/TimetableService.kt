@@ -58,6 +58,22 @@ interface TimetableService {
 
     fun getProgressOfSubject(subjectId: String, ts: Long): LiveData<Pair<Int, Int>>
 
+    // ---- 供宿主域（如教务导入）使用的同步写入 ----
+
+    fun getTimetableByEasCodeSync(easCode: String): Timetable?
+
+    fun getEventIdsOfTimetables(timetableIds: List<String>): List<String>
+
+    fun deleteCourseFromTimetable(timetableId: String)
+
+    fun getSubjectByName(timetableId: String, name: String?): TermSubject?
+
+    fun saveSubject(subject: TermSubject)
+
+    fun saveEvents(events: List<EventItem>)
+
+    fun saveTimetable(timetable: Timetable)
+
     // ---- 写 ----
 
     fun actionDeleteTimetables(timetables: List<Timetable>)

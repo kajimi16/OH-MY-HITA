@@ -10,7 +10,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import com.stupidtree.component.data.DataState
-import com.stupidtree.hitax.data.AppDatabase
 import com.stupidtree.hitax.data.model.eas.*
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TermSubject
@@ -38,9 +37,8 @@ class EASRepository internal constructor(application: Application) {
     private val appContext = application.applicationContext
     private val easService: EASService = EASource()
     private var easPreferenceSource = EasPreferenceSource.getInstance(application)
-    private var eventItemDao = AppDatabase.getDatabase(application).eventItemDao()
-    private var timetableDao = AppDatabase.getDatabase(application).timetableDao()
-    private var subjectDao = AppDatabase.getDatabase(application).subjectDao()
+    private val timetableService: com.stupidtree.hita.api.TimetableService
+        get() = com.stupidtree.hitax.HitaServices.timetable(appContext)
 
     /**
      * 进行登录
@@ -234,15 +232,15 @@ class EASRepository internal constructor(application: Application) {
                             } ?: 0
                             val safeSchedule = buildSafeSchedule(schedule, maxPeriod)
                             //更新timetable信息
-                            var timetable = timetableDao.getTimetableByEASCodeSync(term.getCode())
+                            var timetable = timetableService.getTimetableByEasCodeSync(term.getCode())
                             if (timetable == null) {
                                 timetable = Timetable()
                             } else {
                                 //若存在，则先清空原有课表课程
                                 val eventIds =
-                                    eventItemDao.getEventIdsFromTimetablesSync(listOf(timetable.id))
+                                    timetableService.getEventIdsOfTimetables(listOf(timetable.id))
                                 StupidSync.putHistorySync("event", History.ACTION.REMOVE, eventIds)
-                                eventItemDao.deleteCourseFromTimetable(timetable.id)
+                                timetableService.deleteCourseFromTimetable(timetable.id)
                             }
                             StupidSync.putHistorySync(
                                 "timetable",
@@ -264,7 +262,7 @@ class EASRepository internal constructor(application: Application) {
                                 val spEnd = safeSchedule[endIndex]
 
                                 //添加科目
-                                var subject = subjectDao.getSubjectByName(timetable.id, item.name)
+                                var subject = timetableService.getSubjectByName(timetable.id, item.name)
                                 if (subject == null) {//不存在，新建
                                     subject = TermSubject()
                                     subject.name = item.name.toString()
@@ -303,7 +301,7 @@ class EASRepository internal constructor(application: Application) {
                                     subject.nature = mappedNature
                                 }
                             }
-                            subjectDao.saveSubjectSync(subject)
+                            timetableService.saveSubject(subject)
                                 if (requireSubjects[subject.id] == null) {
                                     requireSubjects[subject.id] = subject.id
                                     StupidSync.putHistorySync(
@@ -346,7 +344,7 @@ class EASRepository internal constructor(application: Application) {
                                 }
                                 return@Thread
                             }
-                            eventItemDao.saveEvents(events)
+                            timetableService.saveEvents(events)
                             StupidSync.putHistorySync("event", History.ACTION.REQUIRE, events.getIds())
 
                             //更新timetable对象
@@ -355,7 +353,7 @@ class EASRepository internal constructor(application: Application) {
                             timetable.endTime = Timestamp(maxTs)
                             timetable.code = term.getCode()
                             timetable.scheduleStructure = safeSchedule
-                            timetableDao.saveTimetableSync(timetable)
+                            timetableService.saveTimetable(timetable)
 
                             if (finished.compareAndSet(false, true)) {
                                 timeoutHandler.removeCallbacks(timeoutRunnable)

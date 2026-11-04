@@ -39,6 +39,7 @@ class HitaPlugin(private val application: Application) : Plugin {
         val service = TimetableServiceImpl(
             timetables = TimetableRepository.getInstance(application),
             subjects = SubjectRepository.getInstance(application),
+            database = database,
         )
         ctx.provide(TimetableService.KEY, service)
         ctx.provide(TimetableUiService.KEY, TimetableUiImpl())

@@ -75,4 +75,21 @@
 
 
     
+<string name="ade_exam">考试</string>
+    
+<string name="loading">加载中</string>
+    
+
+<string name="week_title">第%d周</string>
+    
+
+<string name="timeline_head_free_title">今日空闲</string>
+    
+
+<string name="pick_time_period">选择时间段</string>
+    
+
+<string name="no_timetable">无课表</string>
+    
+
 </resources>

@@ -1,33 +1,39 @@
 package com.stupidtree.hitax.plugin
 
 import android.app.Application
+import android.util.Log
 import com.stupidtree.hita.api.Plugin
-import com.stupidtree.hita.theta.ThetaPlugin
 
 /**
- * 构建期插件清单 —— profile.yml 的雏形。
+ * 构建期插件清单 —— profile 的雏形。
  *
- * 这里是**唯一**决定「这个 APK 装配哪些插件」的地方：删掉一行，对应功能就不再被装载，
- * 宿主无需改动。注意它只是「不装配」——模块仍会编译并打进 APK；
- * 要真正从产物里移除，还需删掉 app/build.gradle 的模块依赖与 settings.gradle 的 include。
- *
- * 插件通过构造函数拿 Android 依赖（如 Context），内核契约保持纯 Kotlin。
+ * 只读 `assets/plugins.json` 里的类名并反射实例化，**不 import 任何插件模块**：
+ * 删除 `:plugin-hita` / `:theta` 的依赖后，宿主仍能编译并空壳启动。
  */
 object PluginCatalog {
 
     fun plugins(application: Application): List<Plugin> {
-        val all = listOf(
-            ThetaPlugin(),
-            HitaPlugin(application),
-        )
-        return PluginComposition.select(all, readEnabledIds(application))
+        val entries = runCatching {
+            val text = application.assets.open("plugins.json").bufferedReader().use { it.readText() }
+            PluginEntries.parse(text)
+        }.getOrElse {
+            Log.e(TAG, "读取 plugins.json 失败", it)
+            emptyList()
+        }
+
+        return entries.mapNotNull { entry -> load(entry, application) }
     }
 
-    /** `assets/plugins.json` 的 enabled 列表；文件缺失或解析失败时返回 null（表示全部启用）。 */
-    private fun readEnabledIds(application: Application): Set<String>? = runCatching {
-        val text = application.assets.open("plugins.json").bufferedReader().use { it.readText() }
-        val root = com.google.gson.JsonParser.parseString(text).asJsonObject
-        val array = root.getAsJsonArray("enabled") ?: return null
-        array.mapNotNull { it.asString }.toSet()
+    private fun load(entry: PluginEntry, application: Application): Plugin? = runCatching {
+        val clazz = Class.forName(entry.className, true, PluginCatalog::class.java.classLoader)
+        if (entry.needsApplication) {
+            clazz.getConstructor(Application::class.java).newInstance(application) as Plugin
+        } else {
+            clazz.getConstructor().newInstance() as Plugin
+        }
+    }.onFailure {
+        Log.e(TAG, "插件不可用（可能未打包）：${entry.className}", it)
     }.getOrNull()
+
+    private const val TAG = "PluginCatalog"
 }

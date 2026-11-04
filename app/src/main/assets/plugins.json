@@ -2,5 +2,16 @@
   "enabled": [
     "com.stupidtree.hita.theta",
     "com.stupidtree.hitax.timetable"
+  ],
+  "plugins": [
+    {
+      "id": "com.stupidtree.hita.theta",
+      "class": "com.stupidtree.hita.theta.ThetaPlugin"
+    },
+    {
+      "id": "com.stupidtree.hitax.timetable",
+      "class": "com.stupidtree.hitax.plugin.HitaPlugin",
+      "needsApplication": true
+    }
   ]
 }
