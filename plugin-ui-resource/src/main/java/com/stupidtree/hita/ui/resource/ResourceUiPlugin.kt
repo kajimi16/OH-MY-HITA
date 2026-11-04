@@ -161,6 +161,25 @@ private fun blend(overlay: Int, under: Int): Int {
 private fun Context.drawableId(name: String, pkg: String = packageName): Int =
     resources.getIdentifier(name, "drawable", pkg)
 
+/** 直接读宿主资源里的文案，避免插件复制一份字符串。 */
+private fun Context.hostString(name: String, fallback: String): String {
+    val id = resources.getIdentifier(name, "string", packageName)
+    return if (id != 0) getString(id) else fallback
+}
+
+/**
+ * 用宿主 TextView 的字体度量计算行高（px → sp）。
+ * 内置页面是 TextView 渲染，Compose 默认行高与它不一致；这样直接跟随平台参数。
+ */
+private fun Context.hostLineHeight(sp: Float): androidx.compose.ui.unit.TextUnit {
+    val view = TextView(this)
+    view.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
+    view.includeFontPadding = true
+    val fm = view.paint.fontMetrics
+    val px = fm.descent - fm.ascent + fm.leading
+    return (px / resources.displayMetrics.scaledDensity).sp
+}
+
 private fun Context.attrDimen(name: String, fallbackDp: Float): Dp {
     val id = resources.getIdentifier(name, "attr", packageName)
     if (id == 0) return fallbackDp.dp
@@ -212,7 +231,7 @@ private fun SearchScreen(
     val result by (live ?: empty).observeAsState()
 
     Column(Modifier.fillMaxSize().background(tokens.backgroundBottom)) {
-        TopBar(tokens, title = "课程资源", showBack = false, onBack = {})
+        TopBar(tokens, title = LocalContext.current.hostString("course_resource_title", "课程资源"), showBack = false, onBack = {})
         SearchBar(
             tokens = tokens,
             value = input,
@@ -221,7 +240,7 @@ private fun SearchScreen(
         )
         Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
-                service == null -> CenterHint(tokens, "资源服务不可用")
+                service == null -> CenterHint(tokens, LocalContext.current.hostString("course_resource_failed", "资源服务不可用"))
                 submitted.isBlank() -> Unit
                 result == null -> Row(
                     Modifier.align(Alignment.TopCenter).padding(top = 24.dp),
@@ -234,7 +253,7 @@ private fun SearchScreen(
                 result?.state != DataState.STATE.SUCCESS ->
                     CenterHint(tokens, "课程资源加载失败：${result?.message ?: result?.state}")
                 result?.data.isNullOrEmpty() ->
-                    CenterHint(tokens, "没有找到相关课程资源")
+                    CenterHint(tokens, LocalContext.current.hostString("course_resource_empty", "没有找到相关课程资源"))
                 else -> LazyColumn(Modifier.fillMaxSize()) {
                     items(result?.data ?: emptyList()) { item ->
                         CourseCard(tokens, item) { onOpenReadme(item) }
@@ -331,7 +350,7 @@ private fun SearchBar(
             )
             if (value.isEmpty()) {
                 Text(
-                    "输入课程名、课程代码或教师名",
+                    LocalContext.current.hostString("course_resource_hint", "输入课程名、课程代码或教师名"),
                     color = tokens.textSecondary,
                     fontSize = 14.sp,
                 )
@@ -405,7 +424,7 @@ private fun CourseCard(tokens: Tokens, item: CourseResourceItem, onClick: () -> 
                     if (item.repoType == "multi-project") "多课程" else "课程",
                     color = tokens.textSecondary,
                     fontSize = 12.sp,
-                    lineHeight = 16.sp,
+                    lineHeight = LocalContext.current.hostLineHeight(12f),
                     modifier = Modifier
                         .background(tokens.tagBackground, RoundedCornerShape(24.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp),
@@ -496,7 +515,7 @@ private fun ReadmeScreen(
 
         Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
-                service == null -> CenterHint(tokens, "资源服务不可用")
+                service == null -> CenterHint(tokens, LocalContext.current.hostString("course_resource_failed", "资源服务不可用"))
                 result == null -> Column(
                     Modifier.fillMaxWidth().padding(top = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- 仅 debug 构建：adb broadcast 安装运行时界面插件 -->
+        <receiver
+            android:name=".uiplugin.DevUiPluginInstallerReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.stupidtree.hitax.DEV_INSTALL_UI_PLUGIN" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>
