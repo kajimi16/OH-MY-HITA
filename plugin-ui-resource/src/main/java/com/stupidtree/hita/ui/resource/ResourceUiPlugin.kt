@@ -1,11 +1,16 @@
 package com.stupidtree.hita.ui.resource
 
 import android.content.Context
+import android.widget.Toast
+import android.util.TypedValue
 import android.view.View
 import android.widget.TextView
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,14 +18,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
+import androidx.compose.material.OutlinedButton
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,8 +43,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.MutableLiveData
 import com.stupidtree.component.data.DataState
@@ -41,9 +66,9 @@ import com.stupidtree.hita.api.ResourceDataService
 import com.stupidtree.hitax.data.model.resource.CourseReadmeData
 import com.stupidtree.hitax.data.model.resource.CourseResourceItem
 import io.noties.markwon.Markwon
+import io.noties.markwon.ext.latex.JLatexMathPlugin
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
 import io.noties.markwon.ext.tables.TablePlugin
-import io.noties.markwon.ext.latex.JLatexMathPlugin
 import io.noties.markwon.ext.tasklist.TaskListPlugin
 import io.noties.markwon.html.HtmlPlugin
 import io.noties.markwon.image.glide.GlideImagesPlugin
@@ -52,8 +77,8 @@ import io.noties.markwon.linkify.LinkifyPlugin
 /**
  * 课程资源（运行时界面插件）。
  *
- * 数据全部来自宿主的 [ResourceDataService]；本插件只负责渲染搜索列表与 README。
- * 投稿表单暂由内置页面承担（宿主只把“查询”路由到这里）。
+ * 视觉对齐内置 CourseResourceSearchActivity / CourseReadmeActivity：
+ * 颜色取宿主主题属性，尺寸/字号按内置布局复刻。
  */
 class ResourceUiPlugin : ComposeUiPlugin {
 
@@ -75,38 +100,86 @@ class ResourceUiPlugin : ComposeUiPlugin {
     }
 }
 
+/** 宿主主题里解析出来的颜色与尺寸。 */
+private data class Tokens(
+    val backgroundBottom: Color,
+    val backgroundSecond: Color,
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val primary: Color,
+    val actionBarHeight: Dp,
+)
+
+@Composable
+private fun rememberTokens(): Tokens {
+    val context = LocalContext.current
+    return remember {
+        Tokens(
+            backgroundBottom = Color(context.attrColor("backgroundColorBottom", 0xFFF6F7FA.toInt())),
+            backgroundSecond = Color(context.attrColor("backgroundColorSecond", 0xFFFFFFFF.toInt())),
+            textPrimary = Color(context.attrColor("textColorPrimary", 0xFF000000.toInt())),
+            textSecondary = Color(context.attrColor("textColorSecondary", 0xFF808080.toInt())),
+            primary = Color(context.attrColor("android:colorPrimary", 0xFF304FFE.toInt())),
+            actionBarHeight = context.attrDimen("actionBarSize", 56f),
+        )
+    }
+}
+
+private fun Context.attrColor(name: String, fallback: Int): Int {
+    val id = if (name.startsWith("android:")) {
+        resources.getIdentifier(name.removePrefix("android:"), "attr", "android")
+    } else {
+        resources.getIdentifier(name, "attr", packageName)
+    }
+    if (id == 0) return fallback
+    val value = TypedValue()
+    if (!theme.resolveAttribute(id, value, true)) return fallback
+    return if (value.resourceId != 0) getColor(value.resourceId) else value.data
+}
+
+private fun Context.attrDimen(name: String, fallbackDp: Float): Dp {
+    val id = resources.getIdentifier(name, "attr", packageName)
+    if (id == 0) return fallbackDp.dp
+    val value = TypedValue()
+    if (!theme.resolveAttribute(id, value, true)) return fallbackDp.dp
+    val px = value.getDimension(resources.displayMetrics)
+    return (px / resources.displayMetrics.density).dp
+}
+
 @Composable
 private fun ResourceApp(host: PluginUiHost, initialQuery: String) {
     val service = remember { host.service(ResourceDataService.KEY) }
-    var repoName by remember { mutableStateOf<String?>(null) }
-    // 输入与已提交的关键词提升到外层，返回列表时保持搜索状态
+    val tokens = rememberTokens()
+    var openReadme by remember { mutableStateOf<CourseResourceItem?>(null) }
     var input by remember { mutableStateOf(initialQuery) }
     var submitted by remember { mutableStateOf(initialQuery) }
 
-    BackHandler(enabled = repoName != null) { repoName = null }
+    BackHandler(enabled = openReadme != null) { openReadme = null }
 
-    if (repoName == null) {
+    if (openReadme == null) {
         SearchScreen(
             service = service,
+            tokens = tokens,
             input = input,
             submitted = submitted,
             onInputChange = { input = it },
             onSubmit = { submitted = it },
-            onOpenReadme = { repoName = it },
+            onOpenReadme = { openReadme = it },
         )
     } else {
-        ReadmeScreen(service = service, repoName = repoName!!)
+        ReadmeScreen(service, tokens, openReadme!!)
     }
 }
 
 @Composable
 private fun SearchScreen(
     service: ResourceDataService?,
+    tokens: Tokens,
     input: String,
     submitted: String,
     onInputChange: (String) -> Unit,
     onSubmit: (String) -> Unit,
-    onOpenReadme: (String) -> Unit,
+    onOpenReadme: (CourseResourceItem) -> Unit,
 ) {
     val empty = remember { MutableLiveData<DataState<List<CourseResourceItem>>>() }
     val live = remember(submitted, service) {
@@ -114,35 +187,34 @@ private fun SearchScreen(
     }
     val result by (live ?: empty).observeAsState()
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(
-                value = input,
-                onValueChange = onInputChange,
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                label = { Text("课程名 / 代码 / 教师") },
-            )
-            Spacer(Modifier.padding(4.dp))
-            Button(onClick = { onSubmit(input.trim()) }) { Text("搜索") }
-        }
-        Spacer(Modifier.height(12.dp))
-
-        when {
-            service == null -> Text("资源服务不可用")
-            submitted.isBlank() -> Text("输入关键词后搜索课程资源")
-            result == null -> Row(verticalAlignment = Alignment.CenterVertically) {
-                CircularProgressIndicator(Modifier.height(20.dp))
-                Spacer(Modifier.padding(6.dp))
-                Text("正在加载…")
-            }
-            result?.state != DataState.STATE.SUCCESS ->
-                Text("课程资源加载失败：${result?.message ?: result?.state}")
-            result?.data.isNullOrEmpty() -> Text("没有搜索到结果")
-            else -> LazyColumn {
-                items(result?.data ?: emptyList()) { item ->
-                    CourseRow(item) { onOpenReadme(item.repoName) }
-                    Divider()
+    Column(Modifier.fillMaxSize().background(tokens.backgroundBottom)) {
+        TopBar(tokens, title = "课程资源", showBack = false, onBack = {})
+        SearchBar(
+            tokens = tokens,
+            value = input,
+            onValueChange = onInputChange,
+            onSearch = { onSubmit(input.trim()) },
+        )
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            when {
+                service == null -> CenterHint(tokens, "资源服务不可用")
+                submitted.isBlank() -> CenterHint(tokens, "输入关键词后搜索课程资源")
+                result == null -> Row(
+                    Modifier.align(Alignment.TopCenter).padding(top = 24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    CircularProgressIndicator(Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("正在加载…", color = tokens.textSecondary, fontSize = 14.sp)
+                }
+                result?.state != DataState.STATE.SUCCESS ->
+                    CenterHint(tokens, "课程资源加载失败：${result?.message ?: result?.state}")
+                result?.data.isNullOrEmpty() ->
+                    CenterHint(tokens, "没有找到相关课程资源")
+                else -> LazyColumn(Modifier.fillMaxSize()) {
+                    items(result?.data ?: emptyList()) { item ->
+                        CourseCard(tokens, item) { onOpenReadme(item) }
+                    }
                 }
             }
         }
@@ -150,66 +222,254 @@ private fun SearchScreen(
 }
 
 @Composable
-private fun CourseRow(item: CourseResourceItem, onClick: () -> Unit) {
-    Card(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        Column(Modifier.clickable(onClick = onClick).padding(12.dp)) {
-            Text(
-                item.courseName.ifBlank { item.courseCode.ifBlank { item.repoName } },
-                style = MaterialTheme.typography.subtitle1,
+private fun TopBar(tokens: Tokens, title: String, showBack: Boolean, onBack: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().height(tokens.actionBarHeight).background(tokens.primary),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (showBack) {
+            Box(
+                Modifier.size(56.dp).clickable(onClick = onBack),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("←", color = Color.White, fontSize = 22.sp)
+            }
+            Spacer(Modifier.width(16.dp))
+        } else {
+            Spacer(Modifier.width(72.dp))
+        }
+        Text(
+            title,
+            color = Color.White,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun SearchBar(
+    tokens: Tokens,
+    value: String,
+    onValueChange: (String) -> Unit,
+    onSearch: () -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .background(Color(0x54FFFFFF), RoundedCornerShape(24.dp))
+            .padding(horizontal = 12.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Canvas(Modifier.size(24.dp).padding(2.dp)) {
+            val stroke = 2.dp.toPx()
+            drawCircle(
+                color = tokens.primary,
+                radius = size.minDimension * 0.3f,
+                center = Offset(size.width * 0.42f, size.height * 0.42f),
+                style = Stroke(width = stroke),
             )
-            if (item.courseCode.isNotBlank()) {
-                Text(item.courseCode, style = MaterialTheme.typography.caption)
+            drawLine(
+                color = tokens.primary,
+                start = Offset(size.width * 0.63f, size.height * 0.63f),
+                end = Offset(size.width * 0.88f, size.height * 0.88f),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        Box(Modifier.weight(1f)) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                singleLine = true,
+                textStyle = TextStyle(fontSize = 14.sp, color = tokens.textPrimary),
+                cursorBrush = SolidColor(tokens.primary),
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+            )
+            if (value.isEmpty()) {
+                Text(
+                    "输入课程名、课程代码或教师名",
+                    color = tokens.textSecondary,
+                    fontSize = 14.sp,
+                )
             }
-            if (item.teachers.isNotEmpty()) {
-                Text(item.teachers.joinToString(" / "), style = MaterialTheme.typography.caption)
+        }
+    }
+}
+
+@Composable
+private fun CenterHint(tokens: Tokens, text: String) {
+    Text(
+        text,
+        color = tokens.textSecondary,
+        fontSize = 14.sp,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth().padding(24.dp),
+    )
+}
+
+@Composable
+private fun CourseCard(tokens: Tokens, item: CourseResourceItem, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        backgroundColor = tokens.backgroundSecond,
+        elevation = 0.dp,
+    ) {
+        Row(
+            Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            MenuGlyph(tokens, Modifier.size(46.dp))
+            Column(Modifier.padding(start = 16.dp, end = 16.dp)) {
+                Text(
+                    item.courseName.ifBlank { item.courseCode.ifBlank { item.repoName } },
+                    color = tokens.textPrimary,
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    buildString {
+                        append(item.courseCode)
+                        val teachers = item.teachers.take(3).joinToString(" / ")
+                        if (teachers.isNotBlank()) {
+                            if (isNotEmpty()) append("  ·  ")
+                            append(teachers)
+                        }
+                    },
+                    color = tokens.textSecondary,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    maxLines = 1,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    if (item.repoType == "multi-project") "多课程" else "课程",
+                    color = tokens.textSecondary,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    modifier = Modifier
+                        .background(Color(0xFFEDEFF2), RoundedCornerShape(24.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                )
             }
-            Text(
-                if (item.repoType == "multi-project") "多课程" else "课程",
-                style = MaterialTheme.typography.caption,
+        }
+    }
+}
+
+@Composable
+private fun MenuGlyph(tokens: Tokens, modifier: Modifier) {
+    Canvas(modifier) {
+        val stroke = 2.dp.toPx()
+        val left = size.width * 0.28f
+        val right = size.width * 0.72f
+        listOf(0.35f, 0.5f, 0.65f).forEach { y ->
+            drawLine(
+                color = tokens.textPrimary,
+                start = Offset(left, size.height * y),
+                end = Offset(right, size.height * y),
+                strokeWidth = stroke,
+                cap = StrokeCap.Round,
             )
         }
     }
 }
 
 @Composable
-private fun ReadmeScreen(service: ResourceDataService?, repoName: String) {
+private fun ReadmeScreen(
+    service: ResourceDataService?,
+    tokens: Tokens,
+    item: CourseResourceItem,
+) {
+    val repoName = item.repoName
     val empty = remember { MutableLiveData<DataState<CourseReadmeData>>() }
     val live = remember(repoName, service) { service?.getCourseReadme(repoName) }
     val result by (live ?: empty).observeAsState()
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
     val markwon = remember {
         Markwon.builder(context)
             .usePlugin(StrikethroughPlugin.create())
             .usePlugin(TablePlugin.create(context))
             .usePlugin(TaskListPlugin.create(context))
-            .usePlugin(JLatexMathPlugin.create(context.resources.displayMetrics.density * 16f))
+            .usePlugin(JLatexMathPlugin.create(context.resources.displayMetrics.density * 15f))
             .usePlugin(GlideImagesPlugin.create(context))
             .usePlugin(HtmlPlugin.create())
             .usePlugin(LinkifyPlugin.create())
             .build()
     }
 
-    Column(Modifier.fillMaxSize()) {
-        Row(
-            Modifier.fillMaxWidth().padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    Column(Modifier.fillMaxSize().background(tokens.backgroundBottom)) {
+        val title = item.courseName.ifBlank { repoName }
+        TopBar(tokens, title = title, showBack = true, onBack = {
+            (context as? androidx.activity.ComponentActivity)?.onBackPressedDispatcher?.onBackPressed()
+        })
+
+        Column(
+            Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
         ) {
-            Text("‹ 返回", Modifier.clickable { (context as? androidx.activity.ComponentActivity)?.onBackPressedDispatcher?.onBackPressed() })
-            Spacer(Modifier.padding(8.dp))
-            Text(repoName, style = MaterialTheme.typography.subtitle1)
+            Text(item.courseCode, color = tokens.textSecondary, fontSize = 14.sp)
+            val source = result?.data?.source.orEmpty()
+            if (source.isNotBlank()) {
+                Text(
+                    source,
+                    color = tokens.textSecondary,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+            OutlinedButton(
+                onClick = {
+                    Toast.makeText(context, "投稿页尚未迁移，请使用内置入口", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.padding(top = 8.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = tokens.primary),
+                border = BorderStroke(1.dp, tokens.primary),
+            ) {
+                Text("贡献课程资料")
+            }
         }
-        Divider()
-        when {
-            service == null -> Text("资源服务不可用", Modifier.padding(16.dp))
-            result == null -> Text("正在加载 README…", Modifier.padding(16.dp))
-            result?.state != DataState.STATE.SUCCESS ->
-                Text("README 加载失败：${result?.message ?: result?.state}", Modifier.padding(16.dp))
-            result?.data == null -> Text("README 不存在", Modifier.padding(16.dp))
-            else -> AndroidView(
-                modifier = Modifier.fillMaxSize().padding(12.dp),
-                factory = { ctx -> TextView(ctx).apply { setTextIsSelectable(true) } },
-                update = { view -> markwon.setMarkdown(view, result?.data?.markdown.orEmpty()) },
-            )
+
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            when {
+                service == null -> CenterHint(tokens, "资源服务不可用")
+                result == null -> CircularProgressIndicator(Modifier.align(Alignment.TopCenter))
+                result?.state != DataState.STATE.SUCCESS ->
+                    CenterHint(tokens, "README 加载失败：${result?.message ?: result?.state}")
+                result?.data == null -> CenterHint(tokens, "README 不存在")
+                else -> AndroidView(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                    factory = { ctx ->
+                        TextView(ctx).apply {
+                            setTextIsSelectable(true)
+                            setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+                            setTextColor(tokens.textPrimary.toArgbCompat())
+                        }
+                    },
+                    update = { view ->
+                        view.setTextColor(tokens.textPrimary.toArgbCompat())
+                        markwon.setMarkdown(view, result?.data?.markdown.orEmpty())
+                    },
+                )
+            }
         }
     }
 }
+
+private fun Color.toArgbCompat(): Int = android.graphics.Color.argb(
+    (alpha * 255 + 0.5f).toInt(),
+    (red * 255 + 0.5f).toInt(),
+    (green * 255 + 0.5f).toInt(),
+    (blue * 255 + 0.5f).toInt(),
+)
