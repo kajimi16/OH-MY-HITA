@@ -3,11 +3,11 @@ package com.stupidtree.hitax.utils
 import android.content.Context
 import android.text.TextUtils
 import android.util.Log
-import com.stupidtree.hitax.R
+import com.stupidtree.style.R
 import com.stupidtree.hitax.data.model.timetable.TimeInDay
 import com.stupidtree.hitax.data.model.timetable.TimeMath
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
-import com.stupidtree.hitax.ui.main.timetable.TimetableFragment.Companion.WEEK_MILLS
+import com.stupidtree.hitax.data.model.timetable.WEEK_MILLS
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*

@@ -38,8 +38,10 @@ android {
 }
 
 dependencies {
+    api project(':model')
     // 更新日志是 Markdown（GitHub Release 正文），在弹窗里渲染
     implementation 'io.noties.markwon:core:4.6.2'
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'androidx.core:core-ktx:1.13.1'

@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.stupidtree.hitax.R
+import com.stupidtree.style.R
 import com.stupidtree.style.base.BaseCheckableListAdapter
 import com.stupidtree.style.widgets.PopUpText
 import java.util.*

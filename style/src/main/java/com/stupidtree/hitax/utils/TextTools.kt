@@ -1,7 +1,7 @@
 package com.stupidtree.hitax.utils
 
 import android.content.Context
-import com.stupidtree.hitax.R
+import com.stupidtree.style.R
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*

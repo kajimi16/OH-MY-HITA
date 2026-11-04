@@ -4,14 +4,6 @@
     <string name="confirm">确定</string>
     <string name="cancel">取消</string>
     <string name="input_hint">输入内容…</string>
-    <string name="date_format_1">yyyy年M月d日</string>
-    <string name="date_format_3">yyyy年M月d日 hh时mm分</string>
-    <string name="date_format_2">M月d日</string>
-    <string name="date_format_am">上午hh:mm</string>
-    <string name="date_format_pm">下午hh:mm</string>
-    <string name="yesterday">昨天</string>
-    <string name="the_day_before_yesterday">前天</string>
-    <string name="date_format_with_prefix">"%s %s"</string>
     <string name="hint_eas_username">统一身份认证账号</string>
     <string name="hint_eas_password">密码</string>
     <string name="hint_eas_login">请登录教务账号以继续</string>
@@ -263,9 +255,6 @@
     <string name="dialog_pick_course_to">到</string>
     <string name="dialog_pick_course_label">选择上课周数：</string>
     <string name="period">第%d节</string>
-    <string name="today">今天</string>
-    <string name="tomorrow">明天</string>
-    <string name="tda_tomorrow">后天</string>
     <string name="pick_single_time_label1">周</string>
     <string name="pick_single_time_label2">时</string>
     <string name="pick_single_time_label3">分</string>
@@ -294,7 +283,6 @@
     <string name="dialog_course_rate_p">课程自评</string>
     <string name="dialog_course_rate_s">这堂课学得怎么样？</string>
     <string name="notif_delete_success">删除成功！</string>
-    <string name="dialog_title_sure_delete">确定删除吗？</string>
     <string name="dialog_title_select_delete">选择要删除的课程</string>
     <string name="pick_teacher">选择教师</string>
     <string name="pick_classroom">选择教室</string>
@@ -675,24 +663,6 @@
         <item>11月</item>
         <item>12月</item>
     </string-array>
-    <string-array name="dow1">
-        <item>星期一</item>
-        <item>星期二</item>
-        <item>星期三</item>
-        <item>星期四</item>
-        <item>星期五</item>
-        <item>星期六</item>
-        <item>星期日</item>
-    </string-array>
-    <string-array name="dow2">
-        <item>周一</item>
-        <item>周二</item>
-        <item>周三</item>
-        <item>周四</item>
-        <item>周五</item>
-        <item>周六</item>
-        <item>周日</item>
-    </string-array>
     <string-array name="laf_tabs">
         <item>广场</item>
         <item>话题</item>
@@ -871,7 +841,6 @@
     <string name="ddl_passed">已结束</string>
     <string name="ddl_todo">现有DDL</string>
     <string name="ddl_passed_tag">已结束DDL</string>
-    <string name="number_of_items_selected">已选择%d项</string>
     <string name="no_ddl_add_some">没有DDL，添加一些吧</string>
     <string name="less_than"><![CDATA[<]]></string>
     <string name="label_activity_exam_countdown">考试倒计时</string>
@@ -881,14 +850,8 @@
     <string name="no_exam_add_some">没有考试哦，可以导入或手动添加</string>
     <string name="operation_failed">操作失败！</string>
     <string name="task_finished_name">已完成</string>
-    <string name="tdb_yesterday">前天</string>
     <string name="guid_7p">主页下滑可以展开事件面板</string>
     <string name="guid_7s">待办事项 DDL管理</string>
-    <string name="date_format_2_simplified">第%d周EEE</string>
-    <string name="date_format_2_wk_followed">第%d周（%s）EEEE</string>
-    <string name="date_format_2_simplified_wk_followed">第%d周（%s）EEE</string>
-    <string name="date_format_2_wk_replaced">%sEEEE</string>
-    <string name="date_format_2_simplified_wk_replaced">%sEEE</string>
     <string name="date_format_4">YY年M月d日</string>
     <string name="unknown_department">未知部门</string>
     <string name="no_info">无信息</string>
@@ -896,10 +859,6 @@
     <string name="no">否</string>
     <string name="counted_in_GPA" translatable="false">考试课</string>
     <string name="not_counted_in_GPA" translatable="false">考查课</string>
-    <string name="brackets_content">（%s）</string>
-    <string name="name_this_week">这周</string>
-    <string name="name_next_week">下周</string>
-    <string name="name_last_week">上周</string>
     <string name="ade_title_edit">编辑%s</string>
     <string name="edit_event_done">已保存</string>
     <string name="jw_tabs_xxjd" translatable="false">学习进度</string>

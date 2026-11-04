@@ -5,4 +5,70 @@
     <string name="skip">不再提示</string>
     <string name="update_cancel">过会儿</string>
     <string name="none">无</string>
+<string name="brackets_content">（%s）</string>
+    
+<string name="date_format_2">M月d日</string>
+    
+<string name="date_format_2_simplified">第%d周EEE</string>
+    
+<string name="date_format_2_simplified_wk_followed">第%d周（%s）EEE</string>
+    
+<string name="date_format_2_simplified_wk_replaced">%sEEE</string>
+    
+<string name="date_format_2_wk_followed">第%d周（%s）EEEE</string>
+    
+<string name="date_format_2_wk_replaced">%sEEEE</string>
+    
+<string name="date_format_3">yyyy年M月d日 hh时mm分</string>
+    
+<string name="name_last_week">上周</string>
+    
+<string name="name_next_week">下周</string>
+    
+<string name="name_this_week">这周</string>
+    
+<string name="tda_tomorrow">后天</string>
+    
+<string name="tdb_yesterday">前天</string>
+    
+<string name="today">今天</string>
+    
+<string name="tomorrow">明天</string>
+    
+<string name="yesterday">昨天</string>
+    
+<string-array name="dow1">
+        <item>星期一</item>
+        <item>星期二</item>
+        <item>星期三</item>
+        <item>星期四</item>
+        <item>星期五</item>
+        <item>星期六</item>
+        <item>星期日</item>
+    </string-array>
+    
+<string-array name="dow2">
+        <item>周一</item>
+        <item>周二</item>
+        <item>周三</item>
+        <item>周四</item>
+        <item>周五</item>
+        <item>周六</item>
+        <item>周日</item>
+    </string-array>
+    
+<string name="date_format_1">yyyy年M月d日</string>
+    
+<string name="date_format_am">上午hh:mm</string>
+    
+<string name="date_format_pm">下午hh:mm</string>
+    
+<string name="date_format_with_prefix">"%s %s"</string>
+    
+<string name="the_day_before_yesterday">前天</string>
+    
+<string name="number_of_items_selected">已选择%d项</string>
+    
+<string name="dialog_title_sure_delete">确定删除吗？</string>
+    
 </resources>
