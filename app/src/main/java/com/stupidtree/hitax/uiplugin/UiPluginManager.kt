@@ -1,7 +1,6 @@
 package com.stupidtree.hitax.uiplugin
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import com.google.gson.JsonParser
 import com.stupidtree.hita.api.ComposeUiPlugin
@@ -63,13 +62,6 @@ class UiPluginManager(private val context: Context) {
         return dir
     }
 
-    fun install(uri: Uri): Result<InstalledUiPlugin> = runCatching {
-        val tmp = File(context.cacheDir, "incoming-plugin.apk")
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            tmp.outputStream().use { input.copyTo(it) }
-        } ?: error("无法读取所选文件")
-        installFile(tmp, expectedSha256 = null).also { tmp.delete() }
-    }
 
     /**
      * 从已落盘的文件安装；[expectedSha256] 来自市场索引，下载后先比对再落库。

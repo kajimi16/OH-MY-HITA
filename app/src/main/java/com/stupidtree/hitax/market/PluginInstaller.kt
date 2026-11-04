@@ -58,6 +58,8 @@ class PluginInstaller(
     fun installed(): List<MarketPlugin> = runCatching {
         if (!installedFile.isFile) return emptyList()
         gson.fromJson(installedFile.readText(), Array<MarketPlugin>::class.java).toList()
+            // 文件被外部删除时不要继续显示「已安装」
+            .filter { File(File(root, it.id), "plugin.dex").isFile }
     }.getOrDefault(emptyList())
 
     /**

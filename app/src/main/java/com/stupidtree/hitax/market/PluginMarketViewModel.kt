@@ -151,17 +151,6 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    fun installUiPlugin(uri: android.net.Uri) {
-        executor.execute {
-            val app = getApplication<Application>()
-            val error = runCatching { uiPluginManager.install(uri) }.exceptionOrNull()
-            message.postValue(
-                error?.let { app.getString(com.stupidtree.hitax.R.string.plugin_ui_install_failed, it.message ?: "") }
-                    ?: app.getString(com.stupidtree.hitax.R.string.plugin_ui_installed, "插件")
-            )
-            uiPlugins.postValue(uiPluginManager.installed())
-        }
-    }
 
     /** 从市场索引安装/更新界面插件（相对 URL 按索引地址解析）。 */
     fun installUiPluginFromUrl(entry: UiMarketPlugin, indexBase: String?) {

@@ -2,11 +2,11 @@
   "plugins": [
     {
       "id": "com.example.hello",
-      "name": "夜间模式",
+      "name": "示例逻辑插件",
       "version": "0.1.0",
       "apiVersion": 2,
       "url": "plugin.dex",
-      "sha256": "3fd0ef21467368c5b75ccf4b999dbd0fc30f4cd275c95f4cae707b34a029ef7f",
+      "sha256": "c37ee3ec5f9a1c26a09fdc722efde5b38bb577ffd5e588149aef1093e9943e2c",
       "entryClass": "com.example.hello.HelloPlugin"
     }
   ]

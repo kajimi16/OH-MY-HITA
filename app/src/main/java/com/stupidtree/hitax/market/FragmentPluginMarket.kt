@@ -26,16 +26,6 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     override fun initViewBinding(): FragmentPluginMarketBinding =
         FragmentPluginMarketBinding.inflate(layoutInflater)
 
-    private val pickUiPluginApk =
-        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.OpenDocument()) { uri ->
-            uri ?: return@registerForActivityResult
-            AlertDialog.Builder(requireContext())
-                .setTitle(com.stupidtree.hitax.R.string.plugin_ui_section)
-                .setMessage(com.stupidtree.hitax.R.string.plugin_ui_warning)
-                .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.installUiPlugin(uri) }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-        }
 
     override fun initViews(view: View) {
         viewModel.builtinPlugins.observe(this) { renderBuiltin(it) }
@@ -44,14 +34,6 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         viewModel.availableUiPlugins.observe(this) { latestUiAvailable = it; renderMarketAll() }
         viewModel.apkPlugins.observe(this) { latestApk = it; renderMarketAll() }
 
-        binding?.installUiPlugin?.setOnClickListener {
-            pickUiPluginApk.launch(
-                arrayOf(
-                    "application/vnd.android.package-archive",
-                    "application/octet-stream",
-                )
-            )
-        }
         viewModel.reloadUi.observe(this) { reload ->
             if (reload) {
                 viewModel.consumeReloadUi()

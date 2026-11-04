@@ -837,9 +837,6 @@
     <string name="plugin_unavailable_action">去插件市场</string>
 
     <!-- 运行时界面插件（Compose 容器） -->
-    <string name="plugin_ui_section">界面插件（Compose 容器）</string>
-    <string name="plugin_ui_install">安装 APK 界面插件</string>
-    <string name="plugin_ui_empty">尚未安装界面插件。插件是独立 APK，运行时加载，可随时删除。</string>
     <string name="plugin_ui_installed">已安装 %1$s</string>
     <string name="plugin_ui_uninstalled">已卸载 %1$s</string>
     <string name="plugin_ui_install_failed">安装失败：%1$s</string>
