@@ -8,7 +8,7 @@
 ```
 market/
 ├── index.json      # 索引：插件列表 + 每个插件的 dex 地址与 sha256
-└── hello.dex       # 示例插件的 dex（由 :sample-plugin 生成）
+└── hello.dex       # 示例逻辑插件的 dex（由 :sample-plugin 生成）
 ```
 
 ## 索引格式
@@ -18,7 +18,7 @@ market/
   "plugins": [
     {
       "id": "com.example.hello",
-      "name": "夜间模式（示例）",
+      "name": "示例逻辑插件",
       "version": "0.1.0",
       "apiVersion": 2,
       "url": "hello.dex",
@@ -33,6 +33,12 @@ market/
 - `sha256` 是完整性校验的唯一依据，必须与文件一致，否则安装会被拒绝
 - `apiVersion` 必须 ≤ 客户端的 `HITA_API_VERSION`（当前 2）
 - `entryClass` 是 dex 中实现 `com.stupidtree.hita.api.Plugin` 的类
+
+## 界面插件的安装方式
+
+界面插件（Compose 容器）**只能通过市场索引的 `uiPlugins` 安装/更新**；
+客户端不再提供「从本地选 APK」的入口（避免任意 APK 的侧载风险）。
+开发调试可用 debug 包的广播通道：`scripts/dev-install-ui-plugin.sh`。
 
 ## 插件模板
 
@@ -64,5 +70,6 @@ market/
   的白名单并显示「已验证」；白名单随应用版本发布，修改需要发版
 - 传输走 HTTPS，内容以索引里的 `sha256` 为准；**索引本身的写权限就是发布权限**
 - 运行时插件与宿主同进程，拥有宿主全部权限——只上架可信代码
-- 插件不能声明四大组件、不能携带资源，只能通过 `:api` 契约贡献服务 / 同步表 / 导航项
+- 插件不能声明四大组件、不能携带资源，只能通过 `:api` 契约贡献服务 / 同步表等逻辑能力
+- 需要界面的扩展请使用「界面插件」（Compose 容器），示例见 hita-plugin-template 的 `ui-plugin` 模块
 - 破坏性契约变更会递增 `HITA_API_VERSION`，客户端会拒绝 `apiVersion` 过高的插件
