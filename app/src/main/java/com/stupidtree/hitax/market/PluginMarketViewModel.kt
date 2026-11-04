@@ -106,6 +106,27 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    /** 开关语义：启用=安装，停用=卸载但保留数据；变更后重建界面。 */
+    fun setBuiltinEnabled(row: BuiltinPluginManager.Row, enabled: Boolean) {
+        executor.execute {
+            val error = runCatching { builtin.setEnabled(row.id, enabled) }.exceptionOrNull()
+            message.postValue(error?.let { "操作失败：${it.message}" } ?: null)
+            builtinPlugins.postValue(builtin.rows())
+            if (error == null) reloadUi.postValue(true)
+        }
+    }
+
+    fun setUiPluginEnabled(plugin: InstalledUiPlugin, enabled: Boolean) {
+        executor.execute {
+            uiPluginManager.setEnabled(plugin.id, enabled)
+            uiPlugins.postValue(uiPluginManager.installed())
+        }
+    }
+
+    fun setMarketEnabled(entry: MarketPlugin, enabled: Boolean) {
+        if (enabled) install(entry) else uninstall(entry)
+    }
+
     fun installBuiltin(row: BuiltinPluginManager.Row) {
         executor.execute {
             val error = runCatching { builtin.install(row.id) }.exceptionOrNull()

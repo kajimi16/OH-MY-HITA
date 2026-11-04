@@ -21,6 +21,20 @@ object UiPluginStore {
     fun find(context: Context, id: String): InstalledUiPlugin? =
         list(context).firstOrNull { it.id == id }
 
+    /** 停用集合独立存储：避免 Gson 对缺失布尔字段回退为 false。 */
+    fun disabledIds(context: Context): Set<String> =
+        context.getSharedPreferences(SP, Context.MODE_PRIVATE)
+            .getStringSet("disabled_ids", emptySet())?.toSet() ?: emptySet()
+
+    fun isDisabled(context: Context, id: String): Boolean = id in disabledIds(context)
+
+    fun setEnabled(context: Context, id: String, enabled: Boolean) {
+        val prefs = context.getSharedPreferences(SP, Context.MODE_PRIVATE)
+        val next = disabledIds(context).toMutableSet()
+        if (enabled) next.remove(id) else next.add(id)
+        prefs.edit().putStringSet("disabled_ids", next).apply()
+    }
+
     fun put(context: Context, plugin: InstalledUiPlugin) {
         val next = list(context).filterNot { it.id == plugin.id } + plugin
         save(context, next)

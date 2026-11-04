@@ -2,16 +2,20 @@ package com.stupidtree.hitax.market
 
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.Toast
-import com.stupidtree.hitax.databinding.FragmentPluginMarketBinding
-import com.stupidtree.hitax.databinding.ItemPluginMarketBinding
 import androidx.appcompat.app.AlertDialog
+import com.stupidtree.hitax.databinding.FragmentPluginMarketBinding
+import com.stupidtree.hitax.databinding.ItemMarketPluginCardBinding
 import com.stupidtree.hitax.plugin.BuiltinPluginManager
+import com.stupidtree.hitax.uiplugin.InstalledUiPlugin
 import com.stupidtree.style.base.BaseFragment
 
 /**
  * 「插件」主界面：与「今日」「时间表」「功能中心」并列。
- * 只上架逻辑插件（无界面、无资源），布局沿用应用的卡片风格。
+ *
+ * 每个条目半屏宽（两列网格），右侧竖排「卸载」按钮与启用开关；
+ * 包名等开发者信息不再展示。
  */
 class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginMarketBinding>() {
 
@@ -32,7 +36,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         }
 
     override fun initViews(view: View) {
-        viewModel.items.observe(this) { render(it) }
+        viewModel.items.observe(this) { renderMarket(it) }
         viewModel.apkPlugins.observe(this) { renderApkPlugins(it) }
         viewModel.builtinPlugins.observe(this) { renderBuiltin(it) }
         viewModel.uiPlugins.observe(this) { renderUiRows(it, latestUiAvailable) }
@@ -48,7 +52,6 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         viewModel.reloadUi.observe(this) { reload ->
             if (reload) {
                 viewModel.consumeReloadUi()
-                // 卸载/启用会改变 tab 与导航项集合，重建界面最稳妥
                 requireActivity().recreate()
             }
         }
@@ -65,58 +68,74 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
 
     override fun onResume() {
         super.onResume()
-        // 从详情/外部返回时重新拉一次索引，避免看到过期列表
         viewModel.refresh()
     }
 
-    private fun trustLabel(id: String): String = getString(
-        if (viewModel.isVerified(id)) com.stupidtree.hitax.R.string.plugin_trust_verified
-        else com.stupidtree.hitax.R.string.plugin_trust_unverified
-    )
+    // ---- 两列网格 ----
 
-    /** 未验证插件在安装/打开前统一提示一次。 */
-    private fun confirmUntrusted(name: String, action: () -> Unit) {
-        com.stupidtree.style.widgets.PopUpText()
-            .setTitle(com.stupidtree.hitax.R.string.plugin_untrusted_title)
-            .setText(getString(com.stupidtree.hitax.R.string.plugin_untrusted_message, name))
-            .setOnConfirmListener(object : com.stupidtree.style.widgets.PopUpText.OnConfirmListener {
-                override fun OnConfirm() = action()
-            })
-            .show(parentFragmentManager, "plugin_untrusted")
-    }
-
-    private fun renderBuiltin(rows: List<BuiltinPluginManager.Row>) {
-        val container = binding?.builtinContainer ?: return
+    private fun <T> renderGrid(
+        container: LinearLayout?,
+        items: List<T>,
+        binder: (ItemMarketPluginCardBinding, T) -> Unit,
+    ) {
+        container ?: return
         container.removeAllViews()
         val inflater = LayoutInflater.from(requireContext())
-        rows.forEach { row ->
-            val v = com.stupidtree.hitax.databinding.ItemApkPluginBinding.inflate(inflater, container, false)
-            v.apkName.text = row.name
-            v.apkMeta.text = "${row.id} · " + getString(
-                if (row.installed) com.stupidtree.hitax.R.string.plugin_builtin_running
-                else com.stupidtree.hitax.R.string.plugin_builtin_removed
-            )
-            v.apkAction.text = getString(
-                if (row.installed) com.stupidtree.hitax.R.string.plugin_builtin_uninstall
-                else com.stupidtree.hitax.R.string.plugin_builtin_enable
-            )
-            v.apkAction.setOnClickListener {
-                if (row.installed) confirmUninstallBuiltin(row) else viewModel.installBuiltin(row)
+        items.chunked(2).forEach { pair ->
+            val row = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                )
             }
-            container.addView(v.root)
+            pair.forEach { item ->
+                val card = ItemMarketPluginCardBinding.inflate(inflater, row, false)
+                binder(card, item)
+                row.addView(
+                    card.root,
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
+                )
+            }
+            if (pair.size == 1) {
+                row.addView(
+                    View(requireContext()),
+                    LinearLayout.LayoutParams(0, 1, 1f),
+                )
+            }
+            container.addView(row)
         }
     }
 
-    /** 卸载是破坏性操作：默认保留数据，清除数据作为次要选项。 */
+    private fun bindToggle(
+        card: ItemMarketPluginCardBinding,
+        checked: Boolean,
+        onChange: (Boolean) -> Unit,
+    ) {
+        card.toggle.setOnCheckedChangeListener(null)
+        card.toggle.isChecked = checked
+        card.toggle.setOnCheckedChangeListener { _, value -> onChange(value) }
+    }
+
+    // ---- 内置插件 ----
+
+    private fun renderBuiltin(rows: List<BuiltinPluginManager.Row>) {
+        renderGrid(binding?.builtinContainer, rows) { card, row ->
+            card.name.text = row.name
+            card.meta.text = if (row.installed) "内置插件" else "已停用"
+            card.action.text = getString(com.stupidtree.hitax.R.string.plugin_builtin_uninstall)
+            card.action.isEnabled = row.installed
+            card.action.setOnClickListener { confirmUninstallBuiltin(row) }
+            bindToggle(card, row.installed) { enabled ->
+                viewModel.setBuiltinEnabled(row, enabled)
+            }
+        }
+    }
+
     private fun confirmUninstallBuiltin(row: BuiltinPluginManager.Row) {
         AlertDialog.Builder(requireContext())
             .setTitle(com.stupidtree.hitax.R.string.plugin_uninstall_title)
-            .setMessage(
-                getString(
-                    com.stupidtree.hitax.R.string.plugin_uninstall_message,
-                    row.name,
-                )
-            )
+            .setMessage(getString(com.stupidtree.hitax.R.string.plugin_uninstall_message, row.name))
             .setPositiveButton(com.stupidtree.hitax.R.string.plugin_uninstall_keep) { _, _ ->
                 viewModel.uninstallBuiltin(row, purgeData = false)
             }
@@ -127,107 +146,122 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             .show()
     }
 
-    private var latestUiInstalled: List<com.stupidtree.hitax.uiplugin.InstalledUiPlugin> = emptyList()
+    // ---- 界面插件 ----
+
+    private var latestUiInstalled: List<InstalledUiPlugin> = emptyList()
     private var latestUiAvailable: List<UiMarketPlugin> = emptyList()
 
-    private fun renderUiRows(installed: List<com.stupidtree.hitax.uiplugin.InstalledUiPlugin>, available: List<UiMarketPlugin>) {
+    private sealed class UiEntry {
+        data class Available(val plugin: UiMarketPlugin, val update: Boolean) : UiEntry()
+        data class Installed(val plugin: InstalledUiPlugin) : UiEntry()
+    }
+
+    private fun renderUiRows(installed: List<InstalledUiPlugin>, available: List<UiMarketPlugin>) {
         latestUiInstalled = installed
         latestUiAvailable = available
-        val container = binding?.uiContainer ?: return
-        val empty = binding?.uiEmpty
-        val indexBase = com.stupidtree.hitax.BuildConfig.PLUGIN_INDEX_URL.takeIf { it.isNotBlank() }
         val installedById = installed.associateBy { it.id }
-        val pending = available.filter { av -> installedById[av.id]?.version != av.version }
-        empty?.visibility = if (installed.isEmpty() && pending.isEmpty()) View.VISIBLE else View.GONE
-        container.removeAllViews()
-        val inflater = LayoutInflater.from(requireContext())
+        val pending = available
+            .filter { av -> installedById[av.id]?.version != av.version }
+            .map { UiEntry.Available(it, installedById.containsKey(it.id)) }
+        val entries: List<UiEntry> = pending + installed.map { UiEntry.Installed(it) }
+        binding?.uiEmpty?.visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
+        val indexBase = com.stupidtree.hitax.BuildConfig.PLUGIN_INDEX_URL.takeIf { it.isNotBlank() }
 
-        pending.forEach { av ->
-            val row = com.stupidtree.hitax.databinding.ItemUiPluginBinding.inflate(inflater, container, false)
-            val isUpdate = installedById.containsKey(av.id)
-            row.name.text = av.name
-            row.meta.text = "${av.version} · ${if (isUpdate) "可更新" else "可安装"}"
-            row.uninstall.visibility = View.GONE
-            row.open.text = getString(
-                if (isUpdate) com.stupidtree.hitax.R.string.plugin_ui_update
-                else com.stupidtree.hitax.R.string.plugin_ui_install_action
-            )
-            row.open.setOnClickListener {
-                AlertDialog.Builder(requireContext())
-                    .setMessage(com.stupidtree.hitax.R.string.plugin_ui_warning)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        viewModel.installUiPluginFromUrl(av, indexBase)
+        renderGrid(binding?.uiContainer, entries) { card, entry ->
+            when (entry) {
+                is UiEntry.Available -> {
+                    val av = entry.plugin
+                    card.name.text = av.name
+                    card.meta.text = "v${av.version}"
+                    card.action.text = getString(
+                        if (entry.update) com.stupidtree.hitax.R.string.plugin_ui_update
+                        else com.stupidtree.hitax.R.string.plugin_ui_install_action
+                    )
+                    card.action.isEnabled = true
+                    card.toggle.visibility = View.INVISIBLE
+                    card.action.setOnClickListener {
+                        AlertDialog.Builder(requireContext())
+                            .setMessage(com.stupidtree.hitax.R.string.plugin_ui_warning)
+                            .setPositiveButton(android.R.string.ok) { _, _ ->
+                                viewModel.installUiPluginFromUrl(av, indexBase)
+                            }
+                            .setNegativeButton(android.R.string.cancel, null)
+                            .show()
                     }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
+                }
+                is UiEntry.Installed -> {
+                    val plugin = entry.plugin
+                    card.name.text = plugin.name
+                    card.meta.text = "v${plugin.version}"
+                    card.action.text = getString(com.stupidtree.hitax.R.string.plugin_builtin_uninstall)
+                    card.action.isEnabled = true
+                    card.action.setOnClickListener {
+                        AlertDialog.Builder(requireContext())
+                            .setTitle(com.stupidtree.hitax.R.string.plugin_builtin_uninstall)
+                            .setMessage(plugin.name)
+                            .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.uninstallUiPlugin(plugin) }
+                            .setNegativeButton(android.R.string.cancel, null)
+                            .show()
+                    }
+                    card.toggle.visibility = View.VISIBLE
+                    bindToggle(card, plugin.enabled) { enabled ->
+                        viewModel.setUiPluginEnabled(plugin, enabled)
+                    }
+                    card.root.setOnClickListener {
+                        startActivity(
+                            android.content.Intent(
+                                requireContext(),
+                                com.stupidtree.hitax.uiplugin.PluginUiActivity::class.java,
+                            ).putExtra(
+                                com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_PLUGIN_ID,
+                                plugin.id,
+                            )
+                        )
+                    }
+                }
             }
-            container.addView(row.root)
         }
+    }
 
-        installed.forEach { plugin ->
-            val row = com.stupidtree.hitax.databinding.ItemUiPluginBinding.inflate(inflater, container, false)
-            row.name.text = plugin.name
-            row.meta.text = "${plugin.version} · ${plugin.id}"
-            row.open.text = getString(com.stupidtree.hitax.R.string.plugin_builtin_open)
-            row.open.setOnClickListener {
-                startActivity(
-                    android.content.Intent(requireContext(), com.stupidtree.hitax.uiplugin.PluginUiActivity::class.java)
-                        .putExtra(com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_PLUGIN_ID, plugin.id)
-                )
+    // ---- 在线逻辑插件 ----
+
+    private fun renderMarket(items: List<PluginMarketViewModel.Item>) {
+        binding?.emptyHint?.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+        renderGrid(binding?.container, items) { card, item ->
+            card.name.text = item.entry.name
+            card.meta.text = "v${item.entry.version} · api ${item.entry.apiVersion}"
+            card.action.text = if (item.installed) "卸载" else "安装"
+            card.action.isEnabled = true
+            card.action.setOnClickListener {
+                when {
+                    item.installed -> viewModel.uninstall(item.entry)
+                    viewModel.isVerified(item.entry.id) -> viewModel.install(item.entry)
+                    else -> confirmUntrusted(item.entry.name) { viewModel.install(item.entry) }
+                }
             }
-            row.uninstall.setOnClickListener {
-                AlertDialog.Builder(requireContext())
-                    .setTitle(com.stupidtree.hitax.R.string.plugin_builtin_uninstall)
-                    .setMessage(plugin.name)
-                    .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.uninstallUiPlugin(plugin) }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
+            if (item.installed) {
+                card.toggle.visibility = View.VISIBLE
+                bindToggle(card, true) { enabled ->
+                    viewModel.setMarketEnabled(item.entry, enabled)
+                }
+            } else {
+                card.toggle.visibility = View.INVISIBLE
             }
-            container.addView(row.root)
         }
     }
 
-    private fun renderUiPlugins(plugins: List<com.stupidtree.hitax.uiplugin.InstalledUiPlugin>) {
-        val container = binding?.uiContainer ?: return
-        val empty = binding?.uiEmpty
-        empty?.visibility = if (plugins.isEmpty()) View.VISIBLE else View.GONE
-        container.removeAllViews()
-        val inflater = LayoutInflater.from(requireContext())
-        plugins.forEach { plugin ->
-            val row = com.stupidtree.hitax.databinding.ItemUiPluginBinding.inflate(inflater, container, false)
-            row.name.text = plugin.name
-            row.meta.text = "${plugin.version} · ${plugin.id}"
-            row.open.setOnClickListener {
-                startActivity(
-                    android.content.Intent(requireContext(), com.stupidtree.hitax.uiplugin.PluginUiActivity::class.java)
-                        .putExtra(com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_PLUGIN_ID, plugin.id)
-                )
-            }
-            row.uninstall.setOnClickListener {
-                AlertDialog.Builder(requireContext())
-                    .setTitle(com.stupidtree.hitax.R.string.plugin_builtin_uninstall)
-                    .setMessage(plugin.name)
-                    .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.uninstallUiPlugin(plugin) }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-            }
-            container.addView(row.root)
-        }
-    }
+    // ---- 独立 APK 插件 ----
 
     private fun renderApkPlugins(plugins: List<ApkPlugin>) {
-        val container = binding?.apkContainer ?: return
         binding?.apkEmptyHint?.visibility = if (plugins.isEmpty()) View.VISIBLE else View.GONE
-        container.removeAllViews()
-        val inflater = LayoutInflater.from(requireContext())
-        plugins.forEach { plugin ->
-            val row = com.stupidtree.hitax.databinding.ItemApkPluginBinding.inflate(inflater, container, false)
-            row.apkName.text = plugin.name
-            row.apkMeta.text = "${plugin.versionName} · ${plugin.packageName} · api ${plugin.apiVersion} · ${trustLabel(plugin.id)}"
+        renderGrid(binding?.apkContainer, plugins) { card, plugin ->
+            card.name.text = plugin.name
+            card.meta.text = "v${plugin.versionName} · api ${plugin.apiVersion}"
+            card.toggle.visibility = View.INVISIBLE
             val supported = viewModel.supported(plugin)
-            row.apkAction.text = if (supported) "打开" else "版本不兼容"
-            row.apkAction.isEnabled = supported
-            row.apkAction.setOnClickListener {
+            card.action.text = if (supported) "打开" else "版本不兼容"
+            card.action.isEnabled = supported
+            card.action.setOnClickListener {
                 val launch: () -> Unit = {
                     val intent = android.content.Intent()
                         .setComponent(plugin.entry)
@@ -237,29 +271,16 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
                 }
                 if (viewModel.isVerified(plugin.id)) launch() else confirmUntrusted(plugin.name, launch)
             }
-            container.addView(row.root)
         }
     }
 
-    private fun render(items: List<PluginMarketViewModel.Item>) {
-        val container = binding?.container ?: return
-        binding?.emptyHint?.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
-        container.removeAllViews()
-        val inflater = LayoutInflater.from(requireContext())
-        items.forEach { item ->
-            val row = ItemPluginMarketBinding.inflate(inflater, container, false)
-            row.pluginName.text = item.entry.name
-            row.pluginMeta.text = "${item.entry.version} · api ${item.entry.apiVersion} · ${trustLabel(item.entry.id)}"
-            row.pluginId.text = item.entry.id
-            row.pluginAction.text = if (item.installed) "卸载" else "安装"
-            row.pluginAction.setOnClickListener {
-                when {
-                    item.installed -> viewModel.uninstall(item.entry)
-                    viewModel.isVerified(item.entry.id) -> viewModel.install(item.entry)
-                    else -> confirmUntrusted(item.entry.name) { viewModel.install(item.entry) }
-                }
-            }
-            container.addView(row.root)
-        }
+    private fun confirmUntrusted(name: String, action: () -> Unit) {
+        com.stupidtree.style.widgets.PopUpText()
+            .setTitle(com.stupidtree.hitax.R.string.plugin_untrusted_title)
+            .setText(getString(com.stupidtree.hitax.R.string.plugin_untrusted_message, name))
+            .setOnConfirmListener(object : com.stupidtree.style.widgets.PopUpText.OnConfirmListener {
+                override fun OnConfirm() = action()
+            })
+            .show(parentFragmentManager, "plugin_untrusted")
     }
 }

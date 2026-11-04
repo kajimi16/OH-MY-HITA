@@ -9,4 +9,5 @@ data class InstalledUiPlugin(
     val apkPath: String,
     val sha256: String,
     val capabilities: List<String> = emptyList(),
+    val enabled: Boolean = true,
 )

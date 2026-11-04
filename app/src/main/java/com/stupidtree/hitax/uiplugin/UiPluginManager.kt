@@ -23,11 +23,22 @@ class UiPluginManager(private val context: Context) {
     private val root = File(context.filesDir, "ui-plugins")
 
     fun installed(): List<InstalledUiPlugin> =
-        UiPluginStore.list(context).filter { File(it.apkPath).isFile }
+        UiPluginStore.list(context)
+            .filter { File(it.apkPath).isFile }
+            .map { it.copy(enabled = !UiPluginStore.isDisabled(context, it.id)) }
 
     /** 按 capability 找一个可用的已安装插件；找不到返回 null。 */
+    fun enabled(): List<InstalledUiPlugin> = installed().filter { it.enabled }
+
     fun findByCapability(capability: String): InstalledUiPlugin? =
-        installed().firstOrNull { capability in it.capabilities }
+        enabled().firstOrNull { capability in it.capabilities }
+
+    /** 启用/停用已安装插件；停用后不再参与能力路由，但文件保留。 */
+    fun setEnabled(id: String, enabled: Boolean): Boolean {
+        UiPluginStore.find(context, id) ?: return false
+        UiPluginStore.setEnabled(context, id, enabled)
+        return true
+    }
 
     data class Metadata(
         val id: String,

@@ -28,6 +28,10 @@ class PluginUiActivity : AppCompatActivity() {
             Toast.makeText(this, "插件未安装", Toast.LENGTH_SHORT).show()
             finish(); return
         }
+        if (UiPluginStore.isDisabled(this, id)) {
+            Toast.makeText(this, "插件已停用", Toast.LENGTH_SHORT).show()
+            finish(); return
+        }
         try {
             val instance = UiPluginManager(this).instantiate(record)
             plugin = instance
