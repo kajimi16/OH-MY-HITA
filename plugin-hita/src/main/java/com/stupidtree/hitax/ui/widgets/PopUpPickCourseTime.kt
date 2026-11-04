@@ -11,11 +11,11 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.beloo.widget.chipslayoutmanager.ChipsLayoutManager
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.databinding.DialogBottomPickCourseTimeBinding
-import com.stupidtree.hitax.databinding.DynamicAddEventDateitemBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DialogBottomPickCourseTimeBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DynamicAddEventDateitemBinding
 import com.stupidtree.hitax.ui.event.add.CourseTime
 import com.stupidtree.hitax.utils.TimeTools
 import com.stupidtree.style.base.BaseActivity

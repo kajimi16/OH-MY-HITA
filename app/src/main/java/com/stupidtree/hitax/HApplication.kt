@@ -89,14 +89,8 @@ class HApplication : Application() {
                 period: com.stupidtree.hitax.data.model.timetable.TimePeriodInDay?,
                 subject: com.stupidtree.hitax.data.model.timetable.TermSubject?,
             ) {
-                val popup = com.stupidtree.hitax.ui.event.add.PopupAddEvent(true)
-                    .setInitTimetable(timetable)
-                subject?.let { popup.setInitSubject(it) }
-                if (dow >= 0 && period != null) popup.setInitTime(dow, week, period)
-                popup.show(
-                    (activity as androidx.fragment.app.FragmentActivity).supportFragmentManager,
-                    "add_subject"
-                )
+                pluginHost.service(com.stupidtree.hita.api.TimetableUiService.KEY)
+                    ?.openAddEvent(activity, timetable, dow, week, period, subject)
             }
 
             override fun openCourseReadme(
@@ -120,6 +114,15 @@ class HApplication : Application() {
                 com.stupidtree.hitax.utils.ActivityUtils.startCourseContributionActivity(
                     context, repoName, courseName, courseCode, repoType
                 )
+            }
+
+            override fun searchTeacherNames(query: String): androidx.lifecycle.LiveData<List<String>> {
+                val out = androidx.lifecycle.MediatorLiveData<List<String>>()
+                out.addSource(
+                    com.stupidtree.hitax.data.repository.TeacherInfoRepository
+                        .getInstance(this@HApplication).searchTeachers(query)
+                ) { state -> out.value = state.data?.map { it.name } ?: emptyList() }
+                return out
             }
 
             override fun notifyWidgets() {
@@ -149,7 +152,10 @@ class HApplication : Application() {
                 context: android.content.Context,
                 events: List<com.stupidtree.hitax.data.model.timetable.EventItem>,
             ) {
-                com.stupidtree.hitax.utils.EventsUtils.showEventItem(context, events)
+                (context as? androidx.fragment.app.FragmentActivity)?.let { act ->
+                    pluginHost.service(com.stupidtree.hita.api.TimetableUiService.KEY)
+                        ?.showEventInfo(act, events)
+                }
             }
         })
         pluginHost.installAll(PluginCatalog.plugins(this))

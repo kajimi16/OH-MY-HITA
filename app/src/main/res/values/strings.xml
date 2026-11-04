@@ -137,19 +137,6 @@
     <string name="navi_mood_greet">Hi, 今天心情如何？</string>
     <string name="navi_mood_title">今日校园心情</string>
     <string name="navi_mood_point">分</string>
-    <string name="ade_title">添加课时</string>
-    <string name="ade_arrangement">日程</string>
-    <string name="ade_ddl">DDL</string>
-    <string name="ade_course">课程</string>
-    <string name="ade_exam">考试</string>
-    <string name="ade_namehint">输入名称…</string>
-    <string name="ade_tag2">标签2</string>
-    <string name="ade_tag3">标签3</string>
-    <string name="ade_pick_subject">选择科目</string>
-    <string name="ade_pick_time">设置上课时间段</string>
-    <string name="ade_pick_task">处理任务</string>
-    <string name="ade_pick_location">选择地点</string>
-    <string name="ade_wholeday">全天</string>
     <string name="add_laf_detail_hint">输入详细内容</string>
     <string name="button_post">发布</string>
 
@@ -218,13 +205,7 @@
     <string name="navi_semister_not_begun">学期未开始</string>
     <string name="navi_semister_no_data">无学期数据</string>
     <string name="navi_settings_title">设置导航页内容</string>
-    <string name="ade_no_suitable_allocation">没有找到合适的分配时间！</string>
-    <string name="ade_set_time_first">请先设置日期！</string>
     <string name="pick_location">选择地点</string>
-    <string name="ade_exam_name">输入考试名称…</string>
-    <string name="ade_set_time_period">设置日期与时间段</string>
-    <string name="ade_set_time_date">设置日期与时间</string>
-    <string name="ade_set_date">设置日期</string>
     <string name="label_activity_attitude">HITSZ态度墙</string>
     <string name="label_activity_tasks">待办事项</string>
     <string name="task_card_title_tasknum">待办</string>
@@ -236,7 +217,6 @@
     <string name="dialog_pick_course_title">设置课程时间</string>
     <string name="dialog_pick_course_to">到</string>
     <string name="dialog_pick_course_label">选择上课周数：</string>
-    <string name="period">第%d节</string>
     <string name="pick_single_time_label1">周</string>
     <string name="pick_single_time_label2">时</string>
     <string name="pick_single_time_label3">分</string>
@@ -260,7 +240,6 @@
     <string name="dialog_classroom">教室</string>
     <string name="dialog_period">节数</string>
     <string name="dialog_this_course_s">该课时</string>
-    <string name="dialog_this_course_p">为本科目的第%d次课</string>
     <string name="dialog_course_rate_p">课程自评</string>
     <string name="dialog_course_rate_s">这堂课学得怎么样？</string>
     <string name="notif_delete_success">删除成功！</string>
@@ -560,14 +539,11 @@
     <string name="curriculum_manager_ttweeks">总周数</string>
     <string name="choose_or_add_subject">选择或添加科目</string>
     <string name="notifi_atleast_oneweek">请至少指定一周</string>
-    <string name="ade_subject_name">输入课程名称...</string>
     <string name="choose_subject">选择已有科目</string>
-    <string name="ade_pick_teacher">选择教师</string>
     <string name="new_subject_created">已创建新的科目</string>
     <string name="add_course_done">已添加课程</string>
     <string name="add_event_done">事件已添加</string>
     <string name="notifi_input_teacher">请输入教师名称！</string>
-    <string name="add_subject">添加科目与课时</string>
     <string name="delete_success">删除成功</string>
     <string name="delete_failed">删除失败</string>
     <string name="dialog_message_delete_subject">这将删除该科目的所有课程和考试事件，确定删除吗？</string>
@@ -809,7 +785,6 @@
     <string name="yes">是</string>
     <string name="no">否</string>
     <string name="counted_in_GPA" translatable="false">考试课</string>
-    <string name="ade_title_edit">编辑%s</string>
     <string name="edit_event_done">已保存</string>
     <string name="jw_tabs_xxjd" translatable="false">学习进度</string>
     <string name="bx_progress_number" translatable="false">完成%d/%d门</string>
@@ -859,7 +834,6 @@
     <string name="number_of_class">第%d节课</string>
     <string name="title_timeline">今日</string>
     <string name="title_timetable">时间表</string>
-    <string name="event_duration_text">%s-%s</string>
     <string name="title_subjects">科目</string>
     <string name="title_teachers">教师</string>
     <string name="male">男</string>
@@ -938,12 +912,9 @@
     <string name="undergrad_structure">本科生结构</string>
     <string name="postgrad_structure">研究生结构</string>
     <string name="hita_website">官方网站</string>
-    <string name="ade_pick_timetable">选择课表</string>
-    <string name="ade_pick_weeks">设置周数</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
     <string name="app_widget_description">This is an app widget description</string>
-    <string name="loading">加载中</string>
     <string name="widget_loading">组件加载中...</string>
     <string name="belonging_timetable">所属课表</string>
     <string name="lecture_title">讲座信息</string>

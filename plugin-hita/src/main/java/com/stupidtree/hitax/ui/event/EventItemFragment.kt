@@ -5,14 +5,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TimeInDay
-import com.stupidtree.hitax.databinding.DialogBottomTimetableClassBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DialogBottomTimetableClassBinding
 import com.stupidtree.hitax.ui.subject.SubjectActivity
-import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.TimeTools
-import com.stupidtree.hitax.utils.CourseResourceLinker
 import com.stupidtree.style.base.BaseFragment
 import com.stupidtree.style.widgets.PopUpColorPicker
 import com.stupidtree.style.widgets.PopUpText
@@ -144,14 +142,12 @@ class EventItemFragment : BaseFragment<EventItemViewModel, DialogBottomTimetable
             row.setOnLongClickListener(null)
         } else {
             row.setOnClickListener {
-                ActivityUtils.startCourseResourceSearchActivity(
-                    requireContext(),
-                    query = name,
-                    mode = ActivityUtils.CourseResourceMode.VIEW,
-                )
+                com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                    ?.openCourseResourceSearch(requireContext(), name, submit = false)
             }
             row.setOnLongClickListener {
-                ActivityUtils.startTeacherHomepageSearch(requireContext(), name)
+                com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                    ?.openTeacherHomepage(requireContext(), name)
                 true
             }
         }
@@ -272,18 +268,23 @@ class EventItemFragment : BaseFragment<EventItemViewModel, DialogBottomTimetable
         binding?.nameLayout?.setOnClickListener {
             if (requireContext() !is SubjectActivity) {
                 viewModel.eventItemLiveData.value?.let { event ->
-                    ActivityUtils.startSubjectActivity(requireContext(), event.subjectId)
+                    startActivity(
+                        android.content.Intent(
+                            requireContext(),
+                            com.stupidtree.hitax.ui.subject.SubjectActivity::class.java
+                        ).putExtra("id", event.subjectId)
+                    )
                 }
             }
         }
         binding?.nameLayout?.setOnLongClickListener {
             val subject = viewModel.subjectLiveData.value
             if (subject != null) {
-                CourseResourceLinker.openReadme(
+                com.stupidtree.hitax.plugin.HitaRuntime.hostUi?.openCourseReadme(
                     context = requireContext(),
-                    owner = viewLifecycleOwner,
-                    courseCodeRaw = subject.code,
-                    courseNameRaw = subject.name,
+                    lifecycleOwner = viewLifecycleOwner,
+                    courseCode = subject.code,
+                    courseName = subject.name,
                 )
             }
             true

@@ -30,6 +30,9 @@ interface HostUiService {
         subject: TermSubject? = null,
     )
 
+    /** 教师名自动补全（宿主持有教师检索仓库）。 */
+    fun searchTeacherNames(query: String): androidx.lifecycle.LiveData<List<String>>
+
     /** 通知宿主刷新桌面小组件。 */
     fun notifyWidgets()
 

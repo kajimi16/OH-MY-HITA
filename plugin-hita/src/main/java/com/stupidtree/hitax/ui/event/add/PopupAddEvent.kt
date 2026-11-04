@@ -1,6 +1,6 @@
 package com.stupidtree.hitax.ui.event.add
 
-import com.stupidtree.hitax.HitaServices
+import com.stupidtree.hitax.plugin.HitaRuntime
 import android.annotation.SuppressLint
 import android.text.Editable
 import android.text.TextWatcher
@@ -9,12 +9,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.switchMap
 import com.stupidtree.component.data.DataState
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.TermSubject
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.data.repository.TeacherInfoRepository
-import com.stupidtree.hitax.databinding.DialogBottomAddEventBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DialogBottomAddEventBinding
 import com.stupidtree.hitax.ui.widgets.PopUpPickCourseTime
 import com.stupidtree.style.widgets.DialogAutoEditText
 import com.stupidtree.style.widgets.DialogSelectableLiveList
@@ -248,7 +247,7 @@ class PopupAddEvent(private val addSubjectMode:Boolean = false) :
                 .setInitValue(viewModel.timetableLiveData.value?.data)
                 .setDataLoader(object : DialogSelectableLiveList.DataLoader<Timetable> {
                     override fun loadData(): LiveData<List<DialogSelectableLiveList.ItemData<Timetable>>> {
-                        return HitaServices.timetable(activity!!.application).getTimetables()
+                        return com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow().getTimetables()
                             .switchMap{
                             val res = mutableListOf<DialogSelectableLiveList.ItemData<Timetable>>()
                             for (data: Timetable in it) {
@@ -270,7 +269,7 @@ class PopupAddEvent(private val addSubjectMode:Boolean = false) :
                 .setInitValue(viewModel.subjectLiveData.value?.data)
                 .setDataLoader(object : DialogSelectableLiveList.DataLoader<TermSubject> {
                     override fun loadData(): LiveData<List<DialogSelectableLiveList.ItemData<TermSubject>>> {
-                        return HitaServices.timetable(activity!!.application)
+                        return com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow()
                                 .getSubjects(viewModel.timetableLiveData.value?.data?.id ?: "").switchMap{
                             val res =
                                 mutableListOf<DialogSelectableLiveList.ItemData<TermSubject>>()
@@ -313,16 +312,8 @@ class PopupAddEvent(private val addSubjectMode:Boolean = false) :
                 }).setInitValue(viewModel.teacherLiveData.value?.data ?: "")
                 .setDataLoader(object : DialogAutoEditText.DataLoader {
                     override fun loadData(str: String): LiveData<List<String>> {
-                        return TeacherInfoRepository.getInstance(activity!!.application)
-                                .searchTeachers(str).switchMap{
-                            val r = mutableListOf<String>()
-                            it.data?.let { dt ->
-                                for (t in dt) {
-                                    r.add(t.name)
-                                }
-                            }
-                            return@switchMap MutableLiveData(r)
-                        }
+                        return com.stupidtree.hitax.plugin.HitaRuntime.hostUi
+                            ?.searchTeacherNames(str) ?: MutableLiveData(emptyList())
                     }
 
                 }).show(childFragmentManager, "pick_teacher")
@@ -342,7 +333,7 @@ class PopupAddEvent(private val addSubjectMode:Boolean = false) :
                 }).setInitValue(viewModel.locationLiveData.value?.data ?: "")
                 .setDataLoader(object : DialogAutoEditText.DataLoader {
                     override fun loadData(str: String): LiveData<List<String>> {
-                        return HitaServices.timetable(activity!!.application)
+                        return com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow()
                             .searchLocation(str)
                     }
 

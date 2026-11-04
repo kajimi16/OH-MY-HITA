@@ -30,7 +30,6 @@ import com.stupidtree.hitax.databinding.ActivityMainBinding
 import com.stupidtree.hitax.ui.about.ActivityAbout
 import com.stupidtree.hitax.ui.about.UserAgreementDialog
 import com.stupidtree.hitax.ui.eas.login.PopUpLoginEAS
-import com.stupidtree.hitax.ui.event.add.PopupAddEvent
 import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
 import com.stupidtree.hitax.ui.widgets.WidgetUtils
 import com.stupidtree.hitax.utils.ActivityUtils
@@ -287,7 +286,8 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         }
 
         binding.addEvent.setOnClickListener {
-            PopupAddEvent().show(supportFragmentManager, "add_event")
+            pluginHost().service(com.stupidtree.hita.api.TimetableUiService.KEY)
+                ?.openAddEvent(this, null)
         }
 
         binding.switchTheme.setOnClickListener {

@@ -1,6 +1,6 @@
 package com.stupidtree.hitax.ui.event
 
-import com.stupidtree.hitax.HitaServices
+import com.stupidtree.hitax.plugin.HitaRuntime
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -13,8 +13,8 @@ class EventItemViewModel(application: Application) : AndroidViewModel(applicatio
     /**
      * 仓库区
      */
-    private val subjectRepository = HitaServices.timetable(application)
-    private val timetableRepository =HitaServices.timetable(application)
+    private val subjectRepository = com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow()
+    private val timetableRepository =com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow()
 
     /**
      * 数据区

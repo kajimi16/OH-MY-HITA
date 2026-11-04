@@ -5,9 +5,9 @@ import android.os.Bundle
 import android.view.View
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayout.OnTabSelectedListener
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.EventItem
-import com.stupidtree.hitax.databinding.DialogBottomEventsBinding
+import com.stupidtree.hita.plugin.timetable.databinding.DialogBottomEventsBinding
 import com.stupidtree.style.widgets.TransparentBottomSheetDialog
 import java.util.ArrayList
 

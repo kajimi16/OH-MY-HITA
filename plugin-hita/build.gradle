@@ -47,6 +47,7 @@ dependencies {
     implementation 'tyrantgit:explosionfield:1.0.1'
     implementation 'com.beloo.widget:ChipsLayoutManager:0.3.7@aar'
     implementation 'net.opacapp:multiline-collapsingtoolbar:27.1.1'
+    implementation 'com.cncoderx.wheelview:library:1.2.2'
     implementation 'com.github.alorma:timelineview:2.3.0'
     implementation 'com.github.lzyzsd:circleprogress:1.2.1'
     implementation 'net.cachapa.expandablelayout:expandablelayout:2.9.2'
