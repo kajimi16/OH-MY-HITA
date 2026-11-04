@@ -34,6 +34,12 @@ market/
 - `apiVersion` 必须 ≤ 客户端的 `HITA_API_VERSION`（当前 2）
 - `entryClass` 是 dex 中实现 `com.stupidtree.hita.api.Plugin` 的类
 
+## 插件模板
+
+从这里开始最省事：<https://github.com/kajimi16/hita-plugin-template>
+
+克隆后改 `DemoPlugin` 的 id，执行 `./gradlew :plugin:publishToMarket` 即得到 dex 与索引。
+
 ## 发布一个插件
 
 仓库内的示例插件：
@@ -53,6 +59,9 @@ market/
 
 ## 信任模型与限制
 
+- **所有插件默认「未验证」**：安装或打开前会弹出提示，说明它将拥有应用完整权限
+- 只有与 OH-MY-HITA 一起核验过的半官方插件，才加入 `app/src/main/assets/verified_plugins.json`
+  的白名单并显示「已验证」；白名单随应用版本发布，修改需要发版
 - 传输走 HTTPS，内容以索引里的 `sha256` 为准；**索引本身的写权限就是发布权限**
 - 运行时插件与宿主同进程，拥有宿主全部权限——只上架可信代码
 - 插件不能声明四大组件、不能携带资源，只能通过 `:api` 契约贡献服务 / 同步表 / 导航项

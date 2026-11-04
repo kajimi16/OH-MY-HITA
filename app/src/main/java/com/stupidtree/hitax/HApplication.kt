@@ -7,6 +7,8 @@ import androidx.annotation.WorkerThread
 import com.google.gson.JsonObject
 import com.stupidtree.stupiduser.data.repository.LocalUserRepository
 import com.stupidtree.sync.StupidSync
+import com.stupidtree.hita.api.EasService
+import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.ThemeController
 import com.stupidtree.hita.kernel.PluginHost
 import com.stupidtree.hitax.plugin.PluginCatalog
@@ -51,6 +53,93 @@ class HApplication : Application() {
                     AppCompatDelegate.setDefaultNightMode(
                         if (night) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
                     )
+                }
+            }
+        })
+        // 宿主内建跳转能力：迁移期插件请求宿主打开课表详情 / 教务导入
+        pluginHost.provideGlobal(HostUiService.KEY, object : HostUiService {
+            override fun openTimetableDetail(context: android.content.Context, timetableId: String) {
+                com.stupidtree.hitax.utils.ActivityUtils.startTimetableDetailActivity(context, timetableId)
+            }
+
+            override fun openImportTimetable(context: android.content.Context) {
+                (context as? androidx.fragment.app.FragmentActivity)?.let { activity ->
+                    pluginHost.service(EasService.KEY)?.openImportTimetable(activity)
+                }
+            }
+
+            override fun openCourseResourceSearch(context: android.content.Context, keyword: String?, submit: Boolean) {
+                com.stupidtree.hitax.utils.ActivityUtils.startCourseResourceSearchActivity(
+                    context,
+                    keyword,
+                    if (submit) com.stupidtree.hitax.utils.ActivityUtils.CourseResourceMode.SUBMIT
+                    else com.stupidtree.hitax.utils.ActivityUtils.CourseResourceMode.VIEW,
+                )
+            }
+
+            override fun openTeacherHomepage(context: android.content.Context, teacherName: String) {
+                com.stupidtree.hitax.utils.ActivityUtils.startTeacherHomepageSearch(context, teacherName)
+            }
+
+            override fun openAddEvent(
+                activity: android.app.Activity,
+                timetable: com.stupidtree.hitax.data.model.timetable.Timetable?,
+                dow: Int,
+                week: Int,
+                period: com.stupidtree.hitax.data.model.timetable.TimePeriodInDay?,
+                subject: com.stupidtree.hitax.data.model.timetable.TermSubject?,
+            ) {
+                pluginHost.service(com.stupidtree.hita.api.TimetableUiService.KEY)
+                    ?.openAddEvent(activity, timetable, dow, week, period, subject)
+            }
+
+            override fun openCourseReadme(
+                context: android.content.Context,
+                lifecycleOwner: androidx.lifecycle.LifecycleOwner,
+                courseCode: String?,
+                courseName: String?,
+            ) {
+                com.stupidtree.hitax.utils.CourseResourceLinker.openReadme(
+                    context, lifecycleOwner, courseCode, courseName
+                )
+            }
+
+            override fun openCourseContribution(
+                context: android.content.Context,
+                repoName: String,
+                courseName: String,
+                courseCode: String,
+                repoType: String,
+            ) {
+                com.stupidtree.hitax.utils.ActivityUtils.startCourseContributionActivity(
+                    context, repoName, courseName, courseCode, repoType
+                )
+            }
+
+            override fun searchTeacherNames(query: String): androidx.lifecycle.LiveData<List<String>> {
+                val out = androidx.lifecycle.MediatorLiveData<List<String>>()
+                out.addSource(
+                    com.stupidtree.hitax.data.repository.TeacherInfoRepository
+                        .getInstance(this@HApplication).searchTeachers(query)
+                ) { state -> out.value = state.data?.map { it.name } ?: emptyList() }
+                return out
+            }
+
+            override fun notifyWidgets() {
+                com.stupidtree.hitax.ui.widgets.WidgetUtils.sendRefreshToAll(this@HApplication)
+            }
+
+            override fun startAutoReimport(callback: (Boolean) -> Unit) {
+                pluginHost.service(EasService.KEY)?.startAutoReimport(callback) ?: callback(false)
+            }
+
+            override fun showEventInfo(
+                context: android.content.Context,
+                events: List<com.stupidtree.hitax.data.model.timetable.EventItem>,
+            ) {
+                (context as? androidx.fragment.app.FragmentActivity)?.let { act ->
+                    pluginHost.service(com.stupidtree.hita.api.TimetableUiService.KEY)
+                        ?.showEventInfo(act, events)
                 }
             }
         })

@@ -11,10 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import com.stupidtree.hitax.R
-import com.stupidtree.hitax.data.repository.EASRepository
-import com.stupidtree.hitax.ui.eas.login.PopUpLoginEAS
 import com.stupidtree.hitax.ui.myprofile.MyProfileActivity
-import com.stupidtree.hitax.ui.eas.imp.ImportTimetableActivity
 import com.stupidtree.hitax.ui.resource.CourseContributionActivity
 import com.stupidtree.hitax.ui.resource.CourseReadmeActivity
 import com.stupidtree.hitax.ui.resource.CourseResourceSearchActivity
@@ -22,10 +19,7 @@ import com.stupidtree.hitax.ui.resource.InternalWebActivity
 import com.stupidtree.hitax.ui.news.NewsDetailActivity
 import com.stupidtree.hitax.ui.profile.ProfileActivity
 import com.stupidtree.hitax.ui.search.SearchActivity
-import com.stupidtree.hitax.ui.subject.SubjectActivity
 import com.stupidtree.hitax.ui.teacher.ActivityTeacherOfficial
-import com.stupidtree.hitax.ui.timetable.detail.TimetableDetailActivity
-import com.stupidtree.hitax.ui.timetable.manager.TimetableManagerActivity
 import com.stupidtree.stupiduser.data.model.CheckUpdateResult
 import com.stupidtree.style.base.BaseActivity
 import com.stupidtree.style.widgets.PopUpText
@@ -75,24 +69,18 @@ object ActivityUtils {
     }
 
     fun startImportTimetableActivity(from: Context, autoImport: Boolean = false) {
-        val i = Intent(from, ImportTimetableActivity::class.java)
-        i.putExtra("autoImport", autoImport)
-        from.startActivity(i)
+        (from as? androidx.fragment.app.FragmentActivity)?.let { activity ->
+            (activity.application as com.stupidtree.hitax.HApplication).pluginHost
+                .service(com.stupidtree.hita.api.EasService.KEY)
+                ?.openImportTimetable(activity, autoImport)
+        }
     }
 
     fun startWelcomeActivity(from: Context) {
         if (from is BaseActivity<*, *>) {
-            showEasVerifyWindow<Activity>(
-                from = from,
-                directTo = null,
-                onResponseListener = object : PopUpLoginEAS.OnResponseListener {
-                    override fun onSuccess(window: PopUpLoginEAS) {
-                        window.dismiss()
-                    }
-
-                    override fun onFailed(window: PopUpLoginEAS) {}
-                }
-            )
+            (from.application as com.stupidtree.hitax.HApplication).pluginHost
+                .service(com.stupidtree.hita.api.EasService.KEY)
+                ?.openAccount(from)
         } else {
             Toast.makeText(from, R.string.eas_login_prompt, Toast.LENGTH_SHORT).show()
         }
@@ -104,29 +92,6 @@ object ActivityUtils {
      * @param lock 是否锁定窗口（=true时，若cancel则连带宿主一起销毁）
      * @param onResponseListener 认证监听
      */
-    fun <T : Activity> showEasVerifyWindow(
-        from: Context,
-        directTo: Class<T>? = null,
-        lock: Boolean = false,
-        onResponseListener: PopUpLoginEAS.OnResponseListener
-    ) {
-        if (from is BaseActivity<*, *>) {
-            if (EASRepository.getInstance((from as AppCompatActivity).application).getEasToken()
-                    .isLogin()
-            ) {
-                directTo?.let {
-                    val i = Intent(from, directTo)
-                    from.startActivity(i)
-                    return
-                }
-            }
-            val window = PopUpLoginEAS()
-            window.lock = lock
-            window.onResponseListener = onResponseListener
-            window.show(from.supportFragmentManager, "verify")
-        }
-    }
-
 
     fun <T : Activity> startActivity(from: Context, activity: Class<T>) {
         val i = Intent(from, activity)
@@ -134,15 +99,16 @@ object ActivityUtils {
     }
 
     fun startTimetableManager(from: Context) {
-        val i = Intent(from, TimetableManagerActivity::class.java)
-        from.startActivity(i)
+        (from.applicationContext as com.stupidtree.hitax.HApplication).pluginHost
+            .service(com.stupidtree.hita.api.TimetableUiService.KEY)
+            ?.openManager(from)
     }
 
 
     fun startSubjectActivity(from: Context, id: String) {
-        val i = Intent(from, SubjectActivity::class.java)
-        i.putExtra("subjectId", id)
-        from.startActivity(i)
+        (from.applicationContext as com.stupidtree.hitax.HApplication).pluginHost
+            .service(com.stupidtree.hita.api.TimetableUiService.KEY)
+            ?.openSubject(from, id)
     }
 
     fun startCourseResourceSearchActivity(
@@ -204,9 +170,9 @@ object ActivityUtils {
     }
 
     fun startTimetableDetailActivity(from: Context, id: String) {
-        val i = Intent(from, TimetableDetailActivity::class.java)
-        i.putExtra("id", id)
-        from.startActivity(i)
+        (from.applicationContext as com.stupidtree.hitax.HApplication).pluginHost
+            .service(com.stupidtree.hita.api.TimetableUiService.KEY)
+            ?.openDetail(from, id)
     }
 
     fun startProfileActivity(from: Context, userId: String?, imageView: ImageView?=null) {

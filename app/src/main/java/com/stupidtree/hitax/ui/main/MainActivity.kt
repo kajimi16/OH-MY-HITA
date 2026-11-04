@@ -24,17 +24,10 @@ import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.NavEntry
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.R
-import com.stupidtree.hitax.data.repository.EasSettingsRepository
-import com.stupidtree.hitax.data.repository.EASRepository
 import com.stupidtree.hitax.databinding.ActivityMainBinding
 import com.stupidtree.hitax.ui.about.ActivityAbout
 import com.stupidtree.hitax.ui.about.UserAgreementDialog
-import com.stupidtree.hitax.ui.eas.login.PopUpLoginEAS
-import com.stupidtree.hitax.ui.event.add.PopupAddEvent
 import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
-import com.stupidtree.hitax.ui.main.timeline.FragmentTimeLine
-import com.stupidtree.hitax.ui.main.timetable.TimetableFragment
-import com.stupidtree.hitax.ui.main.timetable.panel.FragmentTimetablePanel
 import com.stupidtree.hitax.ui.widgets.WidgetUtils
 import com.stupidtree.hitax.utils.ActivityUtils
 import com.stupidtree.hitax.utils.ImageUtils
@@ -49,11 +42,14 @@ import me.ibrahimsn.lib.OnItemSelectedListener
  * 很显然，这是主界面
  */
 class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
-    TimetableFragment.MainPageController, FragmentTimeLine.MainPageController {
+    com.stupidtree.style.base.TimetablePageController,
+    com.stupidtree.style.base.TimelinePageController {
 
     /**
      * 插件贡献的抽屉项。id 由宿主按顺序分配，避免菜单 xml 里写死。
      */
+    private fun pluginHost() = (application as HApplication).pluginHost
+
     private val pluginMenuIds = LinkedHashMap<Int, NavEntry>()
 
     private fun attachPluginNavItems() {
@@ -181,21 +177,10 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     }
 
     private fun maybeAutoReimportTimetable() {
-        val settings = EasSettingsRepository.getInstance(application)
-        if (!settings.isAutoReimportEnabled()) return
-        val token = EASRepository.getInstance(application).getEasToken()
-        if (!token.isLogin()) return
         if (autoReimportAttempted) return
-        val now = System.currentTimeMillis()
-        val last = settings.getLastAutoReimportTs()
-        if (now - last < autoReimportIntervalMs) return
         autoReimportAttempted = true
-        val isUndergrad = token.stutype == com.stupidtree.hitax.data.model.eas.EASToken.TYPE.UNDERGRAD
-        EASRepository.getInstance(application).startAutoImportCurrentTimetable(isUndergrad) { success ->
-            if (success) {
-                settings.setLastAutoReimportTs(System.currentTimeMillis())
-            }
-        }
+        // 间隔与登录判断都在插件内完成
+        pluginHost().service(com.stupidtree.hita.api.EasService.KEY)?.autoReimportIfDue()
     }
 
 
@@ -205,8 +190,10 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         binding.pager.adapter = object : BaseTabAdapter(supportFragmentManager, 4) {
             override fun initItem(position: Int): Fragment {
                 return when (position) {
-                    0 -> FragmentTimeLine()
-                    1 -> TimetableFragment()
+                    0 -> (application as HApplication).pluginHost.tabs
+                        .find("hita.timeline")?.let { it.create() } ?: Fragment()
+                    1 -> (application as HApplication).pluginHost.tabs
+                        .find("hita.timetable")?.let { it.create() } ?: Fragment()
                     2 -> NavigationFragment()
                     else -> com.stupidtree.hitax.market.FragmentPluginMarket()
                 }
@@ -280,11 +267,13 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         binding.drawerButton.setOnClickListener { binding.drawer.openDrawer(GravityCompat.END) }
 
         binding.timetableSetting.setOnClickListener {
-            FragmentTimetablePanel().show(supportFragmentManager, "panel")
+            pluginHost().service(com.stupidtree.hita.api.TimetableUiService.KEY)
+                ?.openStylePanel(this)
         }
 
         binding.addEvent.setOnClickListener {
-            PopupAddEvent().show(supportFragmentManager, "add_event")
+            pluginHost().service(com.stupidtree.hita.api.TimetableUiService.KEY)
+                ?.openAddEvent(this, null)
         }
 
         binding.switchTheme.setOnClickListener {
@@ -321,29 +310,17 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 }
             } else {
                 //未登录的信息显示
-                val easToken = EASRepository.getInstance(application).getEasToken()
-                if (easToken.isLogin()) {
-                    drawerUsername?.text = easToken.name?.ifBlank { easToken.username }
-                        ?: easToken.username
-                    drawerNickname?.text = easToken.stuId?.ifBlank { easToken.username } ?: ""
+                val eas = pluginHost().service(com.stupidtree.hita.api.EasService.KEY)
+                val easName = eas?.accountName()
+                if (easName != null) {
+                    drawerUsername?.text = easName
+                    drawerNickname?.text = eas.accountSubtitle()
                 } else {
                     drawerUsername?.setText(R.string.eas_account_not_logged_in_title)
                     drawerNickname?.setText(R.string.eas_account_not_logged_in_subtitle)
                 }
                 drawerAvatar?.setImageResource(R.drawable.place_holder_avatar)
-                drawerHeader?.setOnClickListener {
-                    ActivityUtils.showEasVerifyWindow<Activity>(
-                        getThis(),
-                        directTo = null,
-                        onResponseListener = object : PopUpLoginEAS.OnResponseListener {
-                            override fun onSuccess(window: PopUpLoginEAS) {
-                                window.dismiss()
-                            }
-
-                            override fun onFailed(window: PopUpLoginEAS) {}
-                        }
-                    )
-                }
+                drawerHeader?.setOnClickListener { eas?.openAccount(getThis()) }
             }
         }
     }

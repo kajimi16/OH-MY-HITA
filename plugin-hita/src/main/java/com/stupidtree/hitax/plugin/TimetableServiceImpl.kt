@@ -17,7 +17,30 @@ import java.io.InputStream
 class TimetableServiceImpl(
     private val timetables: TimetableRepository,
     private val subjects: SubjectRepository,
+    private val database: com.stupidtree.hitax.data.AppDatabase,
 ) : TimetableService {
+
+    private val timetableDao get() = database.timetableDao()
+    private val subjectDao get() = database.subjectDao()
+    private val eventDao get() = database.eventItemDao()
+
+    override fun getTimetableByEasCodeSync(easCode: String): Timetable? =
+        timetableDao.getTimetableByEASCodeSync(easCode)
+
+    override fun getEventIdsOfTimetables(timetableIds: List<String>): List<String> =
+        eventDao.getEventIdsFromTimetablesSync(timetableIds)
+
+    override fun deleteCourseFromTimetable(timetableId: String) =
+        eventDao.deleteCourseFromTimetable(timetableId)
+
+    override fun getSubjectByName(timetableId: String, name: String?): TermSubject? =
+        subjectDao.getSubjectByName(timetableId, name)
+
+    override fun saveSubject(subject: TermSubject) = subjectDao.saveSubjectSync(subject)
+
+    override fun saveEvents(events: List<EventItem>) = eventDao.saveEvents(events)
+
+    override fun saveTimetable(timetable: Timetable) = timetableDao.saveTimetableSync(timetable)
 
     override fun getTimetables(): LiveData<List<Timetable>> = timetables.getTimetables()
 

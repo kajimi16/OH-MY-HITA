@@ -1,0 +1,23 @@
+{
+  "enabled": [
+    "com.stupidtree.hita.theta",
+    "com.stupidtree.hitax.timetable",
+    "com.stupidtree.hitax.eas"
+  ],
+  "plugins": [
+    {
+      "id": "com.stupidtree.hita.theta",
+      "class": "com.stupidtree.hita.theta.ThetaPlugin"
+    },
+    {
+      "id": "com.stupidtree.hitax.timetable",
+      "class": "com.stupidtree.hitax.plugin.HitaPlugin",
+      "needsApplication": true
+    },
+    {
+      "id": "com.stupidtree.hitax.eas",
+      "class": "com.stupidtree.hitax.eas.EasPlugin",
+      "needsApplication": true
+    }
+  ]
+}

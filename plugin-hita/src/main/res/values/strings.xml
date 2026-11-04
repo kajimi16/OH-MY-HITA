@@ -1,0 +1,147 @@
+<resources>
+<string name="timetable_export_empty">暂无可导出的课表</string>
+    
+<string name="default_timetable_name">新建课表</string>
+    
+<string name="timetable_export_title">导出课表</string>
+    
+<string name="unknown_department">未知部门</string>
+    
+<string name="notifi_curriculum_set_name">设置课表名称</string>
+    
+<string name="dialog_title_random_allocate">是否随机生成各科目颜色？</string>
+    
+<string-array name="months">
+        <item>1月</item>
+        <item>2月</item>
+        <item>3月</item>
+        <item>4月</item>
+        <item>5月</item>
+        <item>6月</item>
+        <item>7月</item>
+        <item>8月</item>
+        <item>9月</item>
+        <item>10月</item>
+        <item>11月</item>
+        <item>12月</item>
+    </string-array>
+    
+<string name="add_timetable_first">清先添加一个课表</string>
+    
+<string name="button_cancel">取消</string>
+    
+<string name="button_confirm">确定</string>
+    
+<string name="dialog_title_select_delete">选择要删除的课程</string>
+    
+<string name="holiday">假期</string>
+    
+<string name="events_incoming">将要进行</string>
+    
+<string name="time_format_1">%d小时%d分钟</string>
+    
+<string name="time_format_2">%d分钟</string>
+    
+<string name="timeline_countdown_template_hour">%.1f小时后</string>
+    
+<string name="timeline_countdown_template_minute">%d分钟后</string>
+    
+<string name="timeline_counting_free">接下来没事了</string>
+    
+<string name="timeline_counting_middle">后进行</string>
+    
+<string name="timeline_gonow_subtitle">%d分钟后开始</string>
+    
+<string name="timeline_head_dinner_subtitle">去哪吃?</string>
+    
+<string name="timeline_head_dinner_title">晚餐时间</string>
+    
+<string name="timeline_head_finish_subtitle">享受生活吧！</string>
+    
+<string name="timeline_head_finish_title">全部结束</string>
+    
+<string name="timeline_head_free_subtitle">享受当下！</string>
+    
+<string name="timeline_head_goodmorning_title">早上好</string>
+    
+<string name="timeline_head_goodnight_subtitle">晚安！</string>
+    
+<string name="timeline_head_goodnight_title">夜深了</string>
+    
+<string name="timeline_head_lunch_subtitle">去哪吃?</string>
+    
+<string name="timeline_head_lunch_title">午餐时间</string>
+    
+<string name="timeline_head_normal_subtitle">自由安排</string>
+    
+<string name="timeline_head_normal_title">暂时没有事件</string>
+    
+<string name="timeline_head_ongoing_subtitle">正在进行</string>
+    
+<string name="timelinr_goodmorning_subtitle">今天共有%d节课</string>
+    
+<string name="unknown_location">未知地点</string>
+    
+<dimen name="timeline_width">8dp</dimen>
+    
+<color name="autumn_text">#ffb157</color>
+    
+<string name="percentage">%d%%</string>
+    
+<color name="spring_text">#60af17</color>
+    
+<color name="summer_text">#37a7df</color>
+    
+<color name="winter_text">#01579B</color>
+
+    
+<string name="subject_credit">课程学分</string>
+    
+<string name="subject_exam">考试课</string>
+    
+<string name="subject_mooc">MOOC</string>
+    
+<color name="spring">#a0ff57</color>
+    
+<color name="summer">#57c7ff</color>
+    
+<color name="autumn">#ffb157</color>
+    
+<color name="winter">#3381ff</color>
+
+    
+<string name="not_counted_in_GPA" translatable="false">考查课</string>
+    
+<string name="event_duration_text">%s-%s</string>
+    
+<string name="dialog_this_course_p">为本科目的第%d次课</string>
+    
+<string name="add_subject">添加科目与课时</string>
+    
+<string name="ade_title">添加课时</string>
+    <string name="ade_arrangement">日程</string>
+    <string name="ade_ddl">DDL</string>
+    <string name="ade_course">课程</string>
+    <string name="ade_namehint">输入名称…</string>
+    <string name="ade_tag2">标签2</string>
+    <string name="ade_tag3">标签3</string>
+    <string name="ade_pick_subject">选择科目</string>
+    <string name="ade_pick_time">设置上课时间段</string>
+    <string name="ade_pick_task">处理任务</string>
+    <string name="ade_pick_location">选择地点</string>
+    <string name="ade_wholeday">全天</string>
+    <string name="ade_no_suitable_allocation">没有找到合适的分配时间！</string>
+    <string name="ade_set_time_first">请先设置日期！</string>
+    <string name="ade_exam_name">输入考试名称…</string>
+    <string name="ade_set_time_period">设置日期与时间段</string>
+    <string name="ade_set_time_date">设置日期与时间</string>
+    <string name="ade_set_date">设置日期</string>
+    <string name="ade_subject_name">输入课程名称...</string>
+    <string name="ade_pick_teacher">选择教师</string>
+    <string name="ade_title_edit">编辑%s</string>
+    <string name="ade_pick_timetable">选择课表</string>
+    <string name="ade_pick_weeks">设置周数</string>
+    
+<string name="period">第%d节</string>
+    
+</resources>

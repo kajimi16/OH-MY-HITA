@@ -4,42 +4,13 @@
     <string name="confirm">确定</string>
     <string name="cancel">取消</string>
     <string name="input_hint">输入内容…</string>
-    <string name="date_format_1">yyyy年M月d日</string>
-    <string name="date_format_3">yyyy年M月d日 hh时mm分</string>
-    <string name="date_format_2">M月d日</string>
-    <string name="date_format_am">上午hh:mm</string>
-    <string name="date_format_pm">下午hh:mm</string>
-    <string name="yesterday">昨天</string>
-    <string name="the_day_before_yesterday">前天</string>
-    <string name="date_format_with_prefix">"%s %s"</string>
     <string name="hint_eas_username">统一身份认证账号</string>
     <string name="hint_eas_password">密码</string>
-    <string name="hint_eas_login">请登录教务账号以继续</string>
     <string name="login">登录</string>
     <string name="import_timetable">导入课表</string>
-    <string name="pick_import_term">选择导入学期</string>
     <string name="timetable_tab_title">第%d周</string>
-    <string name="import_success">导入成功</string>
-    <string name="import_failed">导入失败</string>
     <string name="button_import">导入</string>
-    <string name="no_valid_date">请设置开始日期</string>
     <string name="title_import_timetable">课表导入</string>
-    <string name="schedule_list_item_pattern">第%d节课</string>
-
-
-    <string name="timeline_head_free_title">今日空闲</string>
-    <string name="timeline_head_free_subtitle">享受当下！</string>
-    <string name="timeline_head_goodnight_title">夜深了</string>
-    <string name="timeline_head_goodnight_subtitle">晚安！</string>
-    <string name="timeline_head_goodmorning_title">早上好</string>
-    <string name="timeline_head_lunch_title">午餐时间</string>
-    <string name="timeline_head_lunch_subtitle">去哪吃?</string>
-    <string name="timeline_head_dinner_title">晚餐时间</string>
-    <string name="timeline_head_dinner_subtitle">去哪吃?</string>
-    <string name="timeline_head_normal_title">暂时没有事件</string>
-    <string name="timeline_head_normal_subtitle">自由安排</string>
-    <string name="timeline_head_finish_title">全部结束</string>
-    <string name="timeline_head_finish_subtitle">享受生活吧！</string>
     <string name="timeline_head_nulluser_title">请先登录</string>
     <string name="timeline_head_nulluser_subtitle">登录后享受更多服务</string>
     <string name="timeline_head_nulldata_title">无数据</string>
@@ -59,8 +30,6 @@
     <string name="update_dialog_title">有可用更新</string>
     <string name="update_dialog_mes1">新版本</string>
     <string name="update_dialog_mes2">发布时间</string>
-    <string name="button_confirm">确定</string>
-    <string name="button_cancel">取消</string>
     <string name="guide_1p">欢迎使用HITSZ助手，以下为使用导航</string>
     <string name="guide_1s">您可以点击其他位置跳过导航</string>
     <string name="guide_3p">点击展开抽屉</string>
@@ -163,19 +132,6 @@
     <string name="navi_mood_greet">Hi, 今天心情如何？</string>
     <string name="navi_mood_title">今日校园心情</string>
     <string name="navi_mood_point">分</string>
-    <string name="ade_title">添加课时</string>
-    <string name="ade_arrangement">日程</string>
-    <string name="ade_ddl">DDL</string>
-    <string name="ade_course">课程</string>
-    <string name="ade_exam">考试</string>
-    <string name="ade_namehint">输入名称…</string>
-    <string name="ade_tag2">标签2</string>
-    <string name="ade_tag3">标签3</string>
-    <string name="ade_pick_subject">选择科目</string>
-    <string name="ade_pick_time">设置上课时间段</string>
-    <string name="ade_pick_task">处理任务</string>
-    <string name="ade_pick_location">选择地点</string>
-    <string name="ade_wholeday">全天</string>
     <string name="add_laf_detail_hint">输入详细内容</string>
     <string name="button_post">发布</string>
 
@@ -244,13 +200,7 @@
     <string name="navi_semister_not_begun">学期未开始</string>
     <string name="navi_semister_no_data">无学期数据</string>
     <string name="navi_settings_title">设置导航页内容</string>
-    <string name="ade_no_suitable_allocation">没有找到合适的分配时间！</string>
-    <string name="ade_set_time_first">请先设置日期！</string>
     <string name="pick_location">选择地点</string>
-    <string name="ade_exam_name">输入考试名称…</string>
-    <string name="ade_set_time_period">设置日期与时间段</string>
-    <string name="ade_set_time_date">设置日期与时间</string>
-    <string name="ade_set_date">设置日期</string>
     <string name="label_activity_attitude">HITSZ态度墙</string>
     <string name="label_activity_tasks">待办事项</string>
     <string name="task_card_title_tasknum">待办</string>
@@ -262,17 +212,12 @@
     <string name="dialog_pick_course_title">设置课程时间</string>
     <string name="dialog_pick_course_to">到</string>
     <string name="dialog_pick_course_label">选择上课周数：</string>
-    <string name="period">第%d节</string>
-    <string name="today">今天</string>
-    <string name="tomorrow">明天</string>
-    <string name="tda_tomorrow">后天</string>
     <string name="pick_single_time_label1">周</string>
     <string name="pick_single_time_label2">时</string>
     <string name="pick_single_time_label3">分</string>
     <string name="menu_timeable_draw_line">显示当前时间线</string>
     <string name="menu_timeable_color">科目颜色</string>
     <string name="menu_timeable_random_allocate">随机分配颜色</string>
-    <string name="dialog_title_random_allocate">是否随机生成各科目颜色？</string>
     <string name="dialog_title_set_total_weeks">设置总周数</string>
     <string name="attention">注意</string>
     <string name="dialog_message_delete_curriculum">删除课表将删除一切与之关联的事件、科目、任务，确定吗？</string>
@@ -290,13 +235,9 @@
     <string name="dialog_classroom">教室</string>
     <string name="dialog_period">节数</string>
     <string name="dialog_this_course_s">该课时</string>
-    <string name="dialog_this_course_p">为本科目的第%d次课</string>
     <string name="dialog_course_rate_p">课程自评</string>
     <string name="dialog_course_rate_s">这堂课学得怎么样？</string>
     <string name="notif_delete_success">删除成功！</string>
-    <string name="dialog_title_sure_delete">确定删除吗？</string>
-    <string name="dialog_title_select_delete">选择要删除的课程</string>
-    <string name="none">无</string>
     <string name="pick_teacher">选择教师</string>
     <string name="pick_classroom">选择教室</string>
     <string name="menu_logout_jw">清除教务登录信息</string>
@@ -345,9 +286,7 @@
     <string name="label_activity_score_inquiry">成绩查询</string>
     <string name="label_activity_exam_inquiry">考试查询</string>
     <string name="subject_compulsory">性质</string>
-    <string name="subject_credit">课程学分</string>
     <string name="subject_total">总学时</string>
-    <string name="subject_exam">考试课</string>
     <string name="subject_title_info">科目信息</string>
     <string name="subject_code">课程代码</string>
     <string name="subject_xnxq">学年学期</string>
@@ -367,30 +306,16 @@
     <string name="score_category">课程类别</string>
     <string name="score_school_name">开设院系</string>
     <string name="score_assess_method">考察方式</string>
-    <string name="score_reminder_title">成绩提醒</string>
     <string name="score_reminder_subtitle">有新成绩时提醒我</string>
-    <string name="score_reminder_notification_title">有新成绩</string>
-    <string name="score_reminder_notification_more">%s 等%d门课程已出成绩</string>
     <string name="exam_time">时间</string>
     <string name="exam_type">类型</string>
-    <string name="pick_exam_term">选择学期</string>
-    <string name="pick_exam_type">选择考试类型</string>
-    <string name="exam_type_all">全部</string>
-    <string name="exam_type_midterm">期中</string>
-    <string name="exam_type_final">期末</string>
     <string name="exam_memo_hint">暂无官方考试接口，本页可作为考试备忘录使用，点击此处可新增</string>
-    <string name="exam_memo_add_title">新增考试备忘</string>
-    <string name="exam_memo_add_confirm">保存</string>
-    <string name="exam_memo_add_cancel">取消</string>
     <string name="exam_memo_add_hint">这是备忘录，提交后保存在本机。长按条目可删除。</string>
     <string name="exam_memo_title_hint">考试/课程名称（必填）</string>
     <string name="exam_memo_date_hint">日期（如 2026-03-10）</string>
     <string name="exam_memo_time_hint">时间（如 09:00-11:00）</string>
     <string name="exam_memo_location_hint">地点</string>
     <string name="exam_memo_type_hint">类型（期中/期末/其他）</string>
-    <string name="exam_memo_title_required">请填写考试/课程名称</string>
-    <string name="exam_memo_delete_title">删除备忘录？</string>
-    <string name="exam_memo_delete_confirm">删除</string>
     <string name="dialog_view_course_detail">查看课程详情内容</string>
     <string name="timetable_label_mode_period">左侧显示节次</string>
     <string name="timetable_auto_reimport">登录后自动导入课表</string>
@@ -414,14 +339,6 @@
     <string name="update_available">检查到更新</string>
     <string name="check_for_update_failed">检查更新失败！</string>
     <string name="delete_installation_package">删除安装包</string>
-    <string name="timeline_head_ongoing_subtitle">正在进行</string>
-    <string name="timelinr_goodmorning_subtitle">今天共有%d节课</string>
-    <string name="timeline_gonow_subtitle">%d分钟后开始</string>
-    <string name="timeline_countdown_template_hour">%.1f小时后</string>
-    <string name="timeline_countdown_template_minute">%d分钟后</string>
-    <string name="timeline_counting_middle">后进行</string>
-    <string name="timeline_counting_free">接下来没事了</string>
-    <string name="unknown_location">未知地点</string>
     <string name="unknown_location_widget">未知</string>
     <string name="progress">进度</string>
     <string name="bind">验证</string>
@@ -496,8 +413,6 @@
     <string name="teacher_temp_label">助手服务器暂存</string>
     <string name="tab_search_location">地点</string>
     <string name="location_total_searched">共找到%d个地点</string>
-    <string name="time_format_1">%d小时%d分钟</string>
-    <string name="time_format_2">%d分钟</string>
     <string name="time_format_2_simplified">%d分</string>
     <string name="time_format_3">%d小时</string>
     <string name="time_format_3_simplified">%d时</string>
@@ -603,17 +518,13 @@
     <string name="curriculum_changed">已切换当前课表</string>
     <string name="curriculum_manager_name">课表名称</string>
     <string name="curriculum_manager_ttweeks">总周数</string>
-    <string name="notifi_curriculum_set_name">设置课表名称</string>
     <string name="choose_or_add_subject">选择或添加科目</string>
     <string name="notifi_atleast_oneweek">请至少指定一周</string>
-    <string name="ade_subject_name">输入课程名称...</string>
     <string name="choose_subject">选择已有科目</string>
-    <string name="ade_pick_teacher">选择教师</string>
     <string name="new_subject_created">已创建新的科目</string>
     <string name="add_course_done">已添加课程</string>
     <string name="add_event_done">事件已添加</string>
     <string name="notifi_input_teacher">请输入教师名称！</string>
-    <string name="add_subject">添加科目与课时</string>
     <string name="delete_success">删除成功</string>
     <string name="delete_failed">删除失败</string>
     <string name="dialog_message_delete_subject">这将删除该科目的所有课程和考试事件，确定删除吗？</string>
@@ -624,7 +535,6 @@
     <string name="import_from_excel">Excel文件导入</string>
     <string name="import_excel_success">成功从Excel文件中导入%d个课表</string>
     <string name="curriculum_created">已新建课表</string>
-    <string name="subject_mooc">MOOC</string>
     <string name="main_drawer_menu_user">账号</string>
     <string name="sync_subjects_info_to_curriculum">同步课程详情到当前课表</string>
     <string name="subject_sync_success">成功同步%d个科目的信息！</string>
@@ -648,20 +558,6 @@
 
         <item>同步</item>
     </string-array>
-    <string-array name="months">
-        <item>1月</item>
-        <item>2月</item>
-        <item>3月</item>
-        <item>4月</item>
-        <item>5月</item>
-        <item>6月</item>
-        <item>7月</item>
-        <item>8月</item>
-        <item>9月</item>
-        <item>10月</item>
-        <item>11月</item>
-        <item>12月</item>
-    </string-array>
     <string-array name="months_full">
         <item>1月</item>
         <item>2月</item>
@@ -675,24 +571,6 @@
         <item>10月</item>
         <item>11月</item>
         <item>12月</item>
-    </string-array>
-    <string-array name="dow1">
-        <item>星期一</item>
-        <item>星期二</item>
-        <item>星期三</item>
-        <item>星期四</item>
-        <item>星期五</item>
-        <item>星期六</item>
-        <item>星期日</item>
-    </string-array>
-    <string-array name="dow2">
-        <item>周一</item>
-        <item>周二</item>
-        <item>周三</item>
-        <item>周四</item>
-        <item>周五</item>
-        <item>周六</item>
-        <item>周日</item>
     </string-array>
     <string-array name="laf_tabs">
         <item>广场</item>
@@ -872,7 +750,6 @@
     <string name="ddl_passed">已结束</string>
     <string name="ddl_todo">现有DDL</string>
     <string name="ddl_passed_tag">已结束DDL</string>
-    <string name="number_of_items_selected">已选择%d项</string>
     <string name="no_ddl_add_some">没有DDL，添加一些吧</string>
     <string name="less_than"><![CDATA[<]]></string>
     <string name="label_activity_exam_countdown">考试倒计时</string>
@@ -882,26 +759,13 @@
     <string name="no_exam_add_some">没有考试哦，可以导入或手动添加</string>
     <string name="operation_failed">操作失败！</string>
     <string name="task_finished_name">已完成</string>
-    <string name="tdb_yesterday">前天</string>
     <string name="guid_7p">主页下滑可以展开事件面板</string>
     <string name="guid_7s">待办事项 DDL管理</string>
-    <string name="date_format_2_simplified">第%d周EEE</string>
-    <string name="date_format_2_wk_followed">第%d周（%s）EEEE</string>
-    <string name="date_format_2_simplified_wk_followed">第%d周（%s）EEE</string>
-    <string name="date_format_2_wk_replaced">%sEEEE</string>
-    <string name="date_format_2_simplified_wk_replaced">%sEEE</string>
     <string name="date_format_4">YY年M月d日</string>
-    <string name="unknown_department">未知部门</string>
     <string name="no_info">无信息</string>
     <string name="yes">是</string>
     <string name="no">否</string>
     <string name="counted_in_GPA" translatable="false">考试课</string>
-    <string name="not_counted_in_GPA" translatable="false">考查课</string>
-    <string name="brackets_content">（%s）</string>
-    <string name="name_this_week">这周</string>
-    <string name="name_next_week">下周</string>
-    <string name="name_last_week">上周</string>
-    <string name="ade_title_edit">编辑%s</string>
     <string name="edit_event_done">已保存</string>
     <string name="jw_tabs_xxjd" translatable="false">学习进度</string>
     <string name="bx_progress_number" translatable="false">完成%d/%d门</string>
@@ -938,24 +802,17 @@
     <string name="jw_tabs_grcj_cjxq" translatable="false">成绩详情</string>
     <string name="kjs_jxl">教学楼</string>
     <string name="jw_tabs_kjs">空教室查询</string>
-    <string name="number_schedule">第%d节课</string>
     <string name="before_first_class">第一节课前</string>
     <string name="after_last_class">最后一节课结束</string>
     <string name="class_number_what">第%d节课</string>
     <string name="class_after_number_what">第%d节课结束</string>
     <string name="current">当前</string>
     <string name="expand">展开</string>
-    <string name="pick_query_week">选择查询周次</string>
     <string name="pick_jxl">选择教学楼</string>
     <string name="jz_xnxq">截止学期</string>
     <string name="number_of_class">第%d节课</string>
-    <string name="pick_time_period">选择时间段</string>
     <string name="title_timeline">今日</string>
     <string name="title_timetable">时间表</string>
-    <string name="week_title">第%d周</string>
-    <string name="no_timetable">无课表</string>
-    <string name="holiday">假期</string>
-    <string name="event_duration_text">%s-%s</string>
     <string name="title_subjects">科目</string>
     <string name="title_teachers">教师</string>
     <string name="male">男</string>
@@ -967,7 +824,6 @@
     <string name="invalid_password">密码至少为8位</string>
     <string name="inconsistent_password">前后密码不一致！</string>
     <string name="empty_nickname">起个有意思的昵称吧！</string>
-    <string name="fail">失败</string>
     <string name="logout">退出登录</string>
     <string name="exit">退出</string>
     <string name="avatar">头像</string>
@@ -991,29 +847,23 @@
     <string name="eas_verify_title">统一身份认证</string>
     <string name="timetable_structure_label">课表结构</string>
     <string name="timetable_name">课表名称</string>
-    <string name="default_timetable_name">新建课表</string>
-    <string name="load_failed">加载失败</string>
-    <string name="percentage">%d%%</string>
     <string name="title_navigation">功能中心</string>
     <string name="title_plugin">插件</string>
+    <string name="plugin_apk_section">已安装的独立插件（APK）</string>
+    <string name="plugin_apk_empty">没有发现独立插件。安装插件 APK 后会自动出现在这里。</string>
+    <string name="plugin_market_section">在线插件（逻辑插件）</string>
+    <string name="plugin_untrusted_title">未验证的插件</string>
+    <string name="plugin_untrusted_message">「%1$s」未经过 OH-MY-HITA 核验。安装或运行后，它将拥有本应用的完整权限，请确认来源可信。是否继续？</string>
+    <string name="plugin_trust_verified">已验证</string>
+    <string name="plugin_trust_unverified">未验证</string>
     <string name="plugin_market_empty">暂无可安装的插件。配置索引地址后，这里会列出可用的逻辑插件。</string>
     <string name="title_timetable_manager">课表管理</string>
     <string name="recent_timetable">最近课表</string>
     <string name="timetable_count_format">共%d个课表</string>
-    <string name="pick_quety_term">选择查询学期</string>
-    <string name="pick_test_type">重修补考</string>
-    <string name="test_type_all">全部</string>
-    <string name="test_type_normal">正考</string>
-    <string name="test_type_resit">补考</string>
-    <string name="test_type_retake">重修</string>
-    <string name="pick_query_building">选择查询教学楼</string>
-    <string name="empty_classroom_format">%s 空闲情况</string>
     <string name="fade_enabled">启用背景渐变</string>
     <string name="title_activity_profile">个人资料</string>
     <string name="edit_my_profile">编辑资料</string>
     <string name="button_sync">导出</string>
-    <string name="timetable_export_title">导出课表</string>
-    <string name="timetable_export_empty">暂无可导出的课表</string>
     <string name="export">导出</string>
     <string name="prompt_import">从教务系统上导入学期课表</string>
     <string name="prompt_empty_classroom">查询校区教室空闲情况</string>
@@ -1027,20 +877,12 @@
     <string name="users_posts">%s的发帖</string>
     <string name="logout_hint">确定退出？</string>
     <string name="starred_article">收藏帖子</string>
-    <string name="success">成功</string>
-    <string name="undergrad_structure">本科生结构</string>
-    <string name="postgrad_structure">研究生结构</string>
     <string name="hita_website">官方网站</string>
-    <string name="ade_pick_timetable">选择课表</string>
-    <string name="ade_pick_weeks">设置周数</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
     <string name="app_widget_description">This is an app widget description</string>
-    <string name="loading">加载中</string>
     <string name="widget_loading">组件加载中...</string>
-    <string name="add_timetable_first">清先添加一个课表</string>
     <string name="belonging_timetable">所属课表</string>
-    <string name="events_incoming">将要进行</string>
     <string name="lecture_title">讲座信息</string>
     <string name="plugin_market_title">插件市场</string>
 </resources>

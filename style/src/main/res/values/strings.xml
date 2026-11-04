@@ -4,4 +4,154 @@
     <string name="skip_this_version">不再提示此版本更新</string>
     <string name="skip">不再提示</string>
     <string name="update_cancel">过会儿</string>
+    <string name="none">无</string>
+<string name="brackets_content">（%s）</string>
+    
+<string name="date_format_2">M月d日</string>
+    
+<string name="date_format_2_simplified">第%d周EEE</string>
+    
+<string name="date_format_2_simplified_wk_followed">第%d周（%s）EEE</string>
+    
+<string name="date_format_2_simplified_wk_replaced">%sEEE</string>
+    
+<string name="date_format_2_wk_followed">第%d周（%s）EEEE</string>
+    
+<string name="date_format_2_wk_replaced">%sEEEE</string>
+    
+<string name="date_format_3">yyyy年M月d日 hh时mm分</string>
+    
+<string name="name_last_week">上周</string>
+    
+<string name="name_next_week">下周</string>
+    
+<string name="name_this_week">这周</string>
+    
+<string name="tda_tomorrow">后天</string>
+    
+<string name="tdb_yesterday">前天</string>
+    
+<string name="today">今天</string>
+    
+<string name="tomorrow">明天</string>
+    
+<string name="yesterday">昨天</string>
+    
+<string-array name="dow1">
+        <item>星期一</item>
+        <item>星期二</item>
+        <item>星期三</item>
+        <item>星期四</item>
+        <item>星期五</item>
+        <item>星期六</item>
+        <item>星期日</item>
+    </string-array>
+    
+<string-array name="dow2">
+        <item>周一</item>
+        <item>周二</item>
+        <item>周三</item>
+        <item>周四</item>
+        <item>周五</item>
+        <item>周六</item>
+        <item>周日</item>
+    </string-array>
+    
+<string name="date_format_1">yyyy年M月d日</string>
+    
+<string name="date_format_am">上午hh:mm</string>
+    
+<string name="date_format_pm">下午hh:mm</string>
+    
+<string name="date_format_with_prefix">"%s %s"</string>
+    
+<string name="the_day_before_yesterday">前天</string>
+    
+<string name="number_of_items_selected">已选择%d项</string>
+    
+<string name="dialog_title_sure_delete">确定删除吗？</string>
+    
+<string name="schedule_list_item_pattern">第%d节课</string>
+
+
+    
+<string name="ade_exam">考试</string>
+    
+<string name="loading">加载中</string>
+    
+
+<string name="week_title">第%d周</string>
+    
+
+<string name="timeline_head_free_title">今日空闲</string>
+    
+
+<string name="pick_time_period">选择时间段</string>
+    
+
+<string name="no_timetable">无课表</string>
+    
+
+<string name="exam_memo_add_title">新增考试备忘</string>
+    
+<string name="exam_memo_title_required">请填写考试/课程名称</string>
+    
+<string name="pick_test_type">重修补考</string>
+    
+<string name="exam_memo_add_confirm">保存</string>
+    
+<string name="hint_eas_login">请登录教务账号以继续</string>
+    
+<string name="load_failed">加载失败</string>
+    
+<string name="pick_exam_type">选择考试类型</string>
+    
+<string name="no_valid_date">请设置开始日期</string>
+    
+<string name="import_success">导入成功</string>
+    
+<string name="import_failed">导入失败</string>
+    
+<string name="undergrad_structure">本科生结构</string>
+    
+<string name="test_type_all">全部</string>
+    
+<string name="test_type_retake">重修</string>
+    
+<string name="number_schedule">第%d节课</string>
+    
+<string name="pick_query_week">选择查询周次</string>
+    
+<string name="postgrad_structure">研究生结构</string>
+    
+<string name="exam_memo_delete_confirm">删除</string>
+    
+<string name="exam_memo_delete_title">删除备忘录？</string>
+    
+<string name="empty_classroom_format">%s 空闲情况</string>
+    
+<string name="exam_type_all">全部</string>
+    
+<string name="pick_import_term">选择导入学期</string>
+    
+<string name="test_type_resit">补考</string>
+    
+<string name="pick_exam_term">选择学期</string>
+    
+<string name="pick_query_building">选择查询教学楼</string>
+    
+<string name="exam_type_final">期末</string>
+    
+<string name="pick_quety_term">选择查询学期</string>
+    
+<string name="exam_type_midterm">期中</string>
+    
+<string name="test_type_normal">正考</string>
+    
+<string name="exam_memo_add_cancel">取消</string>
+    
+<string name="success">成功</string>
+    
+<string name="fail">失败</string>
+    
 </resources>

@@ -1,2 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name="com.stupidtree.hitax.ui.timetable.manager.TimetableManagerActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.stupidtree.hitax.ui.timetable.detail.TimetableDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.stupidtree.hitax.ui.subject.SubjectActivity"
+            android:exported="false" />
+    </application>
+</manifest>

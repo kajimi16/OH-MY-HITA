@@ -106,12 +106,14 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.4'
     implementation project(path: ':api')
     implementation project(path: ':kernel')
-    implementation project(path: ':plugin-hita')
+    // 插件在运行时打包进 APK，但不在宿主编译期可见（防止宿主越界引用插件实现）
+    runtimeOnly project(path: ':plugin-hita')
+    runtimeOnly project(path: ':plugin-eas')
     implementation project(path: ':component')
     implementation project(path: ':user')
     implementation project(path: ':sync')
     implementation project(path: ':style')
-    implementation project(path: ':theta')
+    runtimeOnly project(path: ':theta')
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'

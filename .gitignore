@@ -24,3 +24,10 @@ local.properties
 *.jks
 *.keystore
 *.p12
+
+# 课表数据（严禁入库）
+*.ics
+hita*.db
+hita*.db-wal
+hita*.db-shm
+hita*.db-journal
