@@ -7,7 +7,7 @@ include ':kernel'
 include ':model'
 include ':plugin-hita'
 include ':sample-plugin'
-include ':plugin-eas',':plugin-resource',':plugin-user'
+include ':plugin-eas',':plugin-resource',':plugin-user',':plugin-bangumi'
 include ':plugin-apk-sample',':plugin-ui-sample',':plugin-ui-resource'
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)

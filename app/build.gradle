@@ -116,6 +116,7 @@ dependencies {
     runtimeOnly project(path: ':plugin-eas')
     runtimeOnly project(path: ':plugin-resource')
     runtimeOnly project(path: ':plugin-user')
+    runtimeOnly project(path: ':plugin-bangumi')
     implementation project(path: ':component')
     implementation project(path: ':user')
     implementation project(path: ':sync')

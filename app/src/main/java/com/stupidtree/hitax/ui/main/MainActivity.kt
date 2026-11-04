@@ -51,6 +51,11 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
     private val pluginMenuIds = LinkedHashMap<Int, NavEntry>()
 
+    /** 插件贡献的额外主界面 tab；原型阶段底栏最多承载一个。 */
+    private var extraTabs: List<com.stupidtree.hita.api.TabContribution> = emptyList()
+
+    private val baseTabIds = setOf("hita.timeline", "hita.timetable")
+
     private fun attachPluginNavItems() {
         val menu = binding.drawerNavigationview.menu
         val host = (application as HApplication).pluginHost
@@ -186,7 +191,18 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     override fun initViews() {
         setUpDrawer()
         //  binding.title.text = binding.navView.menu.getItem(0).title
-        binding.pager.adapter = object : BaseTabAdapter(supportFragmentManager, 4) {
+        val contributedTabs = pluginHost().tabs.entries().filterNot { it.id in baseTabIds }
+        extraTabs = contributedTabs.take(1)
+        if (contributedTabs.size > 1) {
+            Log.w("MainActivity", "底栏目前只承载一个插件 tab，忽略: ${contributedTabs.drop(1).map { it.id }}")
+        }
+        val pageCount = 4 + extraTabs.size
+        binding.navView.itemMenuRes = if (extraTabs.isEmpty()) {
+            R.menu.main_bottom_nav_menu
+        } else {
+            R.menu.main_bottom_nav_menu_5
+        }
+        binding.pager.adapter = object : BaseTabAdapter(supportFragmentManager, pageCount) {
             override fun initItem(position: Int): Fragment {
                 return when (position) {
                     0 -> (application as HApplication).pluginHost.tabs
@@ -196,7 +212,8 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                         .find("hita.timetable")?.let { it.create() }
                         ?: PluginUnavailableFragment.newInstance("com.stupidtree.hitax.timetable")
                     2 -> NavigationFragment()
-                    else -> com.stupidtree.hitax.market.FragmentPluginMarket()
+                    3 -> com.stupidtree.hitax.market.FragmentPluginMarket()
+                    else -> extraTabs[position - 4].create()
                 }
             }
 
@@ -204,7 +221,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 //super.destroyItem(container, position, `object`)
             }
         }
-        binding.pager.offscreenPageLimit = 4
+        binding.pager.offscreenPageLimit = pageCount
         binding.pager.addOnPageChangeListener(object : OnPageChangeListener {
             override fun onPageScrolled(
                 position: Int,
@@ -341,8 +358,8 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     }
 
     /**
-     * 四个页面头互斥显示：顺序与 pager 的页序一一对应
-     * （0 今日 / 1 时间表 / 2 功能中心 / 3 插件市场）。
+     * 页面头互斥显示：顺序与 pager 的页序一一对应
+     * （0 今日 / 1 时间表 / 2 功能中心 / 3 插件市场 / 4 插件贡献页）。
      * 新增标签页时只需在这里加一项，避免某个分支漏关导致标题叠加。
      */
     private fun showHeaderFor(position: Int) {
@@ -351,6 +368,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
             binding.timetableLayout,
             binding.navigationLayout,
             binding.pluginLayout,
+            binding.animeLayout,
         )
         headers.forEachIndexed { index, header ->
             header.visibility = if (index == position) VISIBLE else GONE
