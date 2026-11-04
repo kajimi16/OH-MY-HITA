@@ -53,6 +53,15 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 - **签名**：CI 从仓库 Secrets 读取（`RELEASE_KEYSTORE_BASE64` / `RELEASE_KEYSTORE_PASSWORD` /
   `RELEASE_KEY_ALIAS` / `RELEASE_KEY_PASSWORD`），仓库内不含任何密钥。
 
+
+### 本地联调（运行时插件）
+
+- 课程资源数据契约 `ResourceDataService` 的端点是 `:plugin-resource` 的 BuildConfig。
+  默认指向线上 HOA；本地联调可覆盖：`./gradlew :app:assembleDebug -PhoaBaseUrl=http://10.0.2.2:18001`，
+  该属性仅用于开发，不要提交本地地址。
+- 运行时界面插件从市场索引的 `uiPlugins` 下载；联调时可用本地 HTTP 索引：
+  `-PpluginIndexUrl=http://10.0.2.2:8000/index.json`。
+
 ## 插件化架构（万物皆插件）
 
 目标：把每位同学的改版从「fork 一个仓库」变成「选一组插件」。
