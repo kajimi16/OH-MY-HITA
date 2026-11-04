@@ -4,9 +4,9 @@ import android.annotation.SuppressLint
 import android.app.TimePickerDialog
 import android.view.HapticFeedbackConstants
 import android.view.View
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.TimeInDay
-import com.stupidtree.hitax.databinding.FragmentTimetablePanelBinding
+import com.stupidtree.hita.plugin.timetable.databinding.FragmentTimetablePanelBinding
 import com.stupidtree.style.widgets.TransparentModeledBottomSheetDialog
 
 class FragmentTimetablePanel : TransparentModeledBottomSheetDialog<TimetablePanelViewModel, FragmentTimetablePanelBinding>() {

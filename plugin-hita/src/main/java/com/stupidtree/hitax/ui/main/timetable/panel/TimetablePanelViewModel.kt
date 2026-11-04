@@ -1,6 +1,6 @@
 package com.stupidtree.hitax.ui.main.timetable.panel
 
-import com.stupidtree.hitax.HitaServices
+import com.stupidtree.hitax.plugin.HitaRuntime
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.stupidtree.component.data.SharedPreferenceBooleanLiveData
@@ -16,8 +16,8 @@ class TimetablePanelViewModel(application: Application) : AndroidViewModel(appli
 
     private val timetableStyleRepository = TimetableStyleRepository.getInstance(application)
     private val easSettingsRepository = EasSettingsRepository.getInstance(application)
-    private val subjectRepository = HitaServices.timetable(application)
-    private val timetableRepository = HitaServices.timetable(application)
+    private val subjectRepository = com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow()
+    private val timetableRepository = com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow()
 
     val startDateLiveData: SharedPreferenceIntLiveData
         get() = timetableStyleRepository.startTimeLiveData
@@ -56,18 +56,7 @@ class TimetablePanelViewModel(application: Application) : AndroidViewModel(appli
     }
 
     fun triggerAutoReimportNow() {
-        val token = com.stupidtree.hitax.data.repository.EASRepository
-            .getInstance(getApplication())
-            .getEasToken()
-        if (!token.isLogin()) return
-        val isUndergrad = token.stutype == com.stupidtree.hitax.data.model.eas.EASToken.TYPE.UNDERGRAD
-        com.stupidtree.hitax.data.repository.EASRepository
-            .getInstance(getApplication())
-            .startAutoImportCurrentTimetable(isUndergrad) { success ->
-                if (success) {
-                    easSettingsRepository.setLastAutoReimportTs(System.currentTimeMillis())
-                }
-            }
+        HitaRuntime.hostUi?.startAutoReimport { }
     }
 
     fun startResetColor(){

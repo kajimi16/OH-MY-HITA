@@ -65,5 +65,31 @@
         <attr name="cardIconPadding" />
         <attr name="cardIconGravity" />
     </declare-styleable>
+<declare-styleable name="TimeTableViewGroup">
+        <attr name="timeLineColor" />
+        <attr name="timeLabelWidth" />
+    </declare-styleable>
+
+    
+<declare-styleable name="LeftLabelView">
+        <attr name="timeLabelColor" />
+        <attr name="timeLabelSize" />
+    </declare-styleable>
+
+
+
+
+
+
+    
+<attr name="timeLineColor" format="color" />
+    
+<attr name="timeLabelWidth" format="dimension" />
+    
+<attr name="timeLabelColor" format="color" />
+
+    
+<attr name="timeLabelSize" format="dimension" />
+    
 </resources>
 

@@ -4,7 +4,7 @@ import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 
 class TimeTableBlockAddView(context: Context, var timePeriod: TimePeriodInDay, val dow: Int) : FrameLayout(context) {

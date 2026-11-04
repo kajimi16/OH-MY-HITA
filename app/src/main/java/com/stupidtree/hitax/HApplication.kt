@@ -88,10 +88,43 @@ class HApplication : Application() {
             override fun openAddEvent(
                 activity: android.app.Activity,
                 timetable: com.stupidtree.hitax.data.model.timetable.Timetable?,
+                dow: Int,
+                week: Int,
+                period: com.stupidtree.hitax.data.model.timetable.TimePeriodInDay?,
             ) {
-                com.stupidtree.hitax.ui.event.add.PopupAddEvent(true)
+                val popup = com.stupidtree.hitax.ui.event.add.PopupAddEvent(true)
                     .setInitTimetable(timetable)
-                    .show((activity as androidx.fragment.app.FragmentActivity).supportFragmentManager, "add_subject")
+                if (dow >= 0 && period != null) popup.setInitTime(dow, week, period)
+                popup.show(
+                    (activity as androidx.fragment.app.FragmentActivity).supportFragmentManager,
+                    "add_subject"
+                )
+            }
+
+            override fun startAutoReimport(callback: (Boolean) -> Unit) {
+                val token = com.stupidtree.hitax.data.repository.EASRepository
+                    .getInstance(this@HApplication).getEasToken()
+                if (!token.isLogin()) {
+                    callback(false)
+                    return
+                }
+                val isUndergrad = token.stutype == com.stupidtree.hitax.data.model.eas.EASToken.TYPE.UNDERGRAD
+                com.stupidtree.hitax.data.repository.EASRepository
+                    .getInstance(this@HApplication)
+                    .startAutoImportCurrentTimetable(isUndergrad) { success ->
+                        if (success) {
+                            com.stupidtree.hitax.data.repository.EasSettingsRepository(this@HApplication)
+                                .setLastAutoReimportTs(System.currentTimeMillis())
+                        }
+                        callback(success)
+                    }
+            }
+
+            override fun showEventInfo(
+                context: android.content.Context,
+                events: List<com.stupidtree.hitax.data.model.timetable.EventItem>,
+            ) {
+                com.stupidtree.hitax.utils.EventsUtils.showEventItem(context, events)
             }
         })
         pluginHost.installAll(PluginCatalog.plugins(this))

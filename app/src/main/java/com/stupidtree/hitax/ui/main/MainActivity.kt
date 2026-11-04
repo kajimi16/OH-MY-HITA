@@ -33,7 +33,6 @@ import com.stupidtree.hitax.ui.eas.login.PopUpLoginEAS
 import com.stupidtree.hitax.ui.event.add.PopupAddEvent
 import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
 import com.stupidtree.hitax.ui.main.timeline.FragmentTimeLine
-import com.stupidtree.hitax.ui.main.timetable.TimetableFragment
 import com.stupidtree.hitax.ui.main.timetable.panel.FragmentTimetablePanel
 import com.stupidtree.hitax.ui.widgets.WidgetUtils
 import com.stupidtree.hitax.utils.ActivityUtils
@@ -49,7 +48,7 @@ import me.ibrahimsn.lib.OnItemSelectedListener
  * 很显然，这是主界面
  */
 class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
-    TimetableFragment.MainPageController, FragmentTimeLine.MainPageController {
+    com.stupidtree.style.base.TimetablePageController, FragmentTimeLine.MainPageController {
 
     /**
      * 插件贡献的抽屉项。id 由宿主按顺序分配，避免菜单 xml 里写死。
@@ -206,7 +205,8 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
             override fun initItem(position: Int): Fragment {
                 return when (position) {
                     0 -> FragmentTimeLine()
-                    1 -> TimetableFragment()
+                    1 -> (application as HApplication).pluginHost.tabs
+                        .find("hita.timetable")?.let { it.create() } ?: Fragment()
                     2 -> NavigationFragment()
                     else -> com.stupidtree.hitax.market.FragmentPluginMarket()
                 }

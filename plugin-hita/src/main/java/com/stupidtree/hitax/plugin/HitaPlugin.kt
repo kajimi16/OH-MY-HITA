@@ -5,6 +5,7 @@ import com.stupidtree.hita.api.Plugin
 import com.stupidtree.hita.api.PluginContext
 import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.TimetableService
+import com.stupidtree.hita.api.TabContribution
 import com.stupidtree.hita.api.TimetableUiService
 import com.stupidtree.hitax.data.AppDatabase
 import com.stupidtree.hitax.data.repository.SubjectRepository
@@ -25,6 +26,11 @@ class HitaPlugin(private val application: Application) : Plugin {
 
     override val displayName = "课表"
 
+    companion object {
+        /** 主界面第 2 个槽位（时间表） */
+        const val TAB_TIMETABLE = "hita.timetable"
+    }
+
     override fun install(ctx: PluginContext) {
         val database = AppDatabase.getDatabase(application)
 
@@ -38,6 +44,15 @@ class HitaPlugin(private val application: Application) : Plugin {
         // 插件内部界面代码（Activity/ViewModel）没有 PluginContext，通过运行时单例取用
         HitaRuntime.timetable = service
         HitaRuntime.hostUi = ctx.service(HostUiService.KEY)
+
+        ctx.tabs.register(
+            TabContribution(
+                id = TAB_TIMETABLE,
+                titleRes = 0,
+                iconRes = 0,
+                order = 10,
+            ) { com.stupidtree.hitax.ui.main.timetable.TimetableFragment() }
+        )
 
         ctx.sync.register(TimetableCodec(database.timetableDao()))
         ctx.sync.register(SubjectCodec(database.subjectDao()))

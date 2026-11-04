@@ -1,6 +1,6 @@
 package com.stupidtree.hitax.ui.main.timetable
 
-import com.stupidtree.hitax.HitaServices
+import com.stupidtree.hitax.plugin.HitaRuntime
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -18,7 +18,7 @@ import java.util.Calendar
 
 class TimetableViewModel(application: Application) :
     AndroidViewModel(application) {
-    private val timetableRepository = HitaServices.timetable(application)
+    private val timetableRepository = com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow()
     private val timetableStyleRepository = TimetableStyleRepository.getInstance(application)
 
     private val timetableController = MutableLiveData<Trigger>()

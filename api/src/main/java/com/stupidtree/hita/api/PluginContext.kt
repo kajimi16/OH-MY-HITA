@@ -32,4 +32,7 @@ interface PluginContext {
 
     /** 云同步数据表贡献点。 */
     val sync: SyncRegistry
+
+    /** 主界面 tab 贡献点。 */
+    val tabs: TabRegistry
 }

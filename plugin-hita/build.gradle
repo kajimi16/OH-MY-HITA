@@ -44,6 +44,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'br.com.simplepass:loading-button-android:2.2.0'
+    implementation 'tyrantgit:explosionfield:1.0.1'
     implementation project(':component')
     implementation project(':user')
     implementation project(':sync')

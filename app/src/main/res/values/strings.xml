@@ -48,8 +48,6 @@
     <string name="update_dialog_title">有可用更新</string>
     <string name="update_dialog_mes1">新版本</string>
     <string name="update_dialog_mes2">发布时间</string>
-    <string name="button_confirm">确定</string>
-    <string name="button_cancel">取消</string>
     <string name="guide_1p">欢迎使用HITSZ助手，以下为使用导航</string>
     <string name="guide_1s">您可以点击其他位置跳过导航</string>
     <string name="guide_3p">点击展开抽屉</string>
@@ -279,7 +277,6 @@
     <string name="dialog_course_rate_p">课程自评</string>
     <string name="dialog_course_rate_s">这堂课学得怎么样？</string>
     <string name="notif_delete_success">删除成功！</string>
-    <string name="dialog_title_select_delete">选择要删除的课程</string>
     <string name="pick_teacher">选择教师</string>
     <string name="pick_classroom">选择教室</string>
     <string name="menu_logout_jw">清除教务登录信息</string>
@@ -630,20 +627,6 @@
 
         <item>同步</item>
     </string-array>
-    <string-array name="months">
-        <item>1月</item>
-        <item>2月</item>
-        <item>3月</item>
-        <item>4月</item>
-        <item>5月</item>
-        <item>6月</item>
-        <item>7月</item>
-        <item>8月</item>
-        <item>9月</item>
-        <item>10月</item>
-        <item>11月</item>
-        <item>12月</item>
-    </string-array>
     <string-array name="months_full">
         <item>1月</item>
         <item>2月</item>
@@ -903,9 +886,6 @@
     <string name="number_of_class">第%d节课</string>
     <string name="title_timeline">今日</string>
     <string name="title_timetable">时间表</string>
-    <string name="week_title">第%d周</string>
-    <string name="no_timetable">无课表</string>
-    <string name="holiday">假期</string>
     <string name="event_duration_text">%s-%s</string>
     <string name="title_subjects">科目</string>
     <string name="title_teachers">教师</string>
@@ -993,7 +973,6 @@
     <string name="app_widget_description">This is an app widget description</string>
     <string name="loading">加载中</string>
     <string name="widget_loading">组件加载中...</string>
-    <string name="add_timetable_first">清先添加一个课表</string>
     <string name="belonging_timetable">所属课表</string>
     <string name="events_incoming">将要进行</string>
     <string name="lecture_title">讲座信息</string>

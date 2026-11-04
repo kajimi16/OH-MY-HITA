@@ -1,6 +1,8 @@
 package com.stupidtree.hita.api
 
 import android.content.Context
+import com.stupidtree.hitax.data.model.timetable.EventItem
+import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.data.model.timetable.Timetable
 
 /**
@@ -15,8 +17,23 @@ interface HostUiService {
     fun openSubject(context: Context, subjectId: String)
     fun openCourseResourceSearch(context: Context, keyword: String?, submit: Boolean)
     fun openTeacherHomepage(context: Context, teacherName: String)
-    /** 打开"添加事件"弹窗；[timetable] 可为空，由用户自行选择 */
-    fun openAddEvent(activity: android.app.Activity, timetable: Timetable?)
+    /**
+     * 打开"添加事件"弹窗；[timetable] 可为空。
+     * [dow]/[period] 非空时会预填时间。
+     */
+    fun openAddEvent(
+        activity: android.app.Activity,
+        timetable: Timetable?,
+        dow: Int = -1,
+        week: Int = 1,
+        period: TimePeriodInDay? = null,
+    )
+
+    /** 立刻触发一次教务课表自动导入（宿主持有 EAS 账号与仓库）。 */
+    fun startAutoReimport(callback: (Boolean) -> Unit)
+
+    /** 展示事件详情弹窗（宿主负责渲染）。 */
+    fun showEventInfo(context: Context, events: List<EventItem>)
 
     companion object {
         val KEY = ServiceKey<HostUiService>("hita.host.ui")

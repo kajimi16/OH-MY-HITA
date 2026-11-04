@@ -7,6 +7,8 @@ import com.stupidtree.hita.api.Plugin
 import com.stupidtree.hita.api.PluginContext
 import com.stupidtree.hita.api.SearchTab
 import com.stupidtree.hita.api.SearchTabRegistry
+import com.stupidtree.hita.api.TabContribution
+import com.stupidtree.hita.api.TabRegistry
 import com.stupidtree.hita.api.ServiceKey
 import com.stupidtree.hita.api.SyncCodec
 import com.stupidtree.hita.api.SyncRegistry
@@ -29,6 +31,7 @@ class PluginHost(
     private val services = LinkedHashMap<String, Any>()
     private val navEntries = LinkedHashMap<String, NavEntry>()
     private val searchTabEntries = LinkedHashMap<String, SearchTab>()
+    private val tabEntries = LinkedHashMap<String, TabContribution>()
     private val syncCodecs = LinkedHashMap<String, SyncCodec>()
     private val installedPlugins = LinkedHashMap<String, Plugin>()
     private val scopes = LinkedHashMap<String, PluginScope>()
@@ -52,6 +55,17 @@ class PluginHost(
         }
 
         override fun entries(): List<SearchTab> = searchTabEntries.values.sortedBy { it.order }
+    }
+
+    /** 宿主只读的主界面 tab 视图。 */
+    val tabs: TabRegistry = object : TabRegistry {
+        override fun register(tab: TabContribution) {
+            tabEntries[tab.id] = tab
+        }
+
+        override fun entries(): List<TabContribution> = tabEntries.values.sortedBy { it.order }
+
+        override fun find(id: String): TabContribution? = tabEntries[id]
     }
 
     /** 宿主只读的同步表视图。 */
@@ -166,6 +180,19 @@ class PluginHost(
             }
 
             override fun entries(): List<SearchTab> = this@PluginHost.searchTabs.entries()
+        }
+
+        override val tabs: TabRegistry = object : TabRegistry {
+            override fun register(tab: TabContribution) {
+                val previous = tabEntries.put(tab.id, tab)
+                undoStack += {
+                    if (previous == null) tabEntries.remove(tab.id) else tabEntries[tab.id] = previous
+                }
+            }
+
+            override fun entries(): List<TabContribution> = this@PluginHost.tabs.entries()
+
+            override fun find(id: String): TabContribution? = this@PluginHost.tabs.find(id)
         }
 
         override val sync: SyncRegistry = object : SyncRegistry {

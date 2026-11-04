@@ -1,6 +1,6 @@
 package com.stupidtree.hitax.ui.main.timetable
 
-import com.stupidtree.hitax.HitaServices
+import com.stupidtree.hitax.plugin.HitaRuntime
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -14,18 +14,15 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
-import com.stupidtree.hitax.R
+import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.WEEK_MILLS
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
 import com.stupidtree.hitax.data.model.timetable.Timetable
-import com.stupidtree.hitax.databinding.FragmentTimetableBinding
-import com.stupidtree.hitax.ui.event.add.PopupAddEvent
+import com.stupidtree.hita.plugin.timetable.databinding.FragmentTimetableBinding
 import com.stupidtree.hitax.ui.main.timetable.views.TimeTableView
 import com.stupidtree.hitax.ui.main.timetable.views.TimetableWeekView
 import com.stupidtree.hitax.ui.main.timetable.views.LeftLabelView
-import com.stupidtree.hitax.utils.ActivityUtils
-import com.stupidtree.hitax.utils.EventsUtils
 import com.stupidtree.hitax.utils.TimeTools
 import com.stupidtree.style.base.BaseFragment
 import tyrantgit.explosionfield.ExplosionField
@@ -42,7 +39,7 @@ class TimetableFragment :
     }
 
     private lateinit var pagerAdapter: TimeTablePagerAdapter
-    private var mainPageController: MainPageController? = null
+    private var mainPageController: com.stupidtree.style.base.TimetablePageController? = null
     private var views = arrayOfNulls<TimetableWeekView>(WINDOW_SIZE)
 
     override fun initViewBinding(): FragmentTimetableBinding {
@@ -55,7 +52,7 @@ class TimetableFragment :
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (context is MainPageController) {
+        if (context is com.stupidtree.style.base.TimetablePageController) {
             mainPageController = context
         }
     }
@@ -219,12 +216,6 @@ class TimetableFragment :
         mainPageController?.setSingleTitle(getString(R.string.holiday))
     }
 
-    interface MainPageController {
-        fun setTitleText(string: String)
-        fun setTimetableName(String: String)
-        fun setSingleTitle(string: String)
-    }
-
     private fun scrollToDate(date: Long) {
         val start = Calendar.getInstance()
         start.timeInMillis = date
@@ -262,11 +253,11 @@ class TimetableFragment :
                 }
                 views[pos]?.setOnCardClickListener(object : TimeTableView.OnCardClickListener {
                     override fun onEventClick(v: View, eventItem: EventItem) {
-                        context?.let { EventsUtils.showEventItem(it, eventItem) }
+                        context?.let { com.stupidtree.hitax.plugin.HitaRuntime.hostUi!!.showEventInfo(it, listOf(eventItem)) }
                     }
 
                     override fun onDuplicateEventClick(v: View, eventItems: List<EventItem>) {
-                        context?.let { EventsUtils.showEventItem(it,eventItems) }
+                        context?.let { com.stupidtree.hitax.plugin.HitaRuntime.hostUi!!.showEventInfo(it,eventItems) }
                     }
 
                 })
@@ -286,7 +277,7 @@ class TimetableFragment :
                                         v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                                         Thread{
                                             activity?.application?.let {
-                                                HitaServices.timetable(it).actionDeleteEvents(
+                                                com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow().actionDeleteEvents(
                                                     listOf(eventItem)
                                                 )
                                             }
@@ -323,7 +314,7 @@ class TimetableFragment :
                                             v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                                             Thread{
                                                 activity?.application?.let {
-                                                    HitaServices.timetable(it).actionDeleteEvents(
+                                                    com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow().actionDeleteEvents(
                                                         eventItems
                                                     )
                                                 }
@@ -347,7 +338,7 @@ class TimetableFragment :
                                                     v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
                                                     Thread{
                                                         activity?.application?.let {
-                                                            HitaServices.timetable(it).actionDeleteEvents(
+                                                            com.stupidtree.hitax.plugin.HitaRuntime.timetableOrThrow().actionDeleteEvents(
                                                                 listOf(selectedEvent)
                                                             )
                                                         }
@@ -373,17 +364,23 @@ class TimetableFragment :
                             cdCalendar.timeInMillis = viewModel.currentPageStartDate.value ?: 0
                             val cp = getCurrentTimetableAndWeek()
                             cp.first?.let { timetable ->
-                                PopupAddEvent().setInitTimetable(timetable).setInitTime(
-                                    dow, week = cp.second ?: 1,
-                                    period
-                                ).show(childFragmentManager, "add")
+                                activity?.let { act ->
+                                    com.stupidtree.hitax.plugin.HitaRuntime.hostUi?.openAddEvent(
+                                        act, timetable, dow, cp.second ?: 1, period
+                                    )
+                                }
                             } ?: kotlin.run {
                                 Toast.makeText(
                                     context,
                                     getString(R.string.add_timetable_first),
                                     Toast.LENGTH_SHORT
                                 ).show()
-                                ActivityUtils.startTimetableManager(activity!!)
+                                activity?.startActivity(
+                                    android.content.Intent(
+                                        activity,
+                                        com.stupidtree.hitax.ui.timetable.manager.TimetableManagerActivity::class.java
+                                    )
+                                )
                             }
 
                         }

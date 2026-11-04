@@ -13,4 +13,33 @@
     
 <string name="dialog_title_random_allocate">是否随机生成各科目颜色？</string>
     
+<string-array name="months">
+        <item>1月</item>
+        <item>2月</item>
+        <item>3月</item>
+        <item>4月</item>
+        <item>5月</item>
+        <item>6月</item>
+        <item>7月</item>
+        <item>8月</item>
+        <item>9月</item>
+        <item>10月</item>
+        <item>11月</item>
+        <item>12月</item>
+    </string-array>
+    
+<string name="add_timetable_first">清先添加一个课表</string>
+    
+<string name="button_cancel">取消</string>
+    
+<string name="button_confirm">确定</string>
+    
+<string name="dialog_title_select_delete">选择要删除的课程</string>
+    
+<string name="holiday">假期</string>
+    
+<string name="no_timetable">无课表</string>
+    
+<string name="week_title">第%d周</string>
+    
 </resources>

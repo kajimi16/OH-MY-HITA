@@ -1,27 +1,7 @@
 <resources>
 
     <!--name 是自定义属性名，一般采用驼峰命名，可以随意。 format 是属性的单位-->
-    <attr name="timeLineColor" format="color" />
-    <attr name="timeLabelWidth" format="dimension" />
     <!--name 是自定义控件的类名-->
-    <declare-styleable name="TimeTableViewGroup">
-        <attr name="timeLineColor" />
-        <attr name="timeLabelWidth" />
-    </declare-styleable>
-
-    <attr name="timeLabelColor" format="color" />
-
-    <attr name="timeLabelSize" format="dimension" />
-    <declare-styleable name="LeftLabelView">
-        <attr name="timeLabelColor" />
-        <attr name="timeLabelSize" />
-    </declare-styleable>
-
-
-
-
-
-
     <attr name="defaultText" format="string" />
     <attr name="dialogTitle" format="string" />
     <attr name="iconPadding" format="dimension" />
