@@ -10,7 +10,7 @@ android {
         compileSdk 35
 
         // HOA 课程资源服务端点（与宿主原配置保持一致）
-        buildConfigField "String", "HOA_BASE_URL", '"http://47.115.160.70:8081"'
+        buildConfigField "String", "HOA_BASE_URL", "\"${project.findProperty('hoaBaseUrl') ?: 'http://47.115.160.70:8081'}\"" 
         buildConfigField "String", "HOA_API_KEY", '""'
         buildConfigField "String", "VERSION_NAME", '"resource-plugin"'
     }

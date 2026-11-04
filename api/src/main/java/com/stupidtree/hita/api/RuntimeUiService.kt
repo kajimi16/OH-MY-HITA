@@ -18,7 +18,10 @@ interface RuntimeUiService {
     companion object {
         val KEY = ServiceKey<RuntimeUiService>("hita.runtime.ui")
 
-        /** 课程资源搜索（query/submit 参数）。 */
+        /** 课程资源搜索（query 参数）。 */
         const val CAP_RESOURCE_SEARCH = "hita.ui.resourceSearch"
+
+        /** 课程资料投稿（submit 表单）；未迁移前始终回退内置页面。 */
+        const val CAP_RESOURCE_CONTRIBUTE = "hita.ui.resourceContribute"
     }
 }

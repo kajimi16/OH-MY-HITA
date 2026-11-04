@@ -22,7 +22,12 @@ class ResourceUiServiceImpl(
             putString("query", keyword)
             putBoolean("submit", submit)
         }
-        if (runtimeUi?.open(context, RuntimeUiService.CAP_RESOURCE_SEARCH, args) == true) return
+        val capability = if (submit) {
+            RuntimeUiService.CAP_RESOURCE_CONTRIBUTE
+        } else {
+            RuntimeUiService.CAP_RESOURCE_SEARCH
+        }
+        if (runtimeUi?.open(context, capability, args) == true) return
         ResourceNavigator.startSearch(
             context,
             keyword,
