@@ -6,8 +6,6 @@ import com.google.gson.Gson
 import com.stupidtree.hita.kernel.PluginHost
 import com.stupidtree.hita.kernel.PluginLoader
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * T1 运行时插件的安装器：下载 → 校验 sha256 → 装进私有目录 → DexClassLoader 装载。
@@ -118,18 +116,7 @@ class PluginInstaller(
     }
 
     private fun fetch(entry: MarketPlugin, indexBase: String?, target: File) {
-        val absolute = PluginUrls.resolve(entry.url, indexBase)
-        if (absolute.startsWith("http://") || absolute.startsWith("https://")) {
-            val conn = URL(absolute).openConnection() as HttpURLConnection
-            conn.connectTimeout = 15_000
-            conn.readTimeout = 30_000
-            conn.inputStream.use { input -> target.outputStream().use { input.copyTo(it) } }
-            conn.disconnect()
-        } else {
-            val source = File(absolute)
-            if (!source.isFile) throw IllegalStateException("插件文件不存在：${source.path}")
-            source.copyTo(target, overwrite = true)
-        }
+        PluginFetch.download(entry.url, indexBase, target)
     }
 
     private fun saveInstalled(list: List<MarketPlugin>) {

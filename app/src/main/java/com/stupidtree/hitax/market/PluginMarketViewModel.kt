@@ -160,11 +160,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                 require(entry.sha256.matches(Regex("^[a-fA-F0-9]{64}$"))) {
                     "索引缺少有效的 sha256，拒绝安装"
                 }
-                val url = resolve(entry.url, indexBase)
                 val file = java.io.File(app.cacheDir, "ui-${entry.id}.apk")
-                java.net.URL(url).openStream().use { input ->
-                    file.outputStream().use { input.copyTo(it) }
-                }
+                PluginFetch.download(entry.url, indexBase, file)
                 try {
                     uiPluginManager.installFile(file, entry.sha256)
                 } finally {
@@ -179,12 +176,6 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    private fun resolve(url: String, base: String?): String {
-        if (url.startsWith("http://") || url.startsWith("https://")) return url
-        if (base.isNullOrBlank()) return url
-        val slash = base.lastIndexOf('/')
-        return if (slash < 0) url else base.substring(0, slash + 1) + url
-    }
 
     fun uninstallUiPlugin(plugin: InstalledUiPlugin) {
         executor.execute {

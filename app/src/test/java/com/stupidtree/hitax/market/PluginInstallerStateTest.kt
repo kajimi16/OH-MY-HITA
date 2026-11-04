@@ -44,3 +44,21 @@ class PluginInstallerStateTest {
         assertEquals(listOf("present"), visible.map { it.id })
     }
 }
+
+class PluginFetchTest {
+
+    @get:Rule
+    val tmp = TemporaryFolder()
+
+    @Test
+    fun localIndexResolvesRelativePluginToFile() {
+        val dir = tmp.newFolder("market")
+        val plugin = File(dir, "ui.apk").apply { writeText("apk-bytes") }
+        val target = File(tmp.root, "out.apk")
+
+        PluginFetch.download("ui.apk", dir.absolutePath, target)
+
+        assertEquals("apk-bytes", target.readText())
+        assertTrue(plugin.isFile)
+    }
+}
