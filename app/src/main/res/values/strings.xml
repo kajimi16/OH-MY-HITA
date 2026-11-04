@@ -794,7 +794,7 @@
     <string name="title_plugin">插件</string>
     <string name="plugin_apk_section">已安装的独立插件（APK）</string>
     <string name="plugin_apk_empty">没有发现独立插件。安装插件 APK 后会自动出现在这里。</string>
-    <string name="plugin_market_section">在线插件（逻辑插件）</string>
+    <string name="plugin_market_section">市场插件</string>
     <string name="plugin_untrusted_title">未验证的插件</string>
     <string name="plugin_untrusted_message">「%1$s」未经过 OH-MY-HITA 核验。安装或运行后，它将拥有本应用的完整权限，请确认来源可信。是否继续？</string>
     <string name="plugin_trust_verified">已验证</string>
@@ -835,4 +835,13 @@
     <string name="plugin_unavailable_title">「%1$s」已卸载</string>
     <string name="plugin_unavailable_hint">该功能由内置插件提供，可在插件市场重新启用。</string>
     <string name="plugin_unavailable_action">去插件市场</string>
+
+    <!-- 运行时界面插件（Compose 容器） -->
+    <string name="plugin_ui_installed">已安装 %1$s</string>
+    <string name="plugin_ui_uninstalled">已卸载 %1$s</string>
+    <string name="plugin_ui_install_failed">安装失败：%1$s</string>
+    <string name="plugin_ui_update">更新</string>
+    <string name="plugin_ui_install_action">安装</string>
+    <string name="plugin_ui_warning">该插件将以本应用权限运行，只能使用宿主提供的接口。仅安装你信任来源的 APK。</string>
+    <string name="plugin_builtin_open">打开</string>
 </resources>

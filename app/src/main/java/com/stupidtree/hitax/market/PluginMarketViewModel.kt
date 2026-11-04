@@ -7,6 +7,9 @@ import com.google.gson.Gson
 import com.stupidtree.hitax.BuildConfig
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.plugin.BuiltinPluginManager
+import com.stupidtree.hitax.plugin.PluginPrefs
+import com.stupidtree.hitax.uiplugin.InstalledUiPlugin
+import com.stupidtree.hitax.uiplugin.UiPluginManager
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -15,7 +18,7 @@ import java.util.concurrent.Executors
  */
 class PluginMarketViewModel(application: Application) : AndroidViewModel(application) {
 
-    data class Item(val entry: MarketPlugin, val installed: Boolean)
+    data class Item(val entry: MarketPlugin, val installed: Boolean, val enabled: Boolean)
 
     private val installer = PluginInstaller(application, (application as HApplication).pluginHost)
     private val executor = Executors.newSingleThreadExecutor()
@@ -33,6 +36,14 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     /** 内置插件变更后需要重建界面（tab / 导航项集合已变）。 */
     val reloadUi = MutableLiveData(false)
+
+    private val uiPluginManager = UiPluginManager(application)
+
+    /** 运行时界面插件（Compose 容器，独立 APK）。 */
+    val uiPlugins = MutableLiveData<List<InstalledUiPlugin>>(emptyList())
+
+    /** 索引里可安装 / 可更新的界面插件。 */
+    val availableUiPlugins = MutableLiveData<List<UiMarketPlugin>>(emptyList())
     private val apkRepository = ApkPluginRepository(application)
     private val trustStore = PluginTrustStore(application)
 
@@ -51,10 +62,17 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                     .getOrDefault(emptyList())
             )
             builtinPlugins.postValue(builtin.rows())
-            val installed = installer.installed().map { it.id }.toSet()
+            uiPlugins.postValue(uiPluginManager.installed())
+            availableUiPlugins.postValue(emptyList())
+            val installedList = installer.installed()
+            val installed = installedList.map { it.id }.toSet()
+            val enabled = installedList.filter { installer.isEnabled(it.id) }.map { it.id }.toSet()
             runCatching { readIndex() }
                 .onSuccess { (index, _) ->
-                    items.postValue(index.plugins.map { Item(it, it.id in installed) })
+                    items.postValue(
+                        index.plugins.map { Item(it, it.id in installed, it.id in enabled) }
+                    )
+                    availableUiPlugins.postValue(index.uiPlugins)
                     status.postValue(null)
                 }
                 .onFailure {
@@ -88,8 +106,39 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val error = runCatching { builtin.uninstall(row.id, purgeData) }.exceptionOrNull()
             message.postValue(error?.let { "卸载失败：${it.message}" } ?: "已卸载 ${row.name}")
             builtinPlugins.postValue(builtin.rows())
+            uiPlugins.postValue(uiPluginManager.installed())
             if (error == null) reloadUi.postValue(true)
         }
+    }
+
+    /** 开关语义：启用=安装，停用=卸载但保留数据；变更后重建界面。 */
+    fun setBuiltinEnabled(row: BuiltinPluginManager.Row, enabled: Boolean) {
+        executor.execute {
+            val error = runCatching { builtin.setEnabled(row.id, enabled) }.exceptionOrNull()
+            message.postValue(error?.let { "操作失败：${it.message}" } ?: null)
+            builtinPlugins.postValue(builtin.rows())
+            if (error == null) reloadUi.postValue(true)
+        }
+    }
+
+    fun setUiPluginEnabled(plugin: InstalledUiPlugin, enabled: Boolean) {
+        executor.execute {
+            uiPluginManager.setEnabled(plugin.id, enabled)
+            uiPlugins.postValue(uiPluginManager.installed())
+        }
+    }
+
+    /** 停用保留已下载文件，只从内核卸载；启用重新装载。 */
+    fun setMarketEnabled(entry: MarketPlugin, enabled: Boolean) {
+        executor.execute {
+            val error = runCatching { installer.setEnabled(entry.id, enabled) }.exceptionOrNull()
+            message.postValue(error?.let { "操作失败：${it.message}" } ?: null)
+            refresh()
+        }
+    }
+
+    fun setApkEnabled(packageName: String, enabled: Boolean) {
+        PluginPrefs.setDisabled(getApplication(), "apk:$packageName", !enabled)
     }
 
     fun installBuiltin(row: BuiltinPluginManager.Row) {
@@ -97,7 +146,42 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val error = runCatching { builtin.install(row.id) }.exceptionOrNull()
             message.postValue(error?.let { "启用失败：${it.message}" } ?: "已启用 ${row.name}")
             builtinPlugins.postValue(builtin.rows())
+            uiPlugins.postValue(uiPluginManager.installed())
             if (error == null) reloadUi.postValue(true)
+        }
+    }
+
+
+    /** 从市场索引安装/更新界面插件（相对 URL 按索引地址解析）。 */
+    fun installUiPluginFromUrl(entry: UiMarketPlugin, indexBase: String?) {
+        executor.execute {
+            val app = getApplication<Application>()
+            val error = runCatching {
+                require(entry.sha256.matches(Regex("^[a-fA-F0-9]{64}$"))) {
+                    "索引缺少有效的 sha256，拒绝安装"
+                }
+                val file = java.io.File(app.cacheDir, "ui-${entry.id}.apk")
+                PluginFetch.download(entry.url, indexBase, file)
+                try {
+                    uiPluginManager.installFile(file, entry.sha256)
+                } finally {
+                    file.delete()
+                }
+            }.exceptionOrNull()
+            message.postValue(
+                error?.let { app.getString(com.stupidtree.hitax.R.string.plugin_ui_install_failed, it.message ?: "") }
+                    ?: app.getString(com.stupidtree.hitax.R.string.plugin_ui_installed, entry.name)
+            )
+            uiPlugins.postValue(uiPluginManager.installed())
+        }
+    }
+
+
+    fun uninstallUiPlugin(plugin: InstalledUiPlugin) {
+        executor.execute {
+            runCatching { uiPluginManager.uninstall(plugin.id) }
+            uiPlugins.postValue(uiPluginManager.installed())
+            message.postValue("已卸载 ${plugin.name}")
         }
     }
 

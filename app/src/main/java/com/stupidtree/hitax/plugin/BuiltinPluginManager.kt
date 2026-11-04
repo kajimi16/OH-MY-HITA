@@ -44,6 +44,10 @@ class BuiltinPluginManager(private val application: Application) {
         PluginPrefs.setDisabled(application, pluginId, true)
     }
 
+    /** 开关语义：启用=安装，停用=卸载但保留数据。 */
+    fun setEnabled(pluginId: String, enabled: Boolean): Result<Unit> =
+        if (enabled) install(pluginId) else uninstall(pluginId, purge = false)
+
     fun install(pluginId: String): Result<Unit> = runCatching {
         val entry = PluginCatalog.entry(application, pluginId)
             ?: error("插件清单中没有 $pluginId")

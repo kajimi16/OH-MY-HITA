@@ -19,14 +19,14 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 索引格式：
 
 ```json
-{"plugins":[{"id":"com.example.hello","name":"示例插件","version":"0.1.0",
+{"plugins":[{"id":"com.example.hello","name":"示例逻辑插件","version":"0.1.0",
 "apiVersion":2,"url":"plugin.dex","sha256":"...","entryClass":"com.example.hello.HelloPlugin"}]}
 ```
 
 限制（Android 硬边界，不是实现取舍）：运行时插件不能声明四大组件、不能携带资源，
 且与宿主同进程共享权限。因此市场只上架逻辑插件；需要界面的功能走独立 APK（T2）。
 
-示例插件在 `:sample-plugin`，产出 dex：
+示例逻辑插件在 `:sample-plugin`，产出 dex：
 
 ```bash
 ./gradlew :sample-plugin:buildPluginDex   # -> sample-plugin/build/plugin-dex/classes.dex
@@ -52,6 +52,44 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
   可互相覆盖安装。
 - **签名**：CI 从仓库 Secrets 读取（`RELEASE_KEYSTORE_BASE64` / `RELEASE_KEYSTORE_PASSWORD` /
   `RELEASE_KEY_ALIAS` / `RELEASE_KEY_PASSWORD`），仓库内不含任何密钥。
+
+
+### 界面插件的安装
+
+界面插件只能通过市场索引的 `uiPlugins` 安装/更新；客户端不提供本地选 APK 的入口。
+调试使用 debug 广播通道（`scripts/dev-install-ui-plugin.sh`）。
+
+### 本地联调（运行时插件）
+
+- 课程资源数据契约 `ResourceDataService` 的端点是 `:plugin-resource` 的 BuildConfig。
+  默认指向线上 HOA；本地联调可覆盖：`./gradlew :app:assembleDebug -PhoaBaseUrl=http://10.0.2.2:18001`，
+  该属性仅用于开发，不要提交本地地址。
+- 运行时界面插件从市场索引的 `uiPlugins` 下载；联调时可用本地 HTTP 索引：
+  `-PpluginIndexUrl=http://10.0.2.2:8000/index.json`。
+
+
+### 运行时界面插件的快速调试
+
+- 一键调试：`./scripts/dev.sh status|reset|open|install-ui|install-dex|uninstall-dex|enable-dex|logs`
+- 安装（debug 包）：`./scripts/dev-install-ui-plugin.sh plugin-ui-resource`
+  构建 → `adb push` → `run-as` 落盘 → 广播安装 → 冷启动，单次约 3–5 秒，跳过市场下载。
+- 对比截图：
+
+  ```bash
+  ./scripts/visual_diff.py builtin.png plugin.png --out diff.png \
+      --crop-top 130 --crop-bottom 130 --tolerance 10
+  ```
+
+  输出差异像素数、比例与差异包围盒，并生成热力图。
+- 直接打开插件页：`./scripts/dev-open-ui-plugin.sh com.stupidtree.hita.ui.resource CS`
+  （debug 广播，免去从功能中心逐级点击）。
+- 本地 mock：`-PhoaBaseUrl=http://10.0.2.2:18001`（仅联调，不要提交本地地址）。
+
+搜索页复刻了内置的列表入场动画（400ms、每项延迟 20%、上移 20% + 淡入 + 105% 缩放）
+与下拉刷新（PullRefreshIndicator，触发重新查询）。
+当前课程资源搜索页与内置版（同一 mock 数据）截图差异约 **1.0%**：
+几何、颜色、图标、字号、行高、tag 尺寸均已对齐（误差 ≤2px），
+剩余差异集中在 Compose 与 `TextView` 的字体字形/抗锯齿，以及少量圆角边缘。
 
 ## 插件化架构（万物皆插件）
 
