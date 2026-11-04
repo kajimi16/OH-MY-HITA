@@ -25,10 +25,8 @@ class PluginInstaller(
     private val gson = Gson()
 
     /** 停用集合：保留 plugin.dex，只是不装载。 */
-    private fun disabledIds(): Set<String> = runCatching {
-        if (!disabledFile.isFile) emptySet()
-        else gson.fromJson(disabledFile.readText(), Array<String>::class.java).toSet()
-    }.getOrDefault(emptySet())
+    private fun disabledIds(): Set<String> =
+        parseDisabled(if (disabledFile.isFile) disabledFile.readText() else null)
 
     private fun saveDisabled(ids: Set<String>) {
         root.mkdirs()
@@ -57,9 +55,10 @@ class PluginInstaller(
 
     fun installed(): List<MarketPlugin> = runCatching {
         if (!installedFile.isFile) return emptyList()
-        gson.fromJson(installedFile.readText(), Array<MarketPlugin>::class.java).toList()
-            // 文件被外部删除时不要继续显示「已安装」
-            .filter { File(File(root, it.id), "plugin.dex").isFile }
+        filterInstalled(
+            gson.fromJson(installedFile.readText(), Array<MarketPlugin>::class.java).toList(),
+            root,
+        )
     }.getOrDefault(emptyList())
 
     /**
@@ -144,5 +143,18 @@ class PluginInstaller(
 
     companion object {
         private const val TAG = "PluginInstaller"
+
+        /** 容忍损坏/缺失的 disabled.json：宁可全部启用，也不要启动崩溃。 */
+        internal fun parseDisabled(text: String?): Set<String> = runCatching {
+            if (text.isNullOrBlank()) emptySet()
+            else Gson().fromJson(text, Array<String>::class.java).toSet()
+        }.getOrDefault(emptySet())
+
+        /** 文件被外部删除（清数据、手动删目录）时不要继续显示「已安装」。 */
+        internal fun filterInstalled(
+            records: List<MarketPlugin>,
+            root: File,
+        ): List<MarketPlugin> = records.filter { File(File(root, it.id), "plugin.dex").isFile }
     }
+
 }
