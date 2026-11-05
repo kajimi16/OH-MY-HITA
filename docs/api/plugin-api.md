@@ -128,7 +128,7 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 
 - `HITA_API_VERSION` 是契约的二进制版本；任何破坏性改动必须递增。
 - 内核装载时检查 `requiresApi <= HITA_API_VERSION`，不满足直接拒绝并记录原因。
-- 当前版本 **3**（3：新增运行时界面插件 `ComposeUiPlugin` / `PluginUiHost` / `RuntimeUiService`）。
+- 当前版本 **4**（4：新增主界面运行时 tab 能力 `RuntimeUiService.CAP_MAIN_TAB`）。
 
 变更记录：
 
@@ -137,6 +137,7 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 | 1 | 首个版本 |
 | 2 | 移除 `appContext`；新增 `SyncRegistry` |
 | 3 | 新增 `ComposeUiPlugin`、`PluginUiHost`、`RuntimeUiService`，支持运行时界面插件 |
+| 4 | 新增 `CAP_MAIN_TAB`，运行时界面插件可占用主界面第五个 tab |
 
 ## 运行时逻辑插件（T1）
 

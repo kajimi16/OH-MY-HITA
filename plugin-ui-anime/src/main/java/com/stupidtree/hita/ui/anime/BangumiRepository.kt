@@ -1,4 +1,4 @@
-package com.stupidtree.hita.plugin.bangumi
+package com.stupidtree.hita.ui.anime
 
 import org.json.JSONArray
 import org.json.JSONObject
@@ -13,13 +13,12 @@ data class Anime(
     val nameCn: String?,
     val score: Double?,
     val airWeekday: Int?,
-    val cover: String?,
 )
 
 /** Bangumi 公开 API：每日放送 + 关键词搜索。 */
 object BangumiRepository {
 
-    private const val UA = "oh-my-hita/0.3.2 (prototype; +https://github.com/kajimi16/OH-MY-HITA)"
+    private const val UA = "oh-my-hita/0.1.0 (anime plugin; +https://github.com/kajimi16/OH-MY-HITA)"
 
     fun today(calendar: Calendar = Calendar.getInstance()): List<Anime> {
         val day = calendar.get(Calendar.DAY_OF_WEEK)
@@ -49,18 +48,12 @@ object BangumiRepository {
     private fun JSONObject.toAnime(): Anime? {
         val id = optInt("id", 0)
         if (id <= 0) return null
-        val images = optJSONObject("images")
-        val cover = sequenceOf("large", "common", "medium", "grid")
-            .mapNotNull { images?.optString(it)?.takeIf { url -> url.isNotBlank() } }
-            .firstOrNull()
-            ?.replaceFirst("http://", "https://")
         return Anime(
             id = id,
             name = optString("name"),
             nameCn = optString("name_cn").takeIf { it.isNotBlank() },
             score = optJSONObject("rating")?.optDouble("score")?.takeIf { it > 0 },
             airWeekday = optInt("air_weekday", 0).takeIf { it in 1..7 },
-            cover = cover,
         )
     }
 

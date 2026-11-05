@@ -11,7 +11,7 @@ package com.stupidtree.hita.api
  * - 2: 移除 `PluginContext.appContext`；新增 `PluginContext.sync`（SyncRegistry）
  * - 1: 首个版本
  */
-const val HITA_API_VERSION = 3
+const val HITA_API_VERSION = 4
 
 /**
  * 一个插件。

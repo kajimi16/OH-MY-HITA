@@ -4,8 +4,7 @@
     "com.stupidtree.hitax.timetable",
     "com.stupidtree.hitax.eas",
     "com.stupidtree.hitax.resource",
-    "com.stupidtree.hitax.user",
-    "com.stupidtree.hitax.bangumi"
+    "com.stupidtree.hitax.user"
   ],
   "plugins": [
     {
@@ -36,11 +35,6 @@
       "class": "com.stupidtree.hitax.plugin.UserPlugin",
       "needsApplication": true,
       "name": "个人主页"
-    },
-    {
-      "id": "com.stupidtree.hitax.bangumi",
-      "class": "com.stupidtree.hita.plugin.bangumi.BangumiPlugin",
-      "name": "番剧"
     }
   ]
 }

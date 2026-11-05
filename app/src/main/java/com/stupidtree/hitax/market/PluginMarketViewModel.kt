@@ -155,8 +155,12 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         executor.execute {
             uiPluginManager.setEnabled(plugin.id, enabled)
             uiPlugins.postValue(uiPluginManager.installed())
+            if (hasMainTab(plugin)) reloadUi.postValue(true)
         }
     }
+
+    private fun hasMainTab(plugin: InstalledUiPlugin): Boolean =
+        com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB in plugin.capabilities
 
     /** 停用保留已下载文件，只从内核卸载；启用重新装载。 */
     fun setMarketEnabled(entry: MarketPlugin, enabled: Boolean) {
@@ -197,7 +201,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                 val file = java.io.File(app.cacheDir, "ui-${entry.id}.apk")
                 PluginFetch.download(entry.url, indexBase, file)
                 try {
-                    uiPluginManager.installFile(file, entry.sha256)
+                    val installed = uiPluginManager.installFile(file, entry.sha256)
+                    if (hasMainTab(installed)) reloadUi.postValue(true)
                 } finally {
                     file.delete()
                 }
@@ -251,6 +256,10 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                     .onFailure { fail++ }
             }
             uiPlugins.postValue(uiPluginManager.installed())
+            val updatedIds = uiTargets.map { it.id }.toSet()
+            if (uiPluginManager.installed().any { it.id in updatedIds && hasMainTab(it) }) {
+                reloadUi.postValue(true)
+            }
             message.postValue(
                 when {
                     ok == 0 && fail == 0 -> "没有可更新的插件"
@@ -266,6 +275,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         executor.execute {
             runCatching { uiPluginManager.uninstall(plugin.id) }
             uiPlugins.postValue(uiPluginManager.installed())
+            if (hasMainTab(plugin)) reloadUi.postValue(true)
             message.postValue("已卸载 ${plugin.name}")
         }
     }

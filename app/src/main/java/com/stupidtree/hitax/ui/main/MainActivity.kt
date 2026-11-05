@@ -196,8 +196,15 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         if (contributedTabs.size > 1) {
             Log.w("MainActivity", "底栏目前只承载一个插件 tab，忽略: ${contributedTabs.drop(1).map { it.id }}")
         }
-        val pageCount = 4 + extraTabs.size
-        binding.navView.itemMenuRes = if (extraTabs.isEmpty()) {
+        val runtimeTab = com.stupidtree.hitax.uiplugin.UiPluginManager(this)
+            .resolveForCapability(com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB)
+        val fifthPage: (() -> Fragment)? = when {
+            extraTabs.isNotEmpty() -> extraTabs[0].create
+            runtimeTab != null -> ({ com.stupidtree.hitax.uiplugin.RuntimeUiTabFragment() })
+            else -> null
+        }
+        val pageCount = 4 + if (fifthPage == null) 0 else 1
+        binding.navView.itemMenuRes = if (fifthPage == null) {
             R.menu.main_bottom_nav_menu
         } else {
             R.menu.main_bottom_nav_menu_5
@@ -213,7 +220,8 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                         ?: PluginUnavailableFragment.newInstance("com.stupidtree.hitax.timetable")
                     2 -> NavigationFragment()
                     3 -> com.stupidtree.hitax.market.FragmentPluginMarket()
-                    else -> extraTabs[position - 4].create()
+                    else -> fifthPage?.invoke()
+                        ?: PluginUnavailableFragment.newInstance("com.stupidtree.hitax.bangumi")
                 }
             }
 

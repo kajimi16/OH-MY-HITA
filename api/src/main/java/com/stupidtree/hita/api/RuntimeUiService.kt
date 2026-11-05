@@ -23,5 +23,8 @@ interface RuntimeUiService {
 
         /** 课程资料投稿（submit 表单）；未迁移前始终回退内置页面。 */
         const val CAP_RESOURCE_CONTRIBUTE = "hita.ui.resourceContribute"
+
+        /** 主界面第五个 tab（原型阶段只支持一个运行时页面）。 */
+        const val CAP_MAIN_TAB = "hita.ui.mainTab"
     }
 }
