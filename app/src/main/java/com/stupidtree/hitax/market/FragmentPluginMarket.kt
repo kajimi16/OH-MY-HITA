@@ -33,6 +33,8 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         viewModel.uiPlugins.observe(this) { latestUiInstalled = it; renderMarketAll() }
         viewModel.availableUiPlugins.observe(this) { latestUiAvailable = it; renderMarketAll() }
         viewModel.apkPlugins.observe(this) { latestApk = it; renderMarketAll() }
+        viewModel.sources.observe(this) { renderMarketAll() }
+        binding?.marketSource?.setOnClickListener { showSourceDialog() }
 
         viewModel.reloadUi.observe(this) { reload ->
             if (reload) {
@@ -144,6 +146,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             PluginVersion.isNewer(av.version, installed.version)
         } || latestDex.any { it.installed && it.update }
         binding?.updateAll?.visibility = if (hasUpdates) View.VISIBLE else View.GONE
+        binding?.marketSource?.text = viewModel.activeSource().name
 
         binding?.marketEmpty?.visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
         val indexBase = viewModel.indexBase()
@@ -214,6 +217,10 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
                 changelog = entry.plugin.changelog,
                 size = entry.plugin.size,
                 minHostApi = entry.plugin.minHostApi ?: 1,
+                author = entry.plugin.author,
+                tags = entry.plugin.tags,
+                repo = entry.plugin.repo,
+                updatedAt = entry.plugin.updatedAt,
                 actionLabel = getString(
                     if (entry.update) com.stupidtree.hitax.R.string.plugin_ui_update
                     else com.stupidtree.hitax.R.string.plugin_ui_install_action
@@ -239,6 +246,10 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         changelog: String?,
         size: Long,
         minHostApi: Int,
+        author: String? = null,
+        tags: List<String>? = null,
+        repo: String? = null,
+        updatedAt: String? = null,
         actionLabel: String? = null,
         action: (() -> Unit)? = null,
     ) {
@@ -252,6 +263,15 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             parts += getString(com.stupidtree.hitax.R.string.plugin_details_size, (size / 1024).toInt())
         }
         parts += getString(com.stupidtree.hitax.R.string.plugin_details_min_api, minHostApi)
+        if (!author.isNullOrBlank()) {
+            parts += getString(com.stupidtree.hitax.R.string.plugin_details_author, author)
+        }
+        if (!tags.isNullOrEmpty()) {
+            parts += getString(com.stupidtree.hitax.R.string.plugin_details_tags, tags.joinToString(" · "))
+        }
+        if (!updatedAt.isNullOrBlank()) {
+            parts += getString(com.stupidtree.hitax.R.string.plugin_details_updated, updatedAt)
+        }
         val dialog = AlertDialog.Builder(requireContext())
             .setTitle(getString(com.stupidtree.hitax.R.string.plugin_details_title, name, version))
             .setMessage(parts.joinToString("\n\n"))
@@ -265,7 +285,59 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         } else {
             dialog.setPositiveButton(android.R.string.ok) { _, _ -> }
         }
+        if (!repo.isNullOrBlank()) {
+            dialog.setNeutralButton(com.stupidtree.hitax.R.string.plugin_details_repo) { _, _ ->
+                runCatching {
+                    startActivity(
+                        android.content.Intent(
+                            android.content.Intent.ACTION_VIEW,
+                            android.net.Uri.parse(repo),
+                        )
+                    )
+                }
+            }
+        }
         dialog.show()
+    }
+
+    private fun showSourceDialog() {
+        val sources = viewModel.sources.value.orEmpty()
+        val active = viewModel.activeSource()
+        val labels = sources.map {
+            it.name + if (it.url == active.url && it.name == active.name) "（当前）" else ""
+        }.toMutableList()
+        labels += getString(com.stupidtree.hitax.R.string.plugin_market_source_add)
+        val canRemove = sources.indexOfFirst { it.url == active.url && it.name == active.name } > 0
+        if (canRemove) labels += getString(com.stupidtree.hitax.R.string.plugin_market_source_remove)
+        AlertDialog.Builder(requireContext())
+            .setTitle(com.stupidtree.hitax.R.string.plugin_market_source)
+            .setItems(labels.toTypedArray()) { _, which ->
+                when {
+                    which < sources.size -> viewModel.selectSource(sources[which])
+                    which == sources.size -> showAddSourceDialog()
+                    else -> viewModel.removeSource(active)
+                }
+            }
+            .show()
+    }
+
+    private fun showAddSourceDialog() {
+        val input = android.widget.EditText(requireContext()).apply {
+            hint = getString(com.stupidtree.hitax.R.string.plugin_market_source_hint)
+            setSingleLine(true)
+            setPadding(48, 32, 48, 32)
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle(com.stupidtree.hitax.R.string.plugin_market_source_add)
+            .setView(input)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val error = viewModel.addSource("", input.text?.toString().orEmpty())
+                if (error != null) {
+                    Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun bindDex(card: ItemMarketPluginCardBinding, item: PluginMarketViewModel.Item) {
@@ -298,6 +370,10 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
                 changelog = item.entry.changelog,
                 size = item.entry.size,
                 minHostApi = item.entry.minHostApi ?: 1,
+                author = item.entry.author,
+                tags = item.entry.tags,
+                repo = item.entry.repo,
+                updatedAt = item.entry.updatedAt,
                 actionLabel = label,
                 action = if (label != null) {
                     { installDex(item.entry) }

@@ -52,6 +52,29 @@ class MarketIndexTest {
         assertNull(index.plugins[0].description)
         assertEquals(0L, index.plugins[0].size)
         assertNull(index.plugins[0].minHostApi)
+        assertNull(index.plugins[0].author)
+        assertNull(index.plugins[0].tags)
+        assertNull(index.plugins[0].repo)
+    }
+
+    @Test
+    fun parsesMarketMetadata() {
+        val index = gson.fromJson(
+            """
+            {"uiPlugins":[{
+              "id":"a","name":"A","version":"1","url":"a.apk","sha256":"x",
+              "author":"someone","tags":["番剧","Bangumi"],
+              "repo":"https://github.com/x/y","updatedAt":"2026-11-05"
+            }]}
+            """.trimIndent(),
+            MarketIndex::class.java,
+        )
+
+        val entry = index.uiPlugins[0]
+        assertEquals("someone", entry.author)
+        assertEquals(listOf("番剧", "Bangumi"), entry.tags)
+        assertEquals("https://github.com/x/y", entry.repo)
+        assertEquals("2026-11-05", entry.updatedAt)
     }
 
     @Test

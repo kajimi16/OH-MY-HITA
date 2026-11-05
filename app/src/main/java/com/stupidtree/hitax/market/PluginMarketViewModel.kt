@@ -50,6 +50,9 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     /** 索引里可安装 / 可更新的界面插件。 */
     val availableUiPlugins = MutableLiveData<List<UiMarketPlugin>>(emptyList())
+
+    /** 可选插件源（默认源 + 自定义源）。 */
+    val sources = MutableLiveData<List<MarketSource>>(emptyList())
     private val apkRepository = ApkPluginRepository(application)
     private val trustStore = PluginTrustStore(application)
 
@@ -58,6 +61,14 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     private var lastIndexBase: String? = null
 
     fun indexBase(): String? = lastIndexBase
+
+    private fun cacheDirFor(url: String): File {
+        val name = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(url.toByteArray())
+            .joinToString("") { "%02x".format(it) }
+            .take(16)
+        return File(cacheDir, name)
+    }
 
     private val cacheDir: File = File(application.filesDir, "market-cache")
 
@@ -76,6 +87,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                     .getOrDefault(emptyList())
             )
             builtinPlugins.postValue(builtin.rows())
+            sources.postValue(MarketSources.all(ctx()))
             uiPlugins.postValue(uiPluginManager.installed())
             availableUiPlugins.postValue(emptyList())
             val installedList = installer.installed()
@@ -107,6 +119,26 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    fun activeSource(): MarketSource = MarketSources.active(ctx())
+
+    fun selectSource(source: MarketSource) {
+        MarketSources.setActive(ctx(), source)
+        refresh()
+    }
+
+    fun addSource(name: String, url: String): String? {
+        val error = MarketSources.add(ctx(), name, url)
+        if (error == null) refresh()
+        return error
+    }
+
+    fun removeSource(source: MarketSource) {
+        MarketSources.remove(ctx(), source)
+        refresh()
+    }
+
+    private fun ctx(): Application = getApplication()
+
     fun supported(plugin: ApkPlugin): Boolean = apkRepository.supported(plugin)
 
     fun isVerified(id: String): Boolean = trustStore.isVerified(id)
@@ -120,6 +152,9 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                 }
                 installer.install(entry, lastIndexBase)
             }.exceptionOrNull()
+            if (error == null) {
+                MarketSources.recordInstall(ctx(), entry.id, activeSource().url)
+            }
             post(error?.let { "安装失败：${it.message}" } ?: "已安装 ${entry.name}")
         }
     }
@@ -136,6 +171,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val error = runCatching { builtin.uninstall(row.id, purgeData) }.exceptionOrNull()
             message.postValue(error?.let { "卸载失败：${it.message}" } ?: "已卸载 ${row.name}")
             builtinPlugins.postValue(builtin.rows())
+            sources.postValue(MarketSources.all(ctx()))
             uiPlugins.postValue(uiPluginManager.installed())
             if (error == null) reloadUi.postValue(true)
         }
@@ -180,6 +216,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val error = runCatching { builtin.install(row.id) }.exceptionOrNull()
             message.postValue(error?.let { "启用失败：${it.message}" } ?: "已启用 ${row.name}")
             builtinPlugins.postValue(builtin.rows())
+            sources.postValue(MarketSources.all(ctx()))
             uiPlugins.postValue(uiPluginManager.installed())
             if (error == null) reloadUi.postValue(true)
         }
@@ -202,6 +239,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                 PluginFetch.download(entry.url, indexBase, file)
                 try {
                     val installed = uiPluginManager.installFile(file, entry.sha256)
+                    MarketSources.recordInstall(ctx(), installed.id, activeSource().url)
                     if (hasMainTab(installed)) reloadUi.postValue(true)
                 } finally {
                     file.delete()
@@ -300,7 +338,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
      */
     private fun readIndex(): Triple<MarketIndex, String?, Boolean> {
         val ctx = getApplication<Application>()
-        if (BuildConfig.PLUGIN_INDEX_URL.isBlank()) {
+        val source = MarketSources.active(ctx)
+        if (source.url.isBlank()) {
             val file = File(ctx.filesDir, "market/index.json")
             return Triple(
                 gson.fromJson(file.readText(), MarketIndex::class.java),
@@ -308,16 +347,17 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                 false,
             )
         }
+        val cache = cacheDirFor(source.url)
         return runCatching {
-            val text = fetchIndex(BuildConfig.PLUGIN_INDEX_URL)
-            IndexCache.save(cacheDir, BuildConfig.PLUGIN_INDEX_URL, text)
+            val text = fetchIndex(source.url)
+            IndexCache.save(cache, source.url, text)
             Triple(
                 gson.fromJson(text, MarketIndex::class.java),
-                BuildConfig.PLUGIN_INDEX_URL,
+                source.url,
                 false,
             )
         }.getOrElse { error ->
-            val cached = IndexCache.load(cacheDir) ?: throw error
+            val cached = IndexCache.load(cache) ?: throw error
             Triple(
                 gson.fromJson(cached.raw, MarketIndex::class.java),
                 cached.base,

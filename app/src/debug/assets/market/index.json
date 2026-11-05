@@ -20,7 +20,14 @@
       "description": "课程资料浏览与搜索（运行时界面插件）。",
       "changelog": "首个市场版本；支持课程搜索与 README 渲染。",
       "size": 647061,
-      "minHostApi": 3
+      "minHostApi": 3,
+      "author": "kajimi16",
+      "tags": [
+        "HITA",
+        "插件"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-05"
     },
     {
       "id": "com.stupidtree.hita.ui.anime",
@@ -31,7 +38,14 @@
       "description": "Bangumi 今日放送与搜索",
       "changelog": "首个原型版本",
       "size": 626257,
-      "minHostApi": 4
+      "minHostApi": 4,
+      "author": "kajimi16",
+      "tags": [
+        "HITA",
+        "插件"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-05"
     }
   ]
 }

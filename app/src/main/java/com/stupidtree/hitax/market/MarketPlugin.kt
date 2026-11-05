@@ -21,6 +21,12 @@ data class MarketPlugin(
     val size: Long = 0L,
     /** 安装所需的最低宿主 API；null 表示旧索引未声明，按 1 处理。 */
     val minHostApi: Int? = null,
+    /** 市场展示元数据，均可缺省。 */
+    val author: String? = null,
+    val tags: List<String>? = null,
+    val repo: String? = null,
+    val logo: String? = null,
+    val updatedAt: String? = null,
 )
 
 /** 市场里的运行时界面插件（独立 APK + Compose 容器）。 */
@@ -35,6 +41,11 @@ data class UiMarketPlugin(
     val changelog: String? = null,
     val size: Long = 0L,
     val minHostApi: Int? = null,
+    val author: String? = null,
+    val tags: List<String>? = null,
+    val repo: String? = null,
+    val logo: String? = null,
+    val updatedAt: String? = null,
 )
 
 data class MarketIndex(
