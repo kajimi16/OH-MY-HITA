@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import com.stupidtree.component.data.DataState
+import com.stupidtree.component.data.MTransformations
 import com.stupidtree.hitax.data.AppDatabase
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
@@ -47,10 +48,15 @@ class TimetableRepository(val application: Application) {
     private val subjectDao = AppDatabase.getDatabase(application).subjectDao()
 
     /**
-     * 获取[from,to)内的事件
+     * 获取[from,to)内的事件。
+     *
+     * 主课表显示入口：按课程内容合并重复导入/重复课表产生的同一门课，
+     * 避免同一门课被当成冲突并排画成两张卡。
      */
     fun getEventsDuring(from: Long, to: Long): LiveData<List<EventItem>> {
-        return eventItemDao.getEventsDuring(from, to)
+        return MTransformations.map(eventItemDao.getEventsDuring(from, to)) {
+            TimetableEventDedupe.apply(it)
+        }
     }
 
     /**
@@ -72,35 +78,37 @@ class TimetableRepository(val application: Application) {
         val from = now.timeInMillis
         now.add(Calendar.DATE,1)
         val to = now.timeInMillis
-        return eventItemDao.getEventsDuringSync(from, to)
+        return TimetableEventDedupe.apply(eventItemDao.getEventsDuringSync(from, to))
             .sortedBy { it.from.time }
     }
     /**
      * 获取[from,to)内的事件，包含颜色
      */
     fun getEventsDuringWithColor(from: Long, to: Long): LiveData<List<EventItem>> {
-        val res = MediatorLiveData<List<EventItem>>()
-        res.addSource(eventItemDao.getEventsDuring(from, to)) { events ->
-            val subjects = mutableSetOf<String>()
-            for (e in events) {
-                if (e.subjectId.isNotBlank()) {
-                    subjects.add(e.subjectId)
-                }
-            }
-            res.addSource(subjectDao.getSubjectColorsWithId(subjects)) { colors ->
-                val map = mutableMapOf<String, Int>()
-                for (color in colors) {
-                    map[color.id] = color.color
-                }
-                for (e in events) {
-                    map[e.subjectId]?.let {
-                        e.color = it
-                    }
-                }
-                res.value = events
+        return MTransformations.switchMap(eventItemDao.getEventsDuring(from, to)) { events ->
+            attachSubjectColors(TimetableEventDedupe.apply(events))
+        }
+    }
+
+    private fun attachSubjectColors(events: List<EventItem>): LiveData<List<EventItem>> {
+        val subjects = mutableSetOf<String>()
+        for (e in events) {
+            if (e.subjectId.isNotBlank()) {
+                subjects.add(e.subjectId)
             }
         }
-        return res
+        return MTransformations.map(subjectDao.getSubjectColorsWithId(subjects)) { colors ->
+            val map = mutableMapOf<String, Int>()
+            for (color in colors) {
+                map[color.id] = color.color
+            }
+            for (e in events) {
+                map[e.subjectId]?.let {
+                    e.color = it
+                }
+            }
+            events
+        }
     }
 
     fun getClassesOfSubject(subjectId: String): LiveData<List<EventItem>> {
