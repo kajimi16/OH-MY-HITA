@@ -26,7 +26,7 @@
       "id": "com.stupidtree.hita.ui.anime",
       "name": "番剧",
       "version": "0.1.0",
-      "url": "anime-0.1.0.apk",
+      "url": "https://raw.githubusercontent.com/kajimi16/OH-MY-HITA/market/market/anime-0.1.0.apk",
       "sha256": "ed294730243423da69e5665f5f4a9a3a0b7eb927c0d0e6fdbd20d9a4818b9d96",
       "description": "Bangumi 今日放送与搜索",
       "changelog": "首个原型版本",
