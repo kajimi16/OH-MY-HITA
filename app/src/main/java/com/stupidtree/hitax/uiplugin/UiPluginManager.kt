@@ -51,6 +51,20 @@ class UiPluginManager(private val context: Context) {
         }
         .sortedBy { it.spec.order }
 
+    /** 从插件 APK 的 assets 中读取主界面 tab 图标；失败回退 null。 */
+    fun loadMainTabIcon(record: InstalledUiPlugin, assetPath: String?): android.graphics.drawable.Drawable? {
+        val path = assetPath?.trim()?.trimStart('/')?.takeIf { it.isNotBlank() } ?: return null
+        if (path.contains("..")) return null
+        return runCatching {
+            java.util.zip.ZipFile(record.apkPath).use { zip ->
+                val entry = zip.getEntry("assets/$path") ?: return@use null
+                val bitmap = android.graphics.BitmapFactory.decodeStream(zip.getInputStream(entry))
+                    ?: return@use null
+                android.graphics.drawable.BitmapDrawable(context.resources, bitmap)
+            }
+        }.getOrNull()
+    }
+
     /** 按 capability 找一个可用的已安装插件；找不到返回 null。 */
     fun enabled(): List<InstalledUiPlugin> = installed().filter { it.enabled }
 
@@ -223,6 +237,7 @@ class UiPluginManager(private val context: Context) {
                                 order = tab.get("order")?.asInt ?: 100,
                                 capability = tab.get("capability")?.asString
                                     ?: com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB,
+                                iconAsset = tab.get("iconAsset")?.asString,
                             )
                         }.getOrNull()
                     }.orEmpty(),

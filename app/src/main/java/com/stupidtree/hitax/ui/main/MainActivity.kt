@@ -57,6 +57,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         val id: Int,
         val title: String,
         val iconRes: Int,
+        val icon: android.graphics.drawable.Drawable? = null,
         val create: () -> Fragment,
     )
 
@@ -212,7 +213,9 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         setUpDrawer()
         //  binding.title.text = binding.navView.menu.getItem(0).title
         pages = buildPages()
-        binding.navView.submit(pages.map { DynamicBottomBar.Item(it.id, it.title, it.iconRes) })
+        binding.navView.submit(
+            pages.map { DynamicBottomBar.Item(it.id, it.title, it.iconRes, it.icon) }
+        )
         binding.navView.onItemSelected = { index ->
             binding.navView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
             binding.pager.currentItem = index
@@ -378,15 +381,17 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                     1000 + result.size,
                     if (tab.titleRes != 0) getString(tab.titleRes) else tab.id,
                     if (tab.iconRes != 0) tab.iconRes else R.drawable.ic_nav_plugin,
-                    tab.create,
+                    create = tab.create,
                 )
             }
-        com.stupidtree.hitax.uiplugin.UiPluginManager(this).mainTabs().forEach { installed ->
+        val uiPluginManager = com.stupidtree.hitax.uiplugin.UiPluginManager(this)
+        uiPluginManager.mainTabs().forEach { installed ->
             val title = installed.spec.title.ifBlank { installed.plugin.name }
             result += Page(
                 2000 + result.size,
                 title,
                 R.drawable.ic_nav_plugin,
+                icon = uiPluginManager.loadMainTabIcon(installed.plugin, installed.spec.iconAsset),
             ) {
                 com.stupidtree.hitax.uiplugin.RuntimeUiTabFragment.newInstance(
                     installed.plugin.id,

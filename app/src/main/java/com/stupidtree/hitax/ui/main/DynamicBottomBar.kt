@@ -23,7 +23,12 @@ class DynamicBottomBar @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
-    data class Item(val id: Int, val title: String, val iconRes: Int)
+    data class Item(
+        val id: Int,
+        val title: String,
+        val iconRes: Int,
+        val icon: android.graphics.drawable.Drawable? = null,
+    )
 
     var onItemSelected: ((Int) -> Boolean)? = null
 
@@ -71,9 +76,14 @@ class DynamicBottomBar @JvmOverloads constructor(
             }
         }
         ImageView(context).apply {
-            setImageResource(item.iconRes)
+            if (item.icon != null) {
+                setImageDrawable(item.icon)
+                tag = "customIcon"
+            } else {
+                setImageResource(item.iconRes)
+                tag = "icon"
+            }
             layoutParams = LayoutParams(dp(21), dp(21)).apply { topMargin = dp(6) }
-            tag = "icon"
         }.also { column.addView(it) }
         TextView(context).apply {
             text = item.title
@@ -93,9 +103,10 @@ class DynamicBottomBar @JvmOverloads constructor(
         for (index in 0 until childCount) {
             val column = getChildAt(index) as? LinearLayout ?: continue
             val icon = column.findViewWithTag<ImageView>("icon")
+                ?: column.findViewWithTag<ImageView>("customIcon")
             val title = column.findViewWithTag<TextView>("title")
             val color = if (index == selectedIndex) active else inactive
-            icon?.setColorFilter(color)
+            if (column.findViewWithTag<ImageView>("icon") != null) icon?.setColorFilter(color)
             title?.setTextColor(color)
             column.alpha = if (index == selectedIndex) 1f else 0.85f
         }

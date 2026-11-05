@@ -211,10 +211,13 @@ interface ComposeUiPlugin {
 - `mainTabs` 可选，支持多个主界面 tab：
   ```json
   "mainTabs": [
-    {"id": "anime", "title": "番剧", "order": 100, "capability": "hita.ui.mainTab"},
-    {"id": "anime2", "title": "追番", "order": 110, "capability": "hita.ui.mainTab"}
+    {"id": "anime", "title": "番剧", "order": 100,
+     "capability": "hita.ui.mainTab", "iconAsset": "tab_anime.png"},
+    {"id": "anime2", "title": "追番", "order": 110,
+     "capability": "hita.ui.mainTab"}
   ]
   ```
+  `iconAsset` 指向插件 APK 的 `assets/` 内图片（PNG/WebP/JPG）；不填用宿主默认图标。
   每个 tab 打开时宿主会把 `tabId` / `capability` / `tabTitle` 放进 `PluginUiHost.arguments`。
   未声明 `mainTabs` 但带 `hita.ui.mainTab` 能力的旧插件，宿主按插件名自动生成一个 tab。
 - 界面插件不注册 Activity，也不能携带资源表；所有 UI 用 Compose 代码构建。

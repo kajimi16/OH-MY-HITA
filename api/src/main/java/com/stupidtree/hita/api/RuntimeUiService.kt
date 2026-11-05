@@ -15,6 +15,8 @@ data class MainTabSpec(
     val title: String,
     val order: Int = 100,
     val capability: String = RuntimeUiService.CAP_MAIN_TAB,
+    /** 插件 APK 内 assets/ 下的图标路径，如 `tab_anime.png`；为空用宿主默认图标。 */
+    val iconAsset: String? = null,
 )
 
 interface RuntimeUiService {
