@@ -64,6 +64,8 @@ class LeftLabelView : View {
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         mLabelPaint.color = resolveLabelColor()
+        if (com.stupidtree.hitax.ui.main.timetable.TimetableAppearanceStore.get(context).observe().value?.hasWallpaper == true) mLabelPaint.setShadowLayer(3f, 0f, 1f, Color.BLACK)
+        else mLabelPaint.clearShadowLayer()
         mLabelPaint.textSize = labelSize.toFloat()
         mLabelPaint.textAlign = Paint.Align.CENTER
         val centerX = width / 2f

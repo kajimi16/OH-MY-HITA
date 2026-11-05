@@ -158,7 +158,7 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 
 - `HITA_API_VERSION` 是契约的二进制版本；任何破坏性改动必须递增。
 - 内核装载时检查 `requiresApi <= HITA_API_VERSION`，不满足直接拒绝并记录原因。
-- 当前版本 **5**（5：运行时多主 tab、文本导航项、View 搜索 tab）。
+- 当前版本 **6**（6：新增原生课表外观服务 `TimetableAppearanceService`）。
 
 变更记录：
 
@@ -169,6 +169,7 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 | 3 | 新增 `ComposeUiPlugin`、`PluginUiHost`、`RuntimeUiService`，支持运行时界面插件 |
 | 4 | 新增 `CAP_MAIN_TAB`，运行时界面插件可占用主界面 tab |
 | 5 | 支持多个运行时主 tab；新增 `TextNavEntry` / `ViewSearchTab` |
+| 6 | 新增原生课表外观服务 `TimetableAppearanceService` |
 
 ## 运行时逻辑插件（T1）
 
@@ -246,3 +247,6 @@ class HelloPlugin : Plugin {
     }
 }
 ```
+
+
+原生课表外观服务见 [课表壁纸协议](timetable-appearance.md)。

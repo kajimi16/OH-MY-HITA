@@ -55,7 +55,27 @@ class TimetableWeekView: LinearLayout{
         else timetableView?.notifyRefresh(startDate, events, style)
     }
 
+    private val dateColors = mutableMapOf<Int, Int>()
+    private var wallpaperTextEnabled = false
+    fun setWallpaperText(enabled: Boolean) {
+        if (enabled == wallpaperTextEnabled) return
+        wallpaperTextEnabled = enabled
+        if (enabled) {
+            topDateTexts.forEachIndexed { index, text -> text?.let {
+                dateColors[index] = it.currentTextColor
+                it.setTextColor(android.graphics.Color.WHITE)
+                it.setShadowLayer(3f, 0f, 1f, android.graphics.Color.BLACK)
+            } }
+        } else {
+            topDateTexts.forEachIndexed { index, text -> text?.let {
+                dateColors[index]?.let { color -> it.setTextColor(color) }
+                it.setShadowLayer(0f, 0f, 0f, android.graphics.Color.TRANSPARENT)
+            } }
+            dateColors.clear()
+        }
+    }
     fun setDateTexts(date: Long) {
+        setWallpaperText(com.stupidtree.hitax.ui.main.timetable.TimetableAppearanceStore.get(context).observe().value?.hasWallpaper == true)
         val startDate = Calendar.getInstance()
         startDate.timeInMillis = date
         /*显示上方日期*/
