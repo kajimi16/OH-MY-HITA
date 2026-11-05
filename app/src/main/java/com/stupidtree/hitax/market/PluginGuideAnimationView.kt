@@ -305,17 +305,33 @@ class PluginGuideAnimationView @JvmOverloads constructor(
             canvas.drawLine(cx - dp(1f), cy + dp(2.5f), cx + dp(3.5f), cy - dp(3f), iconPaint)
         }
 
+        val maxTextWidth = rect.width() - dp(14f)
         textPaint.color = if (isActive) accent else textColor
         textPaint.alpha = if (isActive || completed) 255 else 190
-        textPaint.textSize = sp(12f)
-        canvas.drawText(steps[index].title, rect.centerX(), rect.top + dp(68f), textPaint)
+        drawFitted(canvas, steps[index].title, rect.centerX(), rect.top + dp(68f), textPaint, sp(12f), maxTextWidth)
 
         subPaint.color = muted
         subPaint.alpha = if (isActive) 230 else 160
-        subPaint.textSize = sp(8.5f)
-        canvas.drawText(steps[index].subtitle, rect.centerX(), rect.top + dp(86f), subPaint)
+        drawFitted(canvas, steps[index].subtitle, rect.centerX(), rect.top + dp(86f), subPaint, sp(8.5f), maxTextWidth)
 
         canvas.restore()
+    }
+
+    private fun drawFitted(
+        canvas: Canvas,
+        text: String,
+        centerX: Float,
+        baselineY: Float,
+        paint: Paint,
+        baseSize: Float,
+        maxWidth: Float,
+    ) {
+        paint.textSize = baseSize
+        val width = paint.measureText(text)
+        if (width > maxWidth && width > 0f) {
+            paint.textSize = (baseSize * maxWidth / width).coerceAtLeast(sp(6.5f))
+        }
+        canvas.drawText(text, centerX, baselineY, paint)
     }
 
     private fun drawComet(canvas: Canvas, x: Float, y: Float) {
