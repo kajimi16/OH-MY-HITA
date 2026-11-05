@@ -124,6 +124,10 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 | `:theta` | 社区插件：贡献 `CommunityService`、搜索页两个 tab、抽屉入口 |
 | `:component` `:style` `:user` `:sync` | 待迁移的能力层（P2/P3 目标） |
 
+社区插件不在本仓库：例如番剧界面插件位于
+[`kajimi16/hita-community-plugins`](https://github.com/kajimi16/hita-community-plugins)，
+通过市场索引安装，不随宿主发版。
+
 装配点只有一个 —— `app/src/main/assets/plugins.json`：
 
 ```json
