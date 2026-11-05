@@ -32,12 +32,12 @@
     {
       "id": "com.stupidtree.hita.ui.anime",
       "name": "番剧",
-      "version": "0.2.2",
-      "url": "https://raw.githubusercontent.com/kajimi16/hita-community-plugins/master/dist/anime-0.2.2.apk",
-      "sha256": "0881d5b7c629da912412d4100aa16fe39691bdb5a4307308dc22ebfc673007f6",
+      "version": "0.2.3",
+      "url": "https://raw.githubusercontent.com/kajimi16/hita-community-plugins/master/dist/anime-0.2.3.apk",
+      "sha256": "a80bcf039ec21be35236a0457df5655cfa5a98172e35ce626b608e1e990d2ca6",
       "description": "参照 Animeko Android 端的番剧客户端：首页 / 放送表 / 搜索 / 追番 / 条目详情 / 弹幕 / 评论 / 资源",
-      "changelog": "0.2.2：修正返回键 —— 详情/弹幕页逐级返回，不再直接回桌面；放送表改为当前在播番组。",
-      "size": 226788,
+      "changelog": "0.2.3：修正首页/放送表封面空白 —— BGM 日历的 http 图片地址统一升级为 https。",
+      "size": 226892,
       "minHostApi": 5,
       "author": "kajimi16",
       "tags": [
