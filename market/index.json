@@ -32,12 +32,12 @@
     {
       "id": "com.stupidtree.hita.ui.anime",
       "name": "番剧",
-      "version": "0.2.3",
-      "url": "https://raw.githubusercontent.com/kajimi16/hita-community-plugins/master/dist/anime-0.2.3.apk",
-      "sha256": "a80bcf039ec21be35236a0457df5655cfa5a98172e35ce626b608e1e990d2ca6",
-      "description": "参照 Animeko Android 端的番剧客户端：首页 / 放送表 / 搜索 / 追番 / 条目详情 / 弹幕 / 评论 / 资源",
-      "changelog": "0.2.3：修正首页/放送表封面空白 —— BGM 日历的 http 图片地址统一升级为 https。",
-      "size": 226892,
+      "version": "0.3.0",
+      "url": "https://raw.githubusercontent.com/kajimi16/hita-community-plugins/master/dist/anime-0.3.0.apk",
+      "sha256": "c396f74c4e8d05cc1dc886ba0864f46f31ce357e73125714d8685b73dd08be3e",
+      "description": "课表联动 + Bangumi 追番 + 校内弹幕；支持校内/国内缓存服务器回退",
+      "changelog": "0.3.0：首页今日课表联动；数据/封面优先走 hit-ani 自建缓存（/api/bgm + Next Image），无 VPN 时可用；封面按显示尺寸取原图，清晰度提升。",
+      "size": 236160,
       "minHostApi": 5,
       "author": "kajimi16",
       "tags": [
