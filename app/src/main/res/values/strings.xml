@@ -847,6 +847,12 @@
     <string name="plugin_builtin_open">打开</string>
     <string name="plugin_update_all">全部更新</string>
     <string name="plugin_market_source">插件源</string>
+    <string name="plugin_tab_discover">查询并下载</string>
+    <string name="plugin_tab_mine">我的插件</string>
+    <string name="plugin_discover_search_hint">搜索插件</string>
+    <string name="plugin_discover_empty">没有可下载的插件</string>
+    <string name="plugin_section_installed">已安装的市场插件</string>
+    <string name="plugin_mine_empty">还没有安装市场插件</string>
     <string name="plugin_market_source_add">添加插件源…</string>
     <string name="plugin_market_source_remove">删除当前自定义源</string>
     <string name="plugin_market_source_hint">https://example.com/index.json</string>
