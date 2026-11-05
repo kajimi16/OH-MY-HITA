@@ -53,6 +53,9 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     /** 可选插件源（默认源 + 自定义源）。 */
     val sources = MutableLiveData<List<MarketSource>>(emptyList())
+
+    /** 其它来源（非当前源）里可更新的插件数量。 */
+    val pendingUpdates = MutableLiveData(0)
     private val apkRepository = ApkPluginRepository(application)
     private val trustStore = PluginTrustStore(application)
 
@@ -110,6 +113,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                     )
                     availableUiPlugins.postValue(index.uiPlugins)
                     status.postValue(if (offline) "网络不可用，正在显示缓存索引" else null)
+                    pendingUpdates.postValue(countUpdatesOutsideActive())
                 }
                 .onFailure {
                     items.postValue(emptyList())
@@ -117,6 +121,35 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                     status.postValue("读取索引失败：${it.message}")
                 }
         }
+    }
+
+    /** 统计安装来源不是当前源、但在原来源里有新版本的插件数量。 */
+    private fun countUpdatesOutsideActive(): Int {
+        val active = MarketSources.active(ctx())
+        val ui = uiPluginManager.installed()
+        val dex = installer.installed()
+        val sources = (ui.map { it.id } + dex.map { it.id })
+            .map { id -> sourceFor(id) }
+            .filter { it.url.isNotBlank() && it.url != active.url }
+            .distinctBy { it.url }
+        var count = 0
+        sources.forEach { source ->
+            val index = runCatching { readIndex(source) }.getOrNull() ?: return@forEach
+            ui.filter { sourceFor(it.id).url == source.url }.forEach { installed ->
+                val entry = index.first.uiPlugins.firstOrNull { it.id == installed.id }
+                if (entry != null && PluginVersion.isNewer(entry.version, installed.version)) count++
+            }
+            dex.filter { sourceFor(it.id).url == source.url }.forEach { installed ->
+                val entry = index.first.plugins.firstOrNull { it.id == installed.id }
+                if (entry != null && PluginVersion.isNewer(entry.version, installed.version)) count++
+            }
+        }
+        return count
+    }
+
+    private fun sourceFor(id: String): MarketSource {
+        val recorded = MarketSources.installSource(ctx(), id)
+        return if (recorded.isNullOrBlank()) MarketSources.active(ctx()) else MarketSource("recorded", recorded)
     }
 
     fun activeSource(): MarketSource = MarketSources.active(ctx())
@@ -128,7 +161,11 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     fun addSource(name: String, url: String): String? {
         val error = MarketSources.add(ctx(), name, url)
-        if (error == null) refresh()
+        if (error == null) {
+            MarketSources.all(ctx()).lastOrNull { it.url == url.trim() }
+                ?.let { MarketSources.setActive(ctx(), it) }
+            refresh()
+        }
         return error
     }
 
@@ -254,27 +291,41 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     }
 
 
-    /** 一键更新所有有更新版本的界面插件与逻辑插件。 */
+    /** 一键更新：每个插件优先回到它安装时的索引源解析新版本。 */
     fun updateAll() {
         executor.execute {
             val app = getApplication<Application>()
-            val uiInstalled = uiPluginManager.installed().associateBy { it.id }
-            // 只更新已安装的插件；未安装的仍然必须由用户显式点击并确认。
-            val uiTargets = availableUiPlugins.value.orEmpty().filter { candidate ->
-                val current = uiInstalled[candidate.id] ?: return@filter false
-                PluginVersion.isNewer(candidate.version, current.version)
+            val active = MarketSources.active(app)
+            val uiInstalled = uiPluginManager.installed()
+            val dexInstalled = installer.installed()
+
+            fun sourceOf(id: String): MarketSource {
+                val recorded = MarketSources.installSource(app, id)
+                return if (recorded.isNullOrBlank()) active else MarketSource("recorded", recorded)
             }
-            val dexTargets = items.value.orEmpty().filter { it.installed && it.update }
+
+            val sources = (uiInstalled.map { it.id } + dexInstalled.map { it.id })
+                .map { sourceOf(it) }
+                .distinctBy { it.url }
+            val indexes = sources.associate { source ->
+                source.url to runCatching { readIndex(source) }.getOrNull()
+            }
+
             var ok = 0
             var fail = 0
-            uiTargets.forEach { entry ->
+            uiInstalled.forEach { installed ->
+                val source = sourceOf(installed.id)
+                val index = indexes[source.url] ?: return@forEach
+                val entry = index.first.uiPlugins.firstOrNull { it.id == installed.id }
+                    ?: return@forEach
+                if (!PluginVersion.isNewer(entry.version, installed.version)) return@forEach
                 runCatching {
                     val minApi = entry.minHostApi ?: 1
                     require(minApi <= HITA_API_VERSION) {
                         "插件需要宿主 API $minApi，当前 ${HITA_API_VERSION}"
                     }
                     val file = java.io.File(app.cacheDir, "ui-${entry.id}.apk")
-                    PluginFetch.download(entry.url, lastIndexBase, file)
+                    PluginFetch.download(entry.url, source.url, file)
                     try {
                         uiPluginManager.installFile(file, entry.sha256)
                     } finally {
@@ -282,22 +333,28 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                     }
                 }.onSuccess { ok++ }.onFailure { fail++ }
             }
-            dexTargets.forEach { item ->
+            dexInstalled.forEach { installed ->
+                val source = sourceOf(installed.id)
+                val index = indexes[source.url] ?: return@forEach
+                val entry = index.first.plugins.firstOrNull { it.id == installed.id }
+                    ?: return@forEach
+                if (!PluginVersion.isNewer(entry.version, installed.version)) return@forEach
                 runCatching {
-                    val minApi = item.entry.minHostApi ?: 1
+                    val minApi = entry.minHostApi ?: 1
                     require(minApi <= HITA_API_VERSION) {
                         "插件需要宿主 API $minApi，当前 ${HITA_API_VERSION}"
                     }
-                    installer.install(item.entry, lastIndexBase)
-                }
-                    .onSuccess { ok++ }
-                    .onFailure { fail++ }
+                    installer.install(entry, source.url)
+                }.onSuccess { ok++ }.onFailure { fail++ }
             }
             uiPlugins.postValue(uiPluginManager.installed())
-            val updatedIds = uiTargets.map { it.id }.toSet()
-            if (uiPluginManager.installed().any { it.id in updatedIds && hasMainTab(it) }) {
-                reloadUi.postValue(true)
+            val updatedMainTab = uiInstalled.any { installed ->
+                hasMainTab(installed) &&
+                    (indexes[sourceOf(installed.id).url]?.first?.uiPlugins
+                        ?.firstOrNull { it.id == installed.id }
+                        ?.let { PluginVersion.isNewer(it.version, installed.version) } == true)
             }
+            if (updatedMainTab) reloadUi.postValue(true)
             message.postValue(
                 when {
                     ok == 0 && fail == 0 -> "没有可更新的插件"
@@ -336,9 +393,11 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
      * @return 索引内容、解析相对地址的基准、以及是否来自本地缓存。
      * 远端读取失败时回退到上次成功缓存，缓存也没有才抛错。
      */
-    private fun readIndex(): Triple<MarketIndex, String?, Boolean> {
+    private fun readIndex(): Triple<MarketIndex, String?, Boolean> =
+        readIndex(MarketSources.active(ctx()))
+
+    private fun readIndex(source: MarketSource): Triple<MarketIndex, String?, Boolean> {
         val ctx = getApplication<Application>()
-        val source = MarketSources.active(ctx)
         if (source.url.isBlank()) {
             val file = File(ctx.filesDir, "market/index.json")
             return Triple(

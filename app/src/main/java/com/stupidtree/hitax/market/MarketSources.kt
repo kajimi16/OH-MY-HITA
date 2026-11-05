@@ -10,7 +10,8 @@ data class MarketSource(val name: String, val url: String)
 /**
  * 插件源与安装来源的持久化。
  *
- * 参考 AstrBot：默认源 + 用户自定义源；安装时记录来源，更新时优先回到原来源。
+ * 参考 AstrBot：默认源 + 用户自定义源；安装时记录来源，[PluginMarketViewModel.updateAll]
+ * 会优先回到该来源解析新版本。
  */
 object MarketSources {
     private const val SP = "market_sources"

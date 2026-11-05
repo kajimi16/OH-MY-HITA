@@ -34,6 +34,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         viewModel.availableUiPlugins.observe(this) { latestUiAvailable = it; renderMarketAll() }
         viewModel.apkPlugins.observe(this) { latestApk = it; renderMarketAll() }
         viewModel.sources.observe(this) { renderMarketAll() }
+        viewModel.pendingUpdates.observe(this) { latestPendingUpdates = it; renderMarketAll() }
         binding?.marketSource?.setOnClickListener { showSourceDialog() }
 
         viewModel.reloadUi.observe(this) { reload ->
@@ -130,6 +131,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     private var latestUiAvailable: List<UiMarketPlugin> = emptyList()
     private var latestDex: List<PluginMarketViewModel.Item> = emptyList()
     private var latestApk: List<ApkPlugin> = emptyList()
+    private var latestPendingUpdates = 0
 
     private fun renderMarketAll() {
         val installedById = latestUiInstalled.associateBy { it.id }
@@ -144,7 +146,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         val hasUpdates = latestUiAvailable.any { av ->
             val installed = installedById[av.id] ?: return@any false
             PluginVersion.isNewer(av.version, installed.version)
-        } || latestDex.any { it.installed && it.update }
+        } || latestDex.any { it.installed && it.update } || latestPendingUpdates > 0
         binding?.updateAll?.visibility = if (hasUpdates) View.VISIBLE else View.GONE
         binding?.marketSource?.text = viewModel.activeSource().name
 
