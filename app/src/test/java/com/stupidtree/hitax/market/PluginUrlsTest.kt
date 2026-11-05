@@ -31,8 +31,8 @@ class PluginUrlsTest {
     @Test
     fun relativeUrlResolvesAgainstLocalDirectory() {
         val resolved = PluginUrls.resolve("hello.dex", "/data/user/0/app/files/market")
-        assertEquals("/data/user/0/app/files/market/hello.dex", resolved)
-        assertTrue(resolved.startsWith("/"))
+        assertEquals(java.io.File("/data/user/0/app/files/market", "hello.dex").absolutePath, resolved)
+        assertTrue(java.io.File(resolved).isAbsolute)
     }
 
     @Test(expected = IllegalArgumentException::class)
