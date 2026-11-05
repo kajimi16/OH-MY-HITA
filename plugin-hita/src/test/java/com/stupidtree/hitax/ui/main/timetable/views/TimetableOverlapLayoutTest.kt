@@ -49,6 +49,17 @@ class TimetableOverlapLayoutTest {
         assertEquals(0, arranged.getValue(third.id).columnIndex)
     }
 
+    @Test
+    fun arrange_ignoresRepeatedEventInstances() {
+        val event = event("same", day = 0, startHour = 9, startMinute = 0, endHour = 10, endMinute = 0)
+
+        val arranged = TimetableOverlapLayout.arrange(listOf(event, event))
+
+        assertEquals(1, arranged.size)
+        assertEquals(1, arranged.single().columnCount)
+        assertEquals(0, arranged.single().columnIndex)
+    }
+
     private fun event(
         id: String,
         day: Int,
