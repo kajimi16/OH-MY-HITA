@@ -49,6 +49,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     private fun pluginHost() = (application as HApplication).pluginHost
 
     private val pluginMenuIds = LinkedHashMap<Int, NavEntry>()
+    private val pluginTextMenuIds = LinkedHashMap<Int, com.stupidtree.hita.api.TextNavEntry>()
 
     private val baseTabIds = setOf("hita.timeline", "hita.timetable")
 
@@ -65,15 +66,24 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         val menu = binding.drawerNavigationview.menu
         val host = (application as HApplication).pluginHost
         pluginMenuIds.clear()
-        host.nav.entries().forEachIndexed { index, entry ->
+        pluginTextMenuIds.clear()
+        var index = 0
+        host.nav.entries().forEach { entry ->
             val itemId = PLUGIN_MENU_ID_BASE + index
             pluginMenuIds[itemId] = entry
-            val title = entry.textTitle
-                ?: if (entry.titleRes != 0) getString(entry.titleRes) else entry.id
+            val title = if (entry.titleRes != 0) getString(entry.titleRes) else entry.id
             val item = menu.add(Menu.NONE, itemId, 100 + index, title)
+            item.setIcon(if (entry.iconRes != 0) entry.iconRes else R.drawable.ic_nav_plugin)
+            index++
+        }
+        host.nav.textEntries().forEach { entry ->
+            val itemId = PLUGIN_MENU_ID_BASE + index
+            pluginTextMenuIds[itemId] = entry
+            val item = menu.add(Menu.NONE, itemId, 100 + index, entry.title)
             val icon = entry.icon
             if (icon != null) item.icon = icon
-            else item.setIcon(if (entry.iconRes != 0) entry.iconRes else R.drawable.ic_nav_plugin)
+            else item.setIcon(R.drawable.ic_nav_plugin)
+            index++
         }
     }
 
@@ -140,10 +150,11 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 }
                 else -> {
                     val entry = pluginMenuIds[item.itemId]
-                    if (entry == null) {
-                        jumped = false
-                    } else {
-                        entry.createIntent(getThis())?.let { startActivity(it) }
+                    val textEntry = pluginTextMenuIds[item.itemId]
+                    when {
+                        entry != null -> entry.createIntent(getThis())?.let { startActivity(it) }
+                        textEntry != null -> textEntry.createIntent(getThis())?.let { startActivity(it) }
+                        else -> jumped = false
                     }
                 }
             }
@@ -377,7 +388,10 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 title,
                 R.drawable.ic_nav_plugin,
             ) {
-                com.stupidtree.hitax.uiplugin.RuntimeUiTabFragment.newInstance(installed.spec)
+                com.stupidtree.hitax.uiplugin.RuntimeUiTabFragment.newInstance(
+                    installed.plugin.id,
+                    installed.spec,
+                )
             }
         }
         return result

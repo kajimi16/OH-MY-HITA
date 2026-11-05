@@ -5,6 +5,7 @@ import com.stupidtree.hita.api.NavEntry
 import com.stupidtree.hita.api.Plugin
 import com.stupidtree.hita.api.PluginContext
 import com.stupidtree.hita.api.SearchTab
+import com.stupidtree.hita.api.TextNavEntry
 import com.stupidtree.hita.api.ViewSearchTab
 import com.stupidtree.hita.api.ServiceKey
 import com.stupidtree.hita.api.SyncCodec
@@ -78,6 +79,7 @@ class PluginHostTest {
             TestPlugin("broken") { ctx ->
                 ctx.provide(key, "leaked")
                 ctx.nav.register(NavEntry("nav.broken", 0, 0) { null })
+                ctx.nav.registerText(TextNavEntry("nav.text", "text", 0) { null })
                 ctx.searchTabs.register(SearchTab("tab.broken", 0, 0) { error("unused") })
                 ctx.searchTabs.registerView(
                     ViewSearchTab("view.broken", "broken", 0, { error("unused") })
@@ -89,6 +91,7 @@ class PluginHostTest {
 
         assertNull(host.service(key))
         assertTrue(host.nav.entries().isEmpty())
+        assertTrue(host.nav.textEntries().isEmpty())
         assertTrue(host.searchTabs.entries().isEmpty())
         assertTrue(host.searchTabs.viewEntries().isEmpty())
         assertTrue(host.sync.keys().isEmpty())

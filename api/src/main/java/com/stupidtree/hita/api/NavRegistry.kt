@@ -34,6 +34,20 @@ class NavEntry(
     ) : this(id, titleRes, iconRes, order, null, null, createIntent)
 }
 
+/**
+ * 运行时 dex 插件贡献的导航项。
+ *
+ * 与 [NavEntry] 并存而不是修改它：API 4 的插件仍按旧构造器链接，
+ * 避免 NoSuchMethodError。
+ */
+class TextNavEntry(
+    val id: String,
+    val title: String,
+    val order: Int = 100,
+    val icon: Drawable? = null,
+    val createIntent: (Context) -> Intent?,
+)
+
 interface NavRegistry {
     fun register(entry: NavEntry)
 
@@ -41,4 +55,8 @@ interface NavRegistry {
     fun entries(): List<NavEntry>
 
     fun find(id: String): NavEntry?
+
+    fun registerText(entry: TextNavEntry)
+
+    fun textEntries(): List<TextNavEntry>
 }

@@ -182,6 +182,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     fun install(entry: MarketPlugin) {
         executor.execute {
+            val beforeNav = navIds()
             val error = runCatching {
                 val minApi = entry.minHostApi ?: 1
                 require(minApi <= HITA_API_VERSION) {
@@ -191,6 +192,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             }.exceptionOrNull()
             if (error == null) {
                 MarketSources.recordInstall(ctx(), entry.id, activeSource().url)
+                // 逻辑插件可能注册/撤销抽屉导航项，变化时重建宿主界面。
+                if (navIds() != beforeNav) reloadUi.postValue(true)
             }
             post(error?.let { "安装失败：${it.message}" } ?: "已安装 ${entry.name}")
         }
@@ -198,7 +201,9 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     fun uninstall(entry: MarketPlugin) {
         executor.execute {
+            val beforeNav = navIds()
             val error = runCatching { installer.uninstall(entry.id) }.exceptionOrNull()
+            if (error == null && navIds() != beforeNav) reloadUi.postValue(true)
             post(error?.let { "卸载失败：${it.message}" } ?: "已卸载 ${entry.name}")
         }
     }
@@ -233,7 +238,11 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     }
 
     private fun hasMainTab(plugin: InstalledUiPlugin): Boolean =
-        com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB in plugin.capabilities
+        com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB in plugin.capabilities ||
+            !plugin.mainTabs.isNullOrEmpty()
+
+    private fun navIds(): Set<String> =
+        (ctx() as HApplication).pluginHost.nav.entries().map { it.id }.toSet()
 
     /** 停用保留已下载文件，只从内核卸载；启用重新装载。 */
     fun setMarketEnabled(entry: MarketPlugin, enabled: Boolean) {
@@ -313,6 +322,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
             var ok = 0
             var fail = 0
+            val beforeNav = navIds()
             uiInstalled.forEach { installed ->
                 val source = sourceOf(installed.id)
                 val index = indexes[source.url] ?: return@forEach

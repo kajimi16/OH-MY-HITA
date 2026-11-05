@@ -121,7 +121,7 @@ class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
         val fragmentPages = host.searchTabs.entries().map { tab ->
             SearchPage(
                 id = tab.id,
-                title = tab.textTitle ?: getString(tab.titleRes),
+                title = getString(tab.titleRes),
                 order = tab.order,
                 create = tab.create,
             )

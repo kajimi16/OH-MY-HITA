@@ -26,6 +26,9 @@ class RuntimeUiTabFragment : Fragment() {
         get() = arguments?.getString(ARG_CAPABILITY)
             ?: com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB
 
+    private val pluginId: String?
+        get() = arguments?.getString(ARG_PLUGIN_ID)
+
     override fun onCreateView(
         inflater: android.view.LayoutInflater,
         container: android.view.ViewGroup?,
@@ -36,7 +39,16 @@ class RuntimeUiTabFragment : Fragment() {
         args.putString("tabId", arguments?.getString(ARG_TAB_ID).orEmpty())
         args.putString("tabTitle", arguments?.getString(ARG_TAB_TITLE).orEmpty())
         args.putString("capability", capability)
-        val record = manager.resolveForCapability(capability)
+        val exact = pluginId
+            ?.let { id -> manager.installed().firstOrNull { it.id == id && it.enabled } }
+            ?.takeIf { manager.isUsable(it) }
+        val record = exact ?: manager.resolveForCapability(capability)
+            ?: return message(context, "插件未安装或已停用")
+        Log.i(
+            TAG,
+            "bind pluginId=$pluginId tab=${arguments?.getString(ARG_TAB_ID)} " +
+                "record=${record?.id} exact=${exact?.id}",
+        )
             ?: return message(context, "插件未安装或已停用")
         return try {
             val instance = manager.instantiate(record)
@@ -75,17 +87,21 @@ class RuntimeUiTabFragment : Fragment() {
 
     companion object {
         private const val TAG = "RuntimeUiTab"
+        private const val ARG_PLUGIN_ID = "pluginId"
         private const val ARG_CAPABILITY = "capability"
         private const val ARG_TAB_ID = "tabId"
         private const val ARG_TAB_TITLE = "tabTitle"
 
-        fun newInstance(spec: com.stupidtree.hita.api.MainTabSpec): RuntimeUiTabFragment =
-            RuntimeUiTabFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_CAPABILITY, spec.capability)
-                    putString(ARG_TAB_ID, spec.id)
-                    putString(ARG_TAB_TITLE, spec.title)
-                }
+        fun newInstance(
+            pluginId: String,
+            spec: com.stupidtree.hita.api.MainTabSpec,
+        ): RuntimeUiTabFragment = RuntimeUiTabFragment().apply {
+            arguments = Bundle().apply {
+                putString(ARG_PLUGIN_ID, pluginId)
+                putString(ARG_CAPABILITY, spec.capability)
+                putString(ARG_TAB_ID, spec.id)
+                putString(ARG_TAB_TITLE, spec.title)
             }
+        }
     }
 }

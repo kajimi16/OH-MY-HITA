@@ -52,18 +52,15 @@ ctx.nav.register(
 )
 ```
 
-运行时 dex 插件没有资源表，用 `textTitle` 与可选 `icon`（Drawable）：
+运行时 dex 插件没有资源表，用并行的 `TextNavEntry`（不改 `NavEntry`，保证 API 4 插件二进制兼容）：
 
 ```kotlin
-ctx.nav.register(
-    NavEntry(
+ctx.nav.registerText(
+    TextNavEntry(
         id = "demo.nav",
-        titleRes = 0,
-        iconRes = 0,
+        title = "示例入口",
         order = 200,
-        createIntent = { context -> Intent(context, SomeActivity::class.java) },
-        textTitle = "示例入口",
-    )
+    ) { context -> Intent(context, SomeActivity::class.java) }
 )
 ```
 
@@ -171,7 +168,7 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 | 2 | 移除 `appContext`；新增 `SyncRegistry` |
 | 3 | 新增 `ComposeUiPlugin`、`PluginUiHost`、`RuntimeUiService`，支持运行时界面插件 |
 | 4 | 新增 `CAP_MAIN_TAB`，运行时界面插件可占用主界面 tab |
-| 5 | 支持多个运行时主 tab；`NavEntry` 支持字符串标题；新增 `ViewSearchTab` |
+| 5 | 支持多个运行时主 tab；新增 `TextNavEntry` / `ViewSearchTab` |
 
 ## 运行时逻辑插件（T1）
 

@@ -9,6 +9,7 @@ import com.stupidtree.hita.api.SearchTab
 import com.stupidtree.hita.api.SearchTabRegistry
 import com.stupidtree.hita.api.TabContribution
 import com.stupidtree.hita.api.TabRegistry
+import com.stupidtree.hita.api.TextNavEntry
 import com.stupidtree.hita.api.ViewSearchTab
 import com.stupidtree.hita.api.ServiceKey
 import com.stupidtree.hita.api.SyncCodec
@@ -31,6 +32,7 @@ class PluginHost(
 
     private val services = LinkedHashMap<String, Any>()
     private val navEntries = LinkedHashMap<String, NavEntry>()
+    private val textNavEntries = LinkedHashMap<String, TextNavEntry>()
     private val searchTabEntries = LinkedHashMap<String, SearchTab>()
     private val viewSearchTabEntries = LinkedHashMap<String, ViewSearchTab>()
     private val tabEntries = LinkedHashMap<String, TabContribution>()
@@ -48,6 +50,13 @@ class PluginHost(
         override fun entries(): List<NavEntry> = navEntries.values.sortedBy { it.order }
 
         override fun find(id: String): NavEntry? = navEntries[id]
+
+        override fun registerText(entry: TextNavEntry) {
+            textNavEntries[entry.id] = entry
+        }
+
+        override fun textEntries(): List<TextNavEntry> =
+            textNavEntries.values.sortedBy { it.order }
     }
 
     /** 宿主只读的搜索 tab 视图。 */
@@ -186,6 +195,17 @@ class PluginHost(
             override fun entries(): List<NavEntry> = this@PluginHost.nav.entries()
 
             override fun find(id: String): NavEntry? = this@PluginHost.nav.find(id)
+
+            override fun registerText(entry: TextNavEntry) {
+                val previous = textNavEntries.put(entry.id, entry)
+                undoStack += {
+                    if (previous == null) textNavEntries.remove(entry.id)
+                    else textNavEntries[entry.id] = previous
+                }
+            }
+
+            override fun textEntries(): List<TextNavEntry> =
+                this@PluginHost.nav.textEntries()
         }
 
         override val searchTabs: SearchTabRegistry = object : SearchTabRegistry {
