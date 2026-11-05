@@ -4,8 +4,10 @@ import android.annotation.SuppressLint
 import android.app.TimePickerDialog
 import android.view.HapticFeedbackConstants
 import android.view.View
+import com.stupidtree.hita.api.RuntimeUiService
 import com.stupidtree.hita.plugin.timetable.R
 import com.stupidtree.hitax.data.model.timetable.TimeInDay
+import com.stupidtree.hitax.plugin.HitaRuntime
 import com.stupidtree.hita.plugin.timetable.databinding.FragmentTimetablePanelBinding
 import com.stupidtree.style.widgets.TransparentModeledBottomSheetDialog
 
@@ -14,6 +16,15 @@ class FragmentTimetablePanel : TransparentModeledBottomSheetDialog<TimetablePane
 
     override fun initViews(view: View) {
         bindLiveData()
+        val runtimeUi = HitaRuntime.runtimeUi
+        val appearanceAvailable =
+            runtimeUi?.isAvailable(RuntimeUiService.CAP_TIMETABLE_APPEARANCE) == true
+        binding?.appearancePlugin?.visibility = if (appearanceAvailable) View.VISIBLE else View.GONE
+        binding?.appearancePlugin?.setOnClickListener {
+            if (runtimeUi?.open(requireActivity(), RuntimeUiService.CAP_TIMETABLE_APPEARANCE) == true) {
+                dismiss()
+            }
+        }
         binding?.reset?.setOnClickListener {
             viewModel.startResetColor()
         }

@@ -66,6 +66,7 @@ class HitaPlugin(private val application: Application) : Plugin {
         // 插件内部界面代码（Activity/ViewModel）没有 PluginContext，通过运行时单例取用
         HitaRuntime.timetable = service
         HitaRuntime.hostUi = ctx.service(HostUiService.KEY)
+        HitaRuntime.runtimeUi = ctx.service(com.stupidtree.hita.api.RuntimeUiService.KEY)
 
         ctx.tabs.register(
             TabContribution(

@@ -148,4 +148,5 @@
     <!-- 今日小组件 -->
     <string name="widget_loading">组件加载中...</string>
     <string name="unknown_location_widget">未知</string>
+    <string name="timetable_appearance_plugin">壁纸与外观</string>
 </resources>
