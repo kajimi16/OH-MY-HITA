@@ -69,6 +69,7 @@ class TimetableFragment :
 
 
     override fun initViews(view: View) {
+        attachTimetableWallpaper(view as ViewGroup, viewLifecycleOwner)
         pagerAdapter = TimeTablePagerAdapter(WINDOW_SIZE)
         binding?.pager?.adapter = pagerAdapter
         binding?.pager?.offscreenPageLimit = WINDOW_SIZE / 2 - 1
@@ -115,6 +116,21 @@ class TimetableFragment :
             scrollToDate(System.currentTimeMillis())
         }
         binding?.pager?.currentItem = pagerAdapter.count / 2 + (WINDOW_SIZE / 2)
+        val originalMonthColor = binding?.month?.currentTextColor ?: android.graphics.Color.GRAY
+        var hadWallpaper: Boolean? = null
+        TimetableAppearanceStore.get(requireContext()).observe().observe(viewLifecycleOwner) { appearance ->
+            binding?.labels?.apply { labelColor = if (appearance.hasWallpaper) android.graphics.Color.WHITE else 0; invalidate() }
+            binding?.month?.setTextColor(if (appearance.hasWallpaper) android.graphics.Color.WHITE else originalMonthColor)
+            views.filterNotNull().forEach { it.setWallpaperText(appearance.hasWallpaper) }
+            if (hadWallpaper != appearance.hasWallpaper) {
+                hadWallpaper = appearance.hasWallpaper
+                for (i in views.indices) {
+                    val data = viewModel.windowEventsData[i].value
+                    val date = viewModel.windowStartData[i].value
+                    if (data != null && date != null) views[i]?.refresh(date, data.first, data.second, false)
+                }
+            }
+        }
         viewModel.timetableLiveData.observe(this) {
             viewModel.currentPageStartDate.value?.let { date ->
                 refreshWeekLayout(date, it)

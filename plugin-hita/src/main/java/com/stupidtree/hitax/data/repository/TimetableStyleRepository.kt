@@ -63,6 +63,9 @@ class TimetableStyleRepository(application: Application) {
                 sheet.value = it
             }
         }
+        sheet.addSource(timetableStyleSP.intLiveData("appearance_opacity", 95)) { opacity ->
+            sheet.value?.let { it.cardOpacity = opacity.coerceIn(0, 100); sheet.value = it }
+        }
         return sheet
     }
 

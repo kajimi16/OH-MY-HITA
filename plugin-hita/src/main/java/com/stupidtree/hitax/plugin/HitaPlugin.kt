@@ -35,6 +35,7 @@ class HitaPlugin(private val application: Application) : Plugin {
 
     /** 用户选择「卸载并清除数据」：课表库、样式偏好、插件私有目录。 */
     override fun purgeData() {
+        com.stupidtree.hitax.ui.main.timetable.TimetableAppearanceStore.get(application).reset()
         AppDatabase.reset()
         TimetableRepository.resetInstance()
         SubjectRepository.resetInstance()
@@ -60,6 +61,7 @@ class HitaPlugin(private val application: Application) : Plugin {
         )
         ctx.provide(TimetableService.KEY, service)
         ctx.provide(TimetableUiService.KEY, TimetableUiImpl())
+        ctx.provide(com.stupidtree.hita.api.TimetableAppearanceService.KEY, com.stupidtree.hitax.ui.main.timetable.TimetableAppearanceStore.get(application))
 
         // 插件内部界面代码（Activity/ViewModel）没有 PluginContext，通过运行时单例取用
         HitaRuntime.timetable = service

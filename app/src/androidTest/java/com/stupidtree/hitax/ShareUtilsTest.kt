@@ -1,8 +1,7 @@
 package com.stupidtree.hitax
 
 import android.content.Intent
-import android.os.Parcel
-import android.os.Parcelable
+import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.stupidtree.hitax.utils.ShareUtils
 import org.junit.Assert.assertEquals
@@ -14,8 +13,8 @@ import org.junit.runner.RunWith
 class ShareUtilsTest {
     @Test
     fun buildShareIntentForUri_setsMimeStreamAndFlags() {
-        val stream = FakeParcelable()
-        val intent = ShareUtils.buildShareIntentForStream(stream, "text/calendar")
+        val stream = Uri.parse("content://com.stupidtree.hitax.test/calendar.ics")
+        val intent = ShareUtils.buildShareIntentForUri(stream, "text/calendar")
 
         assertEquals(Intent.ACTION_SEND, intent.action)
         assertEquals("text/calendar", intent.type)
@@ -23,9 +22,4 @@ class ShareUtilsTest {
         assertTrue(intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION != 0)
     }
 
-    private class FakeParcelable : Parcelable {
-        override fun describeContents(): Int = 0
-
-        override fun writeToParcel(dest: Parcel, flags: Int) = Unit
-    }
 }

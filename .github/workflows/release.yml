@@ -94,7 +94,7 @@ jobs:
 
       - name: Run unit tests
         run: >
-          ./gradlew :app:testDebugUnitTest :kernel:testDebugUnitTest
+          ./gradlew :api:testDebugUnitTest :app:testDebugUnitTest :kernel:testDebugUnitTest
           :plugin-hita:testDebugUnitTest :component:testDebugUnitTest
           :style:testDebugUnitTest
 

@@ -102,6 +102,13 @@ class TimeTableBlockView constructor(
             title?.typeface = Typeface.DEFAULT_BOLD
             subtitle?.typeface = Typeface.DEFAULT_BOLD
         }
+        if (com.stupidtree.hitax.ui.main.timetable.TimetableAppearanceStore.get(context).observe().value?.hasWallpaper == true) {
+            listOfNotNull(title, subtitle).forEach { text ->
+                val ink = text.currentTextColor
+                val shadow = if (Color.red(ink) + Color.green(ink) + Color.blue(ink) < 384) Color.WHITE else Color.BLACK
+                text.setShadowLayer(3f, 0f, 1f, shadow)
+            }
+        }
         title?.alpha = styleSheet.titleAlpha.toFloat() / 100
         subtitle?.alpha = styleSheet.subtitleAlpha.toFloat() / 100
         title?.gravity = styleSheet.titleGravity
