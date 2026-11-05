@@ -5,7 +5,7 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 [App 下载（Releases）](https://github.com/kajimi16/OH-MY-HITA/releases/latest) ·
 [国内镜像](https://ani2-ext.kajimi.cc/hita/releases/oh-my-hita-latest.apk)
 
-当前版本：`0.3.0`。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
+当前版本：`0.4.6`。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
 
 ### 运行时插件（T1）
 
@@ -127,6 +127,9 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 社区插件不在本仓库：例如番剧界面插件位于
 [`kajimi16/hita-community-plugins`](https://github.com/kajimi16/hita-community-plugins)，
 通过市场索引安装，不随宿主发版。
+
+插件发布也由社区仓库完成：作者运行 `Publish Plugin` 工作流，CI 构建产物、计算 sha256、
+写入 `dist/` 与中央索引 `registry/index.json`；宿主默认读取该索引，`market` 分支保留为可替换源。
 
 装配点只有一个 —— `app/src/main/assets/plugins.json`：
 

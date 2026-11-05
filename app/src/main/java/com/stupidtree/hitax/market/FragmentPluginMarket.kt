@@ -35,12 +35,15 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     private var latestApk: List<ApkPlugin> = emptyList()
     private var latestPendingUpdates = 0
     private var query: String = ""
-    private var showMine = false
+    private var selectedTab = 0
     private fun uiPrefs() =
         requireContext().getSharedPreferences("market_ui", android.content.Context.MODE_PRIVATE)
 
     override fun initViews(view: View) {
-        showMine = uiPrefs().getBoolean(KEY_MINE, false)
+        selectedTab = uiPrefs().getInt(
+            KEY_TAB,
+            if (uiPrefs().getBoolean(KEY_MINE, false)) TAB_MINE else TAB_DISCOVER,
+        )
         query = uiPrefs().getString(KEY_QUERY, "").orEmpty()
         viewModel.builtinPlugins.observe(this) { latestBuiltin = it; renderAll() }
         viewModel.items.observe(this) { latestDex = it; renderAll() }
@@ -50,8 +53,15 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         viewModel.sources.observe(this) { renderAll() }
         viewModel.pendingUpdates.observe(this) { latestPendingUpdates = it; renderAll() }
 
-        binding?.tabDiscover?.setOnClickListener { showTab(false) }
-        binding?.tabMine?.setOnClickListener { showTab(true) }
+        binding?.tabDiscover?.setOnClickListener { showTab(TAB_DISCOVER) }
+        binding?.tabMine?.setOnClickListener { showTab(TAB_MINE) }
+        binding?.tabGuide?.setOnClickListener { showTab(TAB_GUIDE) }
+        binding?.guideTemplate?.setOnClickListener {
+            openUrl("https://github.com/kajimi16/hita-plugin-template")
+        }
+        binding?.guideCommunity?.setOnClickListener {
+            openUrl("https://github.com/kajimi16/hita-community-plugins")
+        }
         binding?.marketSource?.setOnClickListener { showSourceDialog() }
         binding?.updateAll?.setOnClickListener { viewModel.updateAll() }
         binding?.discoverSearch?.addTextChangedListener(object : TextWatcher {
@@ -80,7 +90,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             viewModel.consumeMessage()
         }
         binding?.discoverSearch?.setText(query)
-        showTab(showMine)
+        showTab(selectedTab)
     }
 
     override fun onResume() {
@@ -88,15 +98,30 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         viewModel.refresh()
     }
 
-    private fun showTab(mine: Boolean) {
-        showMine = mine
-        uiPrefs().edit().putBoolean(KEY_MINE, mine).apply()
-        binding?.discoverScroll?.visibility = if (mine) View.GONE else View.VISIBLE
-        binding?.mineScroll?.visibility = if (mine) View.VISIBLE else View.GONE
-        binding?.tabDiscover?.alpha = if (mine) 0.5f else 1f
-        binding?.tabMine?.alpha = if (mine) 1f else 0.5f
-        binding?.tabDiscover?.setTypeface(null, if (mine) android.graphics.Typeface.NORMAL else android.graphics.Typeface.BOLD)
-        binding?.tabMine?.setTypeface(null, if (mine) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+    private fun showTab(tab: Int) {
+        selectedTab = tab
+        uiPrefs().edit().putInt(KEY_TAB, tab).apply()
+        val tabs = listOf(binding?.tabDiscover, binding?.tabMine, binding?.tabGuide)
+        val scrolls = listOf(binding?.discoverScroll, binding?.mineScroll, binding?.guideScroll)
+        tabs.forEachIndexed { index, view ->
+            view?.alpha = if (index == tab) 1f else 0.5f
+            view?.setTypeface(
+                null,
+                if (index == tab) android.graphics.Typeface.BOLD
+                else android.graphics.Typeface.NORMAL,
+            )
+        }
+        scrolls.forEachIndexed { index, view ->
+            view?.visibility = if (index == tab) View.VISIBLE else View.GONE
+        }
+    }
+
+    private fun openUrl(url: String) {
+        runCatching {
+            startActivity(
+                android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+            )
+        }
     }
 
     // ---- 渲染 ----
@@ -496,7 +521,12 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
 
     companion object {
         private const val KEY_MINE = "mine"
+        private const val KEY_TAB = "tab"
         private const val KEY_QUERY = "query"
+
+        private const val TAB_DISCOVER = 0
+        private const val TAB_MINE = 1
+        private const val TAB_GUIDE = 2
     }
 
     private fun bindToggle(
