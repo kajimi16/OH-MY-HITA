@@ -36,8 +36,12 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     private var latestPendingUpdates = 0
     private var query: String = ""
     private var showMine = false
+    private fun uiPrefs() =
+        requireContext().getSharedPreferences("market_ui", android.content.Context.MODE_PRIVATE)
 
     override fun initViews(view: View) {
+        showMine = uiPrefs().getBoolean(KEY_MINE, false)
+        query = uiPrefs().getString(KEY_QUERY, "").orEmpty()
         viewModel.builtinPlugins.observe(this) { latestBuiltin = it; renderAll() }
         viewModel.items.observe(this) { latestDex = it; renderAll() }
         viewModel.uiPlugins.observe(this) { latestUiInstalled = it; renderAll() }
@@ -54,6 +58,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 query = s?.toString().orEmpty()
+                uiPrefs().edit().putString(KEY_QUERY, query).apply()
                 renderDiscover()
             }
             override fun afterTextChanged(s: Editable?) {}
@@ -74,7 +79,8 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
             viewModel.consumeMessage()
         }
-        showTab(false)
+        binding?.discoverSearch?.setText(query)
+        showTab(showMine)
     }
 
     override fun onResume() {
@@ -84,6 +90,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
 
     private fun showTab(mine: Boolean) {
         showMine = mine
+        uiPrefs().edit().putBoolean(KEY_MINE, mine).apply()
         binding?.discoverScroll?.visibility = if (mine) View.GONE else View.VISIBLE
         binding?.mineScroll?.visibility = if (mine) View.VISIBLE else View.GONE
         binding?.tabDiscover?.alpha = if (mine) 0.5f else 1f
@@ -485,6 +492,11 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             }
             container.addView(row)
         }
+    }
+
+    companion object {
+        private const val KEY_MINE = "mine"
+        private const val KEY_QUERY = "query"
     }
 
     private fun bindToggle(
