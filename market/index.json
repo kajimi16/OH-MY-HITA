@@ -32,12 +32,12 @@
     {
       "id": "com.stupidtree.hita.ui.anime",
       "name": "番剧",
-      "version": "0.2.0",
-      "url": "https://raw.githubusercontent.com/kajimi16/hita-community-plugins/master/dist/anime-0.2.0.apk",
-      "sha256": "ca65bc4f529833856783f79c6b36279a547da80734e9539a0536e6233f163d1c",
-      "description": "参照 Animeko Android 端的番剧客户端：首页 / 时间表 / 搜索 / 追番 / 条目详情 / 弹幕 / 评论 / 资源",
-      "changelog": "0.2.0：完整重写。首页、周时间表、组合搜索、五种收藏分组；条目详情含评分直方图、角色/制作/关联、章节进度、收藏评分与短评；hit-ani 弹幕浏览/发送/只看本校、校内评论与资源索引；Bangumi 令牌与站点会话设置。",
-      "size": 227744,
+      "version": "0.2.1",
+      "url": "https://raw.githubusercontent.com/kajimi16/hita-community-plugins/master/dist/anime-0.2.1.apk",
+      "sha256": "7f5360eb6e939f21ebb0dc9ae9ccaddd510d530ab3335beca4d417814611bb76",
+      "description": "参照 Animeko Android 端的番剧客户端：首页 / 放送表 / 搜索 / 追番 / 条目详情 / 弹幕 / 评论 / 资源",
+      "changelog": "0.2.1：修正放送表 —— 改用 BGM calendar 的当前在播番组，航海王/柯南等长篇不再消失；首页「本周放送」共用同一次请求。",
+      "size": 225120,
       "minHostApi": 5,
       "author": "kajimi16",
       "tags": [
