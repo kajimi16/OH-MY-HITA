@@ -56,6 +56,12 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         binding?.tabDiscover?.setOnClickListener { showTab(TAB_DISCOVER) }
         binding?.tabMine?.setOnClickListener { showTab(TAB_MINE) }
         binding?.tabGuide?.setOnClickListener { showTab(TAB_GUIDE) }
+        binding?.guidePublish?.setOnClickListener {
+            openUrl("https://github.com/kajimi16/hita-community-plugins/issues/new?template=publish-request.yml")
+        }
+        binding?.guideApi?.setOnClickListener {
+            openUrl("https://github.com/kajimi16/OH-MY-HITA/blob/master/docs/api/plugin-api.md")
+        }
         binding?.guideTemplate?.setOnClickListener {
             openUrl("https://github.com/kajimi16/hita-plugin-template")
         }

@@ -239,13 +239,33 @@
             android:paddingEnd="16dp"
             android:paddingBottom="24dp">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/plugin_guide_title"
-                android:textColor="?attr/textColorPrimary"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/plugin_guide_title"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/backgroundColorSecond"
+                    android:paddingStart="8dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="3dp"
+                    android:text="@string/plugin_guide_api_badge"
+                    android:textColor="?attr/colorAccent"
+                    android:textSize="11sp" />
+            </LinearLayout>
 
             <TextView
                 android:layout_width="match_parent"
@@ -258,7 +278,7 @@
             <com.stupidtree.hitax.market.PluginGuideAnimationView
                 android:id="@+id/guide_animation"
                 android:layout_width="match_parent"
-                android:layout_height="360dp"
+                android:layout_height="400dp"
                 android:layout_marginTop="12dp" />
 
             <TextView
@@ -271,10 +291,33 @@
                 android:lineSpacingExtra="6dp" />
 
             <TextView
-                android:id="@+id/guide_template"
+                android:id="@+id/guide_publish"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:text="@string/plugin_guide_publish"
+                android:textColor="?attr/colorAccent"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/guide_api"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:text="@string/plugin_guide_api"
+                android:textColor="?attr/colorAccent"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/guide_template"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:background="?attr/selectableItemBackground"
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp"

@@ -851,8 +851,11 @@
     <string name="plugin_tab_mine">我的插件</string>
     <string name="plugin_tab_guide">自定义插件指北</string>
     <string name="plugin_guide_title">从代码到市场</string>
-    <string name="plugin_guide_subtitle">作者提交仓库，CI 构建并发布索引，市场即可安装</string>
-    <string name="plugin_guide_steps">1. 用模板创建插件工程，实现 ComposeUiPlugin（界面）或 Plugin（逻辑）。\n\n2. 在 plugin.json 写好 id、版本、apiVersion、capabilities；界面插件可声明 mainTabs、标题与图标。\n\n3. 把仓库推到 GitHub，在社区仓库运行 Publish Plugin 工作流，填写仓库地址、模块、类型与版本。\n\n4. CI 构建 APK/dex，校验入口类与元数据，计算 SHA-256 并上传到 dist/ 或对象存储。\n\n5. CI 更新中央索引 registry/index.json，市场刷新后即可查询、安装与更新。\n\n不需要给宿主提交 PR；插件独立发版，不随 App 更新。</string>
+    <string name="plugin_guide_api_badge">API 5</string>
+    <string name="plugin_guide_subtitle">模板 → 独立仓库 → 发布请求 → CI → 中央索引 → 市场安装</string>
+    <string name="plugin_guide_steps">1. 用 hita-plugin-template 创建独立 Gradle 工程：界面插件实现 ComposeUiPlugin，逻辑插件实现 Plugin。\n\n2. 在 assets/plugin.json 写 id、version、apiVersion、composeVersion；界面插件可声明 mainTabs、标题与图标。\n\n3. 推送到自己的 GitHub 仓库，确认公开可读且本地构建通过。\n\n4. 在社区仓库提交「插件发布请求」Issue，填写 repo、module、kind、version、entryClass 等。\n\n5. 维护者运行 Publish Plugin：CI 构建、校验 plugin.json、计算 sha256，写入 dist/ 与 registry/index.json。\n\n6. 市场刷新后即可安装；更新插件需要提升 version，否则不会提示更新。</string>
+    <string name="plugin_guide_publish">提交插件发布请求 →</string>
+    <string name="plugin_guide_api">查看插件 API 文档 →</string>
     <string name="plugin_guide_template">打开插件模板仓库 →</string>
     <string name="plugin_guide_community">打开社区插件仓库 →</string>
     <string name="plugin_discover_search_hint">搜索插件</string>
