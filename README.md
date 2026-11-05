@@ -144,8 +144,8 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 已实现的贡献点：
 
 - `ServiceKey<T>` —— 服务注册/查找（`CommunityService` 即由 θ 插件提供）
-- `NavEntry` —— 抽屉导航项
-- `SearchTab` —— 搜索结果页 tab，按 `SearchTabIds` 语义 id 与宿主对齐
+- `NavEntry` —— 抽屉导航项（构建期用资源标题，运行时插件用字符串标题）
+- `SearchTab` / `ViewSearchTab` —— 搜索结果页 tab；运行时 dex 插件用 View 形态，避免 Fragment 恢复失败
 - `SyncCodec` —— 云同步的「一张表」，宿主不再 `when(key)` 硬编码数据表
 - `TimetableUiService` —— 课表界面入口与小组件刷新
 - `ResourceUiService` —— 课程资源 / 教师界面入口

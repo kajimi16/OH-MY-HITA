@@ -35,7 +35,6 @@ import com.stupidtree.style.ThemeTools
 import com.stupidtree.style.base.BaseActivity
 import com.stupidtree.style.base.BaseTabAdapter
 import com.stupidtree.style.widgets.PopUpText
-import me.ibrahimsn.lib.OnItemSelectedListener
 
 /**
  * 很显然，这是主界面
@@ -51,10 +50,16 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
     private val pluginMenuIds = LinkedHashMap<Int, NavEntry>()
 
-    /** 插件贡献的额外主界面 tab；原型阶段底栏最多承载一个。 */
-    private var extraTabs: List<com.stupidtree.hita.api.TabContribution> = emptyList()
-
     private val baseTabIds = setOf("hita.timeline", "hita.timetable")
+
+    private data class Page(
+        val id: Int,
+        val title: String,
+        val iconRes: Int,
+        val create: () -> Fragment,
+    )
+
+    private var pages: List<Page> = emptyList()
 
     private fun attachPluginNavItems() {
         val menu = binding.drawerNavigationview.menu
@@ -63,8 +68,12 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         host.nav.entries().forEachIndexed { index, entry ->
             val itemId = PLUGIN_MENU_ID_BASE + index
             pluginMenuIds[itemId] = entry
-            menu.add(Menu.NONE, itemId, 100 + index, entry.titleRes)
-                .setIcon(entry.iconRes)
+            val title = entry.textTitle
+                ?: if (entry.titleRes != 0) getString(entry.titleRes) else entry.id
+            val item = menu.add(Menu.NONE, itemId, 100 + index, title)
+            val icon = entry.icon
+            if (icon != null) item.icon = icon
+            else item.setIcon(if (entry.iconRes != 0) entry.iconRes else R.drawable.ic_nav_plugin)
         }
     }
 
@@ -191,81 +200,36 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     override fun initViews() {
         setUpDrawer()
         //  binding.title.text = binding.navView.menu.getItem(0).title
-        val contributedTabs = pluginHost().tabs.entries().filterNot { it.id in baseTabIds }
-        extraTabs = contributedTabs.take(1)
-        if (contributedTabs.size > 1) {
-            Log.w("MainActivity", "底栏目前只承载一个插件 tab，忽略: ${contributedTabs.drop(1).map { it.id }}")
+        pages = buildPages()
+        binding.navView.submit(pages.map { DynamicBottomBar.Item(it.id, it.title, it.iconRes) })
+        binding.navView.onItemSelected = { index ->
+            binding.navView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            binding.pager.currentItem = index
+            true
         }
-        val runtimeTab = com.stupidtree.hitax.uiplugin.UiPluginManager(this)
-            .resolveForCapability(com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB)
-        val fifthPage: (() -> Fragment)? = when {
-            extraTabs.isNotEmpty() -> extraTabs[0].create
-            runtimeTab != null -> ({ com.stupidtree.hitax.uiplugin.RuntimeUiTabFragment() })
-            else -> null
-        }
-        val pageCount = 4 + if (fifthPage == null) 0 else 1
-        binding.navView.itemMenuRes = if (fifthPage == null) {
-            R.menu.main_bottom_nav_menu
-        } else {
-            R.menu.main_bottom_nav_menu_5
-        }
-        binding.pager.adapter = object : BaseTabAdapter(supportFragmentManager, pageCount) {
-            override fun initItem(position: Int): Fragment {
-                return when (position) {
-                    0 -> (application as HApplication).pluginHost.tabs
-                        .find("hita.timeline")?.let { it.create() }
-                        ?: PluginUnavailableFragment.newInstance("com.stupidtree.hitax.timetable")
-                    1 -> (application as HApplication).pluginHost.tabs
-                        .find("hita.timetable")?.let { it.create() }
-                        ?: PluginUnavailableFragment.newInstance("com.stupidtree.hitax.timetable")
-                    2 -> NavigationFragment()
-                    3 -> com.stupidtree.hitax.market.FragmentPluginMarket()
-                    else -> fifthPage?.invoke()
-                        ?: PluginUnavailableFragment.newInstance("com.stupidtree.hitax.bangumi")
-                }
-            }
+        binding.pager.adapter = object : BaseTabAdapter(supportFragmentManager, pages.size) {
+            override fun initItem(position: Int): Fragment = pages[position].create()
 
             override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
                 //super.destroyItem(container, position, `object`)
             }
         }
-        binding.pager.offscreenPageLimit = pageCount
+        binding.pager.offscreenPageLimit = pages.size
         binding.pager.addOnPageChangeListener(object : OnPageChangeListener {
             override fun onPageScrolled(
                 position: Int,
                 positionOffset: Float,
-                positionOffsetPixels: Int
+                positionOffsetPixels: Int,
             ) {
             }
 
             override fun onPageSelected(position: Int) {
-                binding.navView.itemActiveIndex = position//.getItem(position).isChecked = true
+                binding.navView.select(position)
                 showHeaderFor(position)
-//                val item = binding.navView.menu.getItem(position)
-//                item.isChecked = true
-//                binding.title.text = item.title
-                //Objects.requireNonNull(getSupportActionBar()).setTitle(item.getTitle());
             }
 
             override fun onPageScrollStateChanged(state: Int) {}
         })
-        binding.navView.onItemSelectedListener = object : OnItemSelectedListener {
-            override fun onItemSelect(pos: Int): Boolean {
-                binding.navView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                binding.pager.currentItem = pos
-                return true
-            }
-
-        }
-//        binding.navView.setOnNavigationItemSelectedListener { item: MenuItem ->
-//            when (item.itemId) {
-//                R.id.navigation_timeline -> binding.pager.currentItem = 0
-//                R.id.navigation_timetable -> binding.pager.currentItem = 1
-//                R.id.navigation_navigation -> binding.pager.currentItem = 2
-//            }
-//            binding.navView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-//            true
-//        }
         binding.drawerButton.setOnClickListener { binding.drawer.openDrawer(GravityCompat.END) }
 
         binding.timetableSetting.setOnClickListener {
@@ -370,16 +334,69 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
      * （0 今日 / 1 时间表 / 2 功能中心 / 3 插件市场 / 4 插件贡献页）。
      * 新增标签页时只需在这里加一项，避免某个分支漏关导致标题叠加。
      */
+    private fun buildPages(): List<Page> {
+        val host = (application as HApplication).pluginHost
+        val result = mutableListOf(
+            Page(
+                R.id.navigation_timeline,
+                getString(R.string.title_timeline),
+                R.drawable.ic_nav_today,
+            ) {
+                host.tabs.find("hita.timeline")?.let { it.create() }
+                    ?: PluginUnavailableFragment.newInstance("com.stupidtree.hitax.timetable")
+            },
+            Page(
+                R.id.navigation_timetable,
+                getString(R.string.title_timetable),
+                R.drawable.ic_nav_timetable,
+            ) {
+                host.tabs.find("hita.timetable")?.let { it.create() }
+                    ?: PluginUnavailableFragment.newInstance("com.stupidtree.hitax.timetable")
+            },
+            Page(R.id.navigation_navigation, getString(R.string.title_navigation), R.drawable.ic_nav_navigation) {
+                NavigationFragment()
+            },
+            Page(R.id.navigation_plugin, getString(R.string.title_plugin), R.drawable.ic_nav_plugin) {
+                com.stupidtree.hitax.market.FragmentPluginMarket()
+            },
+        )
+        host.tabs.entries()
+            .filterNot { it.id in baseTabIds }
+            .forEach { tab ->
+                result += Page(
+                    1000 + result.size,
+                    if (tab.titleRes != 0) getString(tab.titleRes) else tab.id,
+                    if (tab.iconRes != 0) tab.iconRes else R.drawable.ic_nav_plugin,
+                    tab.create,
+                )
+            }
+        com.stupidtree.hitax.uiplugin.UiPluginManager(this).mainTabs().forEach { installed ->
+            val title = installed.spec.title.ifBlank { installed.plugin.name }
+            result += Page(
+                2000 + result.size,
+                title,
+                R.drawable.ic_nav_plugin,
+            ) {
+                com.stupidtree.hitax.uiplugin.RuntimeUiTabFragment.newInstance(installed.spec)
+            }
+        }
+        return result
+    }
+
     private fun showHeaderFor(position: Int) {
         val headers = listOf(
             binding.todayLayout,
             binding.timetableLayout,
             binding.navigationLayout,
             binding.pluginLayout,
-            binding.animeLayout,
         )
         headers.forEachIndexed { index, header ->
             header.visibility = if (index == position) VISIBLE else GONE
+        }
+        val runtimePage = position >= headers.size
+        binding.runtimeLayout.visibility = if (runtimePage) VISIBLE else GONE
+        if (runtimePage) {
+            binding.runtimeTitle.text = pages.getOrNull(position)?.title.orEmpty()
         }
     }
 

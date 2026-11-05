@@ -21,8 +21,16 @@ import com.stupidtree.style.base.FragmentSearchResult
 
 class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
     BasicFragmentSearchResult.SearchRoot {
-    var pagerAdapter: SearchPagerAdapter? = null
-    private var tabs: List<SearchTab> = emptyList()
+    private var pagerAdapter: SearchPagerAdapter? = null
+
+    private data class SearchPage(
+        val id: String,
+        val title: String,
+        val order: Int,
+        val create: () -> Fragment,
+    )
+
+    private var pages: List<SearchPage> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +68,7 @@ class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
             ActivityUtils.SearchType.ARTICLE.name -> SearchTabIds.ARTICLE
             else -> return
         }
-        val index = tabs.indexOfFirst { it.id == tabId }
+        val index = pages.indexOfFirst { it.id == tabId }
         if (index >= 0) binding.pager.currentItem = index
     }
 
@@ -80,8 +88,8 @@ class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
                 return false
             }
         })
-        tabs = buildTabs()
-        pagerAdapter = SearchPagerAdapter(supportFragmentManager, this, tabs)
+        pages = buildPages()
+        pagerAdapter = SearchPagerAdapter(supportFragmentManager, this, pages)
         binding.pager.adapter = pagerAdapter
         binding.tabs.setupWithViewPager(binding.pager)
     }
@@ -100,37 +108,48 @@ class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
 
     fun setSearchText(text: String) {
         for (f in supportFragmentManager.fragments) {
-            if (f is FragmentSearchResult) {
-                f.setSearchText(text)
+            when (f) {
+                is RuntimeSearchTabFragment -> f.setQuery(text)
+                is FragmentSearchResult -> f.setSearchText(text)
             }
         }
     }
 
-    /** 搜索 tab 全部来自插件贡献点，宿主只负责排序与渲染。 */
-    private fun buildTabs(): List<SearchTab> {
-        return (application as HApplication).pluginHost.searchTabs.entries()
-            .sortedBy { it.order }
+    /** 搜索 tab 来自插件贡献点；Fragment 与 View 两种形态统一成宿主页面。 */
+    private fun buildPages(): List<SearchPage> {
+        val host = (application as HApplication).pluginHost
+        val fragmentPages = host.searchTabs.entries().map { tab ->
+            SearchPage(
+                id = tab.id,
+                title = tab.textTitle ?: getString(tab.titleRes),
+                order = tab.order,
+                create = tab.create,
+            )
+        }
+        val viewPages = host.searchTabs.viewEntries().map { tab ->
+            SearchPage(
+                id = tab.id,
+                title = tab.title,
+                order = tab.order,
+                create = { RuntimeSearchTabFragment.newInstance(tab.id) },
+            )
+        }
+        return (fragmentPages + viewPages).sortedBy { it.order }
     }
 
-    class SearchPagerAdapter(
+    private class SearchPagerAdapter(
         fm: FragmentManager,
         private val context: Context,
-        private val tabs: List<SearchTab>,
-    ) : BaseTabAdapter(fm, tabs.size) {
+        private val pages: List<SearchPage>,
+    ) : BaseTabAdapter(fm, pages.size) {
 
-        override fun getPageTitle(position: Int): CharSequence {
-            return context.getString(tabs[position].titleRes)
-        }
+        override fun getPageTitle(position: Int): CharSequence = pages[position].title
 
         override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
-            //super.destroyItem(container, position, object);
             mFragments[position] = null
         }
 
-        override fun initItem(position: Int): Fragment {
-            return tabs[position].create()
-        }
-
+        override fun initItem(position: Int): Fragment = pages[position].create()
     }
 
     override fun initViewBinding(): ActivitySearchBinding {

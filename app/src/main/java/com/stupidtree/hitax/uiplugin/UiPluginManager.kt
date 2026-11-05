@@ -26,6 +26,31 @@ class UiPluginManager(private val context: Context) {
             .filter { File(it.apkPath).isFile }
             .map { it.copy(enabled = !UiPluginStore.isDisabled(context, it.id)) }
 
+    data class InstalledMainTab(
+        val plugin: InstalledUiPlugin,
+        val spec: com.stupidtree.hita.api.MainTabSpec,
+    )
+
+    /** 所有启用插件贡献的主界面 tab，按 order 排序。 */
+    fun mainTabs(): List<InstalledMainTab> = installed()
+        .filter { it.enabled }
+        .flatMap { plugin ->
+            val tabs = plugin.mainTabs ?: if (
+                com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB in plugin.capabilities
+            ) {
+                listOf(
+                    com.stupidtree.hita.api.MainTabSpec(
+                        id = plugin.id,
+                        title = plugin.name,
+                    )
+                )
+            } else {
+                emptyList()
+            }
+            tabs.map { InstalledMainTab(plugin, it) }
+        }
+        .sortedBy { it.spec.order }
+
     /** 按 capability 找一个可用的已安装插件；找不到返回 null。 */
     fun enabled(): List<InstalledUiPlugin> = installed().filter { it.enabled }
 
@@ -63,6 +88,7 @@ class UiPluginManager(private val context: Context) {
         val apiVersion: Int,
         val composeVersion: String,
         val capabilities: List<String>,
+        val mainTabs: List<com.stupidtree.hita.api.MainTabSpec> = emptyList(),
     )
 
     private fun requireValidId(id: String) {
@@ -126,6 +152,18 @@ class UiPluginManager(private val context: Context) {
             apkPath = apk.absolutePath,
             sha256 = actual,
             capabilities = meta.capabilities,
+            mainTabs = meta.mainTabs.ifEmpty {
+                if (com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB in meta.capabilities) {
+                    listOf(
+                        com.stupidtree.hita.api.MainTabSpec(
+                            id = meta.id,
+                            title = plugin.displayName,
+                        )
+                    )
+                } else {
+                    emptyList()
+                }
+            },
         )
         UiPluginStore.put(context, installed)
         return installed
@@ -175,6 +213,19 @@ class UiPluginManager(private val context: Context) {
                 composeVersion = obj.get("composeVersion")?.asString ?: "",
                 capabilities = obj.getAsJsonArray("capabilities")
                     ?.mapNotNull { it.asString } ?: emptyList(),
+                mainTabs = obj.getAsJsonArray("mainTabs")
+                    ?.mapNotNull { element ->
+                        runCatching {
+                            val tab = element.asJsonObject
+                            com.stupidtree.hita.api.MainTabSpec(
+                                id = tab.get("id")?.asString ?: return@runCatching null,
+                                title = tab.get("title")?.asString ?: "",
+                                order = tab.get("order")?.asInt ?: 100,
+                                capability = tab.get("capability")?.asString
+                                    ?: com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB,
+                            )
+                        }.getOrNull()
+                    }.orEmpty(),
             )
         }
     }

@@ -9,6 +9,14 @@ import android.os.Bundle
  * 构建期插件（或宿主页面）在打开某个功能前先问 [open]：如果用户装了声明对应
  * capability 的运行时插件，就交给插件渲染；返回 false 时回退到内置实现。
  */
+/** 运行时界面插件贡献的主界面 tab。 */
+data class MainTabSpec(
+    val id: String,
+    val title: String,
+    val order: Int = 100,
+    val capability: String = RuntimeUiService.CAP_MAIN_TAB,
+)
+
 interface RuntimeUiService {
     fun isAvailable(capability: String): Boolean
 

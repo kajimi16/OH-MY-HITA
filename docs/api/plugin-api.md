@@ -42,6 +42,8 @@ interface Plugin {
 
 ### NavEntry（导航）
 
+构建期插件可用资源 id：
+
 ```kotlin
 ctx.nav.register(
     NavEntry(id = "theta.community", titleRes = R.string.xxx, iconRes = R.drawable.xxx, order = 30) { context ->
@@ -50,11 +52,42 @@ ctx.nav.register(
 )
 ```
 
+运行时 dex 插件没有资源表，用 `textTitle` 与可选 `icon`（Drawable）：
+
+```kotlin
+ctx.nav.register(
+    NavEntry(
+        id = "demo.nav",
+        titleRes = 0,
+        iconRes = 0,
+        order = 200,
+        createIntent = { context -> Intent(context, SomeActivity::class.java) },
+        textTitle = "示例入口",
+    )
+)
+```
+
 ### SearchTab（搜索页 tab）
 
 ```kotlin
 ctx.searchTabs.register(SearchTab(SearchTabIds.USER, R.string.tab_user, order = 20) { UserListFragment() })
 ```
+
+运行时 dex 插件不能安全地返回 Fragment（恢复时类不在 classpath），改用 `ViewSearchTab`：
+
+```kotlin
+ctx.searchTabs.registerView(
+    ViewSearchTab(
+        id = "demo.search",
+        title = "示例搜索",
+        order = 200,
+        createView = { context -> TextView(context).apply { text = "插件搜索页" } },
+        onQuery = { text -> /* 用户输入变化 */ },
+    )
+)
+```
+
+宿主用固定 Fragment 承载这个 View，并对 `onQuery` 转发搜索词。
 
 `SearchTabIds` 是宿主与插件共用的语义 id，宿主用它把 `SearchType` 映射到具体 tab。
 
@@ -128,7 +161,7 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 
 - `HITA_API_VERSION` 是契约的二进制版本；任何破坏性改动必须递增。
 - 内核装载时检查 `requiresApi <= HITA_API_VERSION`，不满足直接拒绝并记录原因。
-- 当前版本 **4**（4：新增主界面运行时 tab 能力 `RuntimeUiService.CAP_MAIN_TAB`）。
+- 当前版本 **5**（5：运行时多主 tab、文本导航项、View 搜索 tab）。
 
 变更记录：
 
@@ -137,7 +170,8 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 | 1 | 首个版本 |
 | 2 | 移除 `appContext`；新增 `SyncRegistry` |
 | 3 | 新增 `ComposeUiPlugin`、`PluginUiHost`、`RuntimeUiService`，支持运行时界面插件 |
-| 4 | 新增 `CAP_MAIN_TAB`，运行时界面插件可占用主界面第五个 tab |
+| 4 | 新增 `CAP_MAIN_TAB`，运行时界面插件可占用主界面 tab |
+| 5 | 支持多个运行时主 tab；`NavEntry` 支持字符串标题；新增 `ViewSearchTab` |
 
 ## 运行时逻辑插件（T1）
 
@@ -177,6 +211,15 @@ interface ComposeUiPlugin {
 ```
 
 - 宿主按 `capabilities` 路由：声明了对应能力的插件启用时优先接管，返回 `false` 或插件损坏时回退内置页面。
+- `mainTabs` 可选，支持多个主界面 tab：
+  ```json
+  "mainTabs": [
+    {"id": "anime", "title": "番剧", "order": 100, "capability": "hita.ui.mainTab"},
+    {"id": "anime2", "title": "追番", "order": 110, "capability": "hita.ui.mainTab"}
+  ]
+  ```
+  每个 tab 打开时宿主会把 `tabId` / `capability` / `tabTitle` 放进 `PluginUiHost.arguments`。
+  未声明 `mainTabs` 但带 `hita.ui.mainTab` 能力的旧插件，宿主按插件名自动生成一个 tab。
 - 界面插件不注册 Activity，也不能携带资源表；所有 UI 用 Compose 代码构建。
 - 安装前校验 `sha256`，并要求 `apiVersion`、`composeVersion` 与宿主一致。
 - 信任模型与逻辑插件相同：索引是信任源，`verified_plugins.json` 目前为空。

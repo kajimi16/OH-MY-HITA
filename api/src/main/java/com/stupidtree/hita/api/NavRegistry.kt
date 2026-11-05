@@ -2,6 +2,7 @@ package com.stupidtree.hita.api
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 
 /**
  * 一个导航贡献项。`titleRes`/`iconRes` 来自插件自己的 `R`。
@@ -14,11 +15,24 @@ class NavEntry(
     val titleRes: Int,
     val iconRes: Int,
     val order: Int = 100,
+    /** 运行时插件没有资源表，用字符串标题；非空时优先于 [titleRes]。 */
+    val textTitle: String? = null,
+    /** 运行时插件可直接提供 Drawable；为空时回退 [iconRes]。 */
+    val icon: Drawable? = null,
     /**
      * 返回 null 表示本次不跳转（插件已自行提示，例如未登录）。
      */
     val createIntent: (Context) -> Intent?,
-)
+) {
+    /** 兼容 API 4 及之前编译的插件。 */
+    constructor(
+        id: String,
+        titleRes: Int,
+        iconRes: Int,
+        order: Int,
+        createIntent: (Context) -> Intent?,
+    ) : this(id, titleRes, iconRes, order, null, null, createIntent)
+}
 
 interface NavRegistry {
     fun register(entry: NavEntry)

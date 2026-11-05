@@ -55,18 +55,18 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/anime_layout"
+                        android:id="@+id/runtime_layout"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="horizontal"
                         android:visibility="gone">
 
                         <TextView
+                            android:id="@+id/runtime_title"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:paddingStart="8dp"
-                            android:text="@string/title_bangumi"
                             android:textColor="?attr/textColorPrimary"
                             android:textSize="24sp"
                             android:textStyle="bold" />
@@ -245,23 +245,11 @@
             android:overScrollMode="never"
             app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
 
-        <me.ibrahimsn.lib.SmoothBottomBar
+        <com.stupidtree.hitax.ui.main.DynamicBottomBar
             android:id="@+id/nav_view"
             android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:layout_gravity="bottom"
-            app:backgroundColor="?attr/backgroundColorBottom"
-            app:duration="180"
-            app:iconSize="21dp"
-            app:iconTint="?attr/colorPrimaryDisabled"
-            app:iconTintActive="?attr/colorPrimary"
-            app:indicatorColor="?attr/backgroundIconColorBottom"
-            app:indicatorRadius="24dp"
-            app:itemPadding="8dp"
-            app:menu="@menu/main_bottom_nav_menu"
-            app:sideMargins="24dp"
-            app:textColor="?attr/colorPrimary"
-            app:textSize="12sp" />
+            android:layout_gravity="bottom" />
 
         <!--        app:itemFontFamily=""-->
 

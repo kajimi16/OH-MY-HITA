@@ -9,6 +9,7 @@ import com.stupidtree.hita.api.SearchTab
 import com.stupidtree.hita.api.SearchTabRegistry
 import com.stupidtree.hita.api.TabContribution
 import com.stupidtree.hita.api.TabRegistry
+import com.stupidtree.hita.api.ViewSearchTab
 import com.stupidtree.hita.api.ServiceKey
 import com.stupidtree.hita.api.SyncCodec
 import com.stupidtree.hita.api.SyncRegistry
@@ -31,6 +32,7 @@ class PluginHost(
     private val services = LinkedHashMap<String, Any>()
     private val navEntries = LinkedHashMap<String, NavEntry>()
     private val searchTabEntries = LinkedHashMap<String, SearchTab>()
+    private val viewSearchTabEntries = LinkedHashMap<String, ViewSearchTab>()
     private val tabEntries = LinkedHashMap<String, TabContribution>()
     private val syncCodecs = LinkedHashMap<String, SyncCodec>()
     private val installedPlugins = LinkedHashMap<String, Plugin>()
@@ -55,6 +57,13 @@ class PluginHost(
         }
 
         override fun entries(): List<SearchTab> = searchTabEntries.values.sortedBy { it.order }
+
+        override fun registerView(tab: ViewSearchTab) {
+            viewSearchTabEntries[tab.id] = tab
+        }
+
+        override fun viewEntries(): List<ViewSearchTab> =
+            viewSearchTabEntries.values.sortedBy { it.order }
     }
 
     /** 宿主只读的主界面 tab 视图。 */
@@ -189,6 +198,17 @@ class PluginHost(
             }
 
             override fun entries(): List<SearchTab> = this@PluginHost.searchTabs.entries()
+
+            override fun registerView(tab: ViewSearchTab) {
+                val previous = viewSearchTabEntries.put(tab.id, tab)
+                undoStack += {
+                    if (previous == null) viewSearchTabEntries.remove(tab.id)
+                    else viewSearchTabEntries[tab.id] = previous
+                }
+            }
+
+            override fun viewEntries(): List<ViewSearchTab> =
+                this@PluginHost.searchTabs.viewEntries()
         }
 
         override val tabs: TabRegistry = object : TabRegistry {

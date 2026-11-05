@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="navigation_timeline" type="id" />
+    <item name="navigation_timetable" type="id" />
+    <item name="navigation_navigation" type="id" />
+    <item name="navigation_plugin" type="id" />
+</resources>

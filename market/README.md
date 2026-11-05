@@ -49,7 +49,7 @@ market/
 
 - `url` 可以是相对路径（相对索引所在位置）或绝对 HTTPS 地址
 - `sha256` 是完整性校验的唯一依据，必须与文件一致，否则安装会被拒绝
-- `apiVersion` 必须 ≤ 客户端的 `HITA_API_VERSION`（当前 4）
+- `apiVersion` 必须 ≤ 客户端的 `HITA_API_VERSION`（当前 5）
 - `entryClass` 是 dex 中实现 `com.stupidtree.hita.api.Plugin` 的类
 - `description` / `changelog` / `size` / `minHostApi` 可选；旧客户端会忽略，新客户端用于详情弹窗与兼容性检查
 - `uiPlugins` 的 APK 必须包含 `assets/plugin.json`，字段为 `id`、`name`、`version`、`entryClass`、
