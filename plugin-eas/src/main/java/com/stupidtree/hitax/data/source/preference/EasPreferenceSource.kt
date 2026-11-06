@@ -21,7 +21,6 @@ class EasPreferenceSource(context: Context) {
             .putString("accessToken", token.accessToken)
             .putString("refreshToken", token.refreshToken)
             .putString("username", token.username)
-            .putString("password", token.password)
             .putString("cookies", Gson().toJson(token.cookies))
             .putString("name", token.name)
             .putString("stutype", token.getStudentType())
@@ -39,11 +38,8 @@ class EasPreferenceSource(context: Context) {
 
 
     fun clearEasToken() {
-        preference.edit()
-            .putString("accessToken", null)
-            .putString("refreshToken", null)
-            .putString("cookies", null)
-            .apply()
+        // 清理所有字段，包括旧版本可能残留的密码。
+        preference.edit().clear().apply()
     }
 
     fun getEasToken(): EASToken {
@@ -51,7 +47,10 @@ class EasPreferenceSource(context: Context) {
         result.accessToken = preference.getString("accessToken", null)
         result.refreshToken = preference.getString("refreshToken", null)
         result.username = preference.getString("username", null)
-        result.password = preference.getString("password", null)
+        // 密码不再持久化；旧版本残留字段在读取时清除。
+        if (preference.contains("password")) {
+            preference.edit().remove("password").apply()
+        }
         result.name = preference.getString("name", null)
         result.stutype = if (preference.getString("stutype", "1")
                 .equals("1")
