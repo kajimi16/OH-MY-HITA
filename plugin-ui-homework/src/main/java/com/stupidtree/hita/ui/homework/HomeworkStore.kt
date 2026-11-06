@@ -2,7 +2,8 @@ package com.stupidtree.hita.ui.homework
 
 import android.content.Context
 import com.google.gson.Gson
-import java.time.LocalDate
+import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.UUID
 
 data class HomeworkItem(
@@ -70,9 +71,14 @@ class HomeworkStore(context: Context) {
         private const val MAX_ITEMS = 500
         private const val MAX_TITLE = 200
 
-        fun normalizeDate(raw: String): String? =
-            raw.trim().takeIf { it.isNotEmpty() }?.let {
-                runCatching { LocalDate.parse(it).toString() }.getOrNull()
-            }
+        fun normalizeDate(raw: String): String? {
+            val text = raw.trim()
+            if (text.isEmpty()) return null
+            return runCatching {
+                val format = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).apply { isLenient = false }
+                val date = format.parse(text) ?: return null
+                format.format(date).takeIf { it == text }
+            }.getOrNull()
+        }
     }
 }

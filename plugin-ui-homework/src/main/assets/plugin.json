@@ -1,11 +1,10 @@
 {
   "id": "com.stupidtree.hita.ui.homework",
   "name": "作业",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "entryClass": "com.stupidtree.hita.ui.homework.HomeworkUiPlugin",
   "apiVersion": 7,
   "composeVersion": "1.6.8",
-  "minSdk": 26,
   "capabilities": [
     "hita.ui.homework"
   ],
