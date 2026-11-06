@@ -1,0 +1,9 @@
+{
+  "id": "com.stupidtree.hita.ui.appearance",
+  "name": "外观与字体",
+  "version": "0.1.0",
+  "entryClass": "com.stupidtree.hita.ui.appearance.AppearanceUiPlugin",
+  "apiVersion": 7,
+  "composeVersion": "1.6.8",
+  "capabilities": ["hita.ui.appearance"]
+}
