@@ -30,6 +30,8 @@ import com.stupidtree.hita.api.ScoreService
 import com.stupidtree.hitax.data.model.eas.ShenzhenCourseCatalogItem
 import com.stupidtree.hitax.data.model.eas.ShenzhenCourseCatalogPage
 import com.stupidtree.hitax.data.model.eas.ShenzhenSelectionPools
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 class CourseUiPlugin : ComposeUiPlugin {
     override val id = "com.stupidtree.hita.ui.course"
@@ -37,6 +39,7 @@ class CourseUiPlugin : ComposeUiPlugin {
     override val requiresApi = 7
 
     override fun createView(context: Context, host: PluginUiHost): View {
+        val prefs = context.getSharedPreferences("course_plan", Context.MODE_PRIVATE)
         return ComposeView(context).apply {
             setContent {
                 MaterialTheme {
@@ -48,7 +51,7 @@ class CourseUiPlugin : ComposeUiPlugin {
                     val term = termsState.data?.firstOrNull { it.isCurrent }
                         ?: termsState.data?.firstOrNull()
                     var pool by remember { mutableStateOf(ShenzhenSelectionPools.all.first()) }
-                    var selected by remember { mutableStateOf<List<ShenzhenCourseCatalogItem>>(emptyList()) }
+                    var selected by remember { mutableStateOf(loadPlan(prefs)) }
                     val pageLive = remember(term?.getCode(), pool.code, catalog) {
                         if (term != null && catalog != null) catalog.available(term, pool.code)
                         else androidx.lifecycle.MutableLiveData(DataState(DataState.STATE.NOTHING))
@@ -106,6 +109,7 @@ class CourseUiPlugin : ComposeUiPlugin {
                                                     Button(onClick = {
                                                         selected = if (chosen) selected.filterNot { it.id == item.id }
                                                         else selected + item
+                                                        savePlan(prefs, selected)
                                                     }) { Text(if (chosen) "移出计划" else "加入计划") }
                                                 }
                                             }
@@ -118,5 +122,18 @@ class CourseUiPlugin : ComposeUiPlugin {
                 }
             }
         }
+    }
+
+    private fun loadPlan(prefs: android.content.SharedPreferences): List<ShenzhenCourseCatalogItem> =
+        runCatching {
+            val raw = prefs.getString("items", null) ?: return emptyList()
+            Gson().fromJson<List<ShenzhenCourseCatalogItem>>(
+                raw,
+                object : TypeToken<List<ShenzhenCourseCatalogItem>>() {}.type,
+            ) ?: emptyList()
+        }.getOrDefault(emptyList())
+
+    private fun savePlan(prefs: android.content.SharedPreferences, items: List<ShenzhenCourseCatalogItem>) {
+        prefs.edit().putString("items", Gson().toJson(items)).apply()
     }
 }
