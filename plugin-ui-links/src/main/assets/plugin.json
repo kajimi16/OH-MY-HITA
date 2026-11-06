@@ -1,0 +1,9 @@
+{
+  "id": "com.stupidtree.hita.ui.links",
+  "name": "实用网址",
+  "version": "0.1.0",
+  "entryClass": "com.stupidtree.hita.ui.links.LinksUiPlugin",
+  "apiVersion": 7,
+  "composeVersion": "1.6.8",
+  "capabilities": ["hita.ui.links"]
+}
