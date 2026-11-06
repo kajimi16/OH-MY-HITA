@@ -20,13 +20,15 @@ class EmptyClassroomServiceImpl(application: Application) : EmptyClassroomServic
 
     override fun buildings(): LiveData<DataState<List<ClassroomBuilding>>> {
         val out = MediatorLiveData<DataState<List<ClassroomBuilding>>>()
-        out.addSource(repository.getTeachingBuildings()) { state ->
-            out.value = when (state.state) {
-                DataState.STATE.SUCCESS -> DataState(
-                    state.data.orEmpty().map { ClassroomBuilding(it.id, it.name.orEmpty()) },
-                    state.state,
-                )
-                else -> DataState(state.state, state.message)
+        onMain {
+            out.addSource(repository.getTeachingBuildings()) { state ->
+                out.value = when (state.state) {
+                    DataState.STATE.SUCCESS -> DataState(
+                        state.data.orEmpty().map { ClassroomBuilding(it.id, it.name.orEmpty()) },
+                        state.state,
+                    )
+                    else -> DataState(state.state, state.message)
+                }
             }
         }
         return out
@@ -34,8 +36,9 @@ class EmptyClassroomServiceImpl(application: Application) : EmptyClassroomServic
 
     override fun query(buildingId: String, week: Int): LiveData<DataState<List<ClassroomRoom>>> {
         val out = MediatorLiveData<DataState<List<ClassroomRoom>>>()
-        val terms = repository.getAllTerms()
-        out.addSource(terms) { termState ->
+        onMain {
+            val terms = repository.getAllTerms()
+            out.addSource(terms) { termState ->
             val term = termState.data?.firstOrNull { it.isCurrent }
                 ?: termState.data?.firstOrNull()
             if (termState.state != DataState.STATE.SUCCESS || term == null) {
@@ -49,8 +52,17 @@ class EmptyClassroomServiceImpl(application: Application) : EmptyClassroomServic
                 out.removeSource(terms)
                 loadBuilding(out, term, buildingId, week.coerceAtLeast(1))
             }
+            }
         }
         return out
+    }
+
+    private fun onMain(block: () -> Unit) {
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+            block()
+        } else {
+            android.os.Handler(android.os.Looper.getMainLooper()).post(block)
+        }
     }
 
     private fun loadBuilding(
