@@ -47,7 +47,7 @@
             android:foreground="?attr/selectableItemBackgroundBorderless"
             android:text="@android:string/cancel"
             app:cardBackgroundColor="?attr/colorControlDisabled"
-            app:cardCornerRadius="24dp"
+            app:cardCornerRadius="?attr/designCornerRadius"
             app:cardElevation="0dp">
 
             <TextView
@@ -70,7 +70,7 @@
             android:foreground="?attr/selectableItemBackgroundBorderless"
             android:text="@string/confirm"
             app:cardBackgroundColor="?attr/colorPrimary"
-            app:cardCornerRadius="24dp"
+            app:cardCornerRadius="?attr/designCornerRadius"
             app:cardElevation="0dp">
 
             <TextView

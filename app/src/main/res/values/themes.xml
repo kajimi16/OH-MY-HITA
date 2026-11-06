@@ -27,6 +27,8 @@
 
         <!--透明状态栏-->
         <item name="android:windowLightStatusBar">true</item>
+    
+        <item name="designCornerRadius">16dp</item>
     </style>
 
 
@@ -142,6 +144,8 @@
         <item name="colorPrimaryVariant">#2E7D6F</item>
         <item name="colorSecondary">#2E7D6F</item>
         <item name="colorAccent">#2E7D6F</item>
+    
+        <item name="designCornerRadius">16dp</item>
     </style>
 
     <style name="AppTheme.Focus" parent="AppTheme">
@@ -149,6 +153,8 @@
         <item name="colorPrimaryVariant">#B45309</item>
         <item name="colorSecondary">#B45309</item>
         <item name="colorAccent">#B45309</item>
+    
+        <item name="designCornerRadius">16dp</item>
     </style>
 
     <style name="AppTheme.HighContrast" parent="AppTheme">
@@ -156,6 +162,8 @@
         <item name="colorPrimaryVariant">#000000</item>
         <item name="colorSecondary">#000000</item>
         <item name="colorAccent">#000000</item>
+    
+        <item name="designCornerRadius">16dp</item>
     </style>
 
     <style name="AppTheme.AppleGlass" parent="AppTheme">
@@ -169,6 +177,8 @@
         <item name="textColorPrimary">#101318</item>
         <item name="textColorSecondary">#505761</item>
         <item name="android:fontFamily">@font/inter</item>
+    
+        <item name="designCornerRadius">24dp</item>
     </style>
     <style name="AppTheme.Cyber" parent="AppTheme">
         <item name="colorPrimary">#0891B2</item>
@@ -181,6 +191,8 @@
         <item name="textColorPrimary">#10182B</item>
         <item name="textColorSecondary">#4A5570</item>
         <item name="android:fontFamily">@font/orbitron</item>
+    
+        <item name="designCornerRadius">8dp</item>
     </style>
     <style name="AppTheme.SoraCloud" parent="AppTheme">
         <item name="colorPrimary">#C94B38</item>
@@ -193,6 +205,8 @@
         <item name="textColorPrimary">#25221F</item>
         <item name="textColorSecondary">#625B50</item>
         <item name="android:fontFamily">serif</item>
+    
+        <item name="designCornerRadius">20dp</item>
     </style>
     <style name="AppTheme.P5" parent="AppTheme">
         <item name="colorPrimary">#E60012</item>
@@ -205,6 +219,8 @@
         <item name="textColorPrimary">#101010</item>
         <item name="textColorSecondary">#4A4A4A</item>
         <item name="android:fontFamily">@font/p5_title</item>
+    
+        <item name="designCornerRadius">4dp</item>
     </style>
     <style name="AppTheme.DeepSpace" parent="AppTheme">
         <item name="colorPrimary">#8A6D1F</item>
@@ -217,6 +233,8 @@
         <item name="textColorPrimary">#1D2129</item>
         <item name="textColorSecondary">#565E6E</item>
         <item name="android:fontFamily">@font/space_grotesk</item>
+    
+        <item name="designCornerRadius">18dp</item>
     </style>
     <style name="AppTheme.Sumi" parent="AppTheme">
         <item name="colorPrimary">#33322F</item>
@@ -229,5 +247,7 @@
         <item name="textColorPrimary">#262521</item>
         <item name="textColorSecondary">#6B655A</item>
         <item name="android:fontFamily">@font/sumi_title</item>
+    
+        <item name="designCornerRadius">10dp</item>
     </style>
 </resources>

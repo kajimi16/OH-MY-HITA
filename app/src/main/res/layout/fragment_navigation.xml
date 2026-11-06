@@ -23,7 +23,7 @@
             android:focusable="true"
             android:foreground="?attr/selectableItemBackgroundBorderless"
             app:cardBackgroundColor="?attr/backgroundColorSecond"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="?attr/designCornerRadius"
             app:cardElevation="0dp">
 
             <LinearLayout
@@ -41,7 +41,7 @@
                     android:layout_marginBottom="16dp"
                     android:focusable="true"
                     app:cardBackgroundColor="?attr/backgroundColorSecond"
-                    app:cardCornerRadius="24dp"
+                    app:cardCornerRadius="?attr/designCornerRadius"
                     app:cardElevation="0dp">
 
                     <ImageView
@@ -117,7 +117,7 @@
                 android:clickable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 app:cardBackgroundColor="?attr/backgroundColorSecond"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="?attr/designCornerRadius"
                 app:cardElevation="0dp">
 
                 <LinearLayout
@@ -197,7 +197,7 @@
                 android:clickable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 app:cardBackgroundColor="?attr/backgroundColorSecond"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="?attr/designCornerRadius"
                 app:cardElevation="0dp">
 
                 <LinearLayout
@@ -291,7 +291,7 @@
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             app:cardBackgroundColor="?attr/backgroundColorSecond"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="?attr/designCornerRadius"
             app:cardElevation="0dp">
 
             <LinearLayout
@@ -646,7 +646,7 @@
             android:layout_marginBottom="8dp"
             android:focusable="true"
             app:cardBackgroundColor="?attr/backgroundColorSecond"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="?attr/designCornerRadius"
             app:cardElevation="0dp">
 
             <LinearLayout
@@ -795,7 +795,7 @@
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             app:cardBackgroundColor="?attr/backgroundColorSecond"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="?attr/designCornerRadius"
             app:cardElevation="0dp">
 
             <LinearLayout

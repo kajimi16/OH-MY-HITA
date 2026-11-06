@@ -13,7 +13,7 @@
     android:minHeight="100dp"
     android:transitionName="cardview"
     app:cardBackgroundColor="?attr/backgroundColorSecond"
-    app:cardCornerRadius="16dp"
+    app:cardCornerRadius="?attr/designCornerRadius"
     app:cardElevation="0dp">
 
     <LinearLayout
