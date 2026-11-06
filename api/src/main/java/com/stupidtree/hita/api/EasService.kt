@@ -35,8 +35,6 @@ interface EasService {
 
     fun openExam(activity: FragmentActivity)
 
-    /** 考试列表；未登录返回 NOT_LOGGED_IN。 */
-    fun exams(): androidx.lifecycle.LiveData<com.stupidtree.component.data.DataState<List<com.stupidtree.hitax.data.model.eas.ExamItem>>>
 
     /** 打开登录/账号面板。 */
     fun openAccount(activity: FragmentActivity)

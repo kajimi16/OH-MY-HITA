@@ -30,5 +30,8 @@ class EasPlugin(private val application: Application) : Plugin {
         EasRuntime.ctx = ctx
         ctx.provide(EasService.KEY, EasServiceImpl(application))
         ctx.provide(com.stupidtree.hita.api.ScoreService.KEY, ScoreServiceImpl(application))
+        ctx.provide(com.stupidtree.hita.api.ExamService.KEY, object : com.stupidtree.hita.api.ExamService {
+            override fun exams() = com.stupidtree.hitax.data.repository.EASRepository.getInstance(application).getExamInfo()
+        })
     }
 }

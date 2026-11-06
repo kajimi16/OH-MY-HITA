@@ -28,7 +28,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.stupidtree.hita.api.ComposeUiPlugin
-import com.stupidtree.hita.api.EasService
+import com.stupidtree.hita.api.ExamService
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import com.stupidtree.component.data.DataState
@@ -302,7 +302,7 @@ class AiUiPlugin : ComposeUiPlugin {
     }
 
     private fun exams(host: PluginUiHost): String {
-        val service = host.service(EasService.KEY) ?: return "教务服务不可用"
+        val service = host.service(ExamService.KEY) ?: return "考试服务不可用"
         val state = await(onMain { service.exams() }, 15_000) ?: return "考试查询超时"
         if (state.state != DataState.STATE.SUCCESS) return "查询失败：${state.message ?: state.state}"
         val items = state.data.orEmpty()
