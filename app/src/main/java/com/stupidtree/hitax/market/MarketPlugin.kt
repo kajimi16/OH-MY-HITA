@@ -68,6 +68,8 @@ data class MarketPreset(
     val description: String? = null,
     val minHostApi: Int? = null,
     val plugins: List<PresetPluginRef>? = null,
+    /** 支持的数据迁移，例如 timetable.ics。 */
+    val migration: List<String>? = null,
     val tags: List<String>? = null,
     val author: String? = null,
 ) {

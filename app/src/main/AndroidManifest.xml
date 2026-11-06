@@ -80,6 +80,10 @@
                 android:resource="@xml/plugin_widget_info" />
         </receiver>
         <activity
+            android:name=".market.PresetMigrationActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".widget.PluginWidgetConfigureActivity"
             android:exported="true" />
 

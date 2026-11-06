@@ -221,18 +221,32 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             "· $label  $state"
         }.joinToString("\n")
 
+        val supportsIcs = preset.migration.orEmpty().contains("timetable.ics")
         val parts = mutableListOf<String>()
         preset.description?.takeIf { it.isNotBlank() }?.let { parts += it }
         parts += "包含 ${preset.refs().size} 个插件：\n$lines"
         preset.minHostApi?.let { parts += "需要宿主 API $it" }
         parts += "应用时会安装缺失插件；未受信任的在线插件需要手动安装。"
+        if (supportsIcs) {
+            parts += "旧版课表可在 HITA_Android 中导出 ICS 后导入，不读取其私有数据库。"
+        }
 
-        AlertDialog.Builder(requireContext())
+        val dialog = AlertDialog.Builder(requireContext())
             .setTitle(preset.name)
             .setMessage(parts.joinToString("\n\n"))
             .setPositiveButton("应用") { _, _ -> viewModel.applyPreset(preset) }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        if (supportsIcs) {
+            dialog.setNeutralButton("导入课表") { _, _ ->
+                startActivity(
+                    android.content.Intent(
+                        requireContext(),
+                        PresetMigrationActivity::class.java,
+                    )
+                )
+            }
+        }
+        dialog.show()
     }
 
     private fun bindDiscoverUi(
