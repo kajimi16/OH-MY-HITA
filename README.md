@@ -7,7 +7,7 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 [App 下载（Releases）](https://github.com/kajimi16/OH-MY-HITA/releases/latest) ·
 [国内镜像](https://ani2-ext.kajimi.cc/hita/releases/oh-my-hita-latest.apk)
 
-当前发布：`0.6.1`（API 7）。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
+当前发布：`0.6.2`（API 7）。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
 
 ### API 7 能力
 
