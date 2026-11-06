@@ -30,6 +30,7 @@ class ResourcePlugin(private val application: Application) : Plugin {
     override fun install(ctx: PluginContext) {
         ctx.provide(ResourceUiService.KEY, ResourceUiServiceImpl(application, ctx.service(RuntimeUiService.KEY)))
         ctx.provide(ResourceDataService.KEY, ResourceDataServiceImpl())
+        ctx.provide(com.stupidtree.hita.api.TeacherService.KEY, TeacherServiceImpl(application))
 
         ctx.searchTabs.register(
             SearchTab(

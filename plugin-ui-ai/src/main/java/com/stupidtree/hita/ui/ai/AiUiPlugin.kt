@@ -35,6 +35,7 @@ import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.PluginUiHost
 import com.stupidtree.hita.api.ResourceDataService
 import com.stupidtree.hita.api.ScoreService
+import com.stupidtree.hita.api.TeacherService
 import com.stupidtree.hita.api.TimetableService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -204,6 +205,8 @@ class AiUiPlugin : ComposeUiPlugin {
                         ?.get("arguments")?.asString.orEmpty())
                     "get_scores" -> scores(host)
                     "get_exams" -> exams(host)
+                    "search_teachers" -> searchTeachers(host, call.getAsJsonObject("function")
+                        ?.get("arguments")?.asString.orEmpty())
                     else -> "未知工具：$name"
                 }
                 history.add(JsonObject().apply {
@@ -233,6 +236,23 @@ class AiUiPlugin : ComposeUiPlugin {
                             add("parameters", JsonObject().apply {
                                 addProperty("type", "object")
                                 add("properties", JsonObject())
+                            })
+                        })
+                    })
+                    add(JsonObject().apply {
+                        addProperty("type", "function")
+                        add("function", JsonObject().apply {
+                            addProperty("name", "search_teachers")
+                            addProperty("description", "按教师姓名搜索教师与课程")
+                            add("parameters", JsonObject().apply {
+                                addProperty("type", "object")
+                                add("properties", JsonObject().apply {
+                                    add("query", JsonObject().apply {
+                                        addProperty("type", "string")
+                                        addProperty("description", "教师姓名或关键词")
+                                    })
+                                })
+                                add("required", JsonArray().apply { add("query") })
                             })
                         })
                     })
@@ -298,6 +318,21 @@ class AiUiPlugin : ComposeUiPlugin {
             JsonParser.parseString(text).asJsonObject
         } finally {
             conn.disconnect()
+        }
+    }
+
+    private fun searchTeachers(host: PluginUiHost, arguments: String): String {
+        val query = runCatching {
+            JsonParser.parseString(arguments).asJsonObject.get("query")?.asString
+        }.getOrNull()?.trim().orEmpty()
+        if (query.isEmpty()) return "缺少 query"
+        val service = host.service(TeacherService.KEY) ?: return "教师服务不可用"
+        val state = await(onMain { service.search(query) }, 15_000) ?: return "教师查询超时"
+        if (state.state != DataState.STATE.SUCCESS) return "查询失败：${state.message ?: state.state}"
+        val items = state.data.orEmpty().take(8)
+        if (items.isEmpty()) return "没有找到「$query」相关教师"
+        return items.joinToString("\n") {
+            "${it.name} · ${it.department} · ${it.courseName}（${it.courseCode}）"
         }
     }
 
