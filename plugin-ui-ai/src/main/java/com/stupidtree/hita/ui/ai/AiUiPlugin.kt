@@ -50,7 +50,7 @@ class AiUiPlugin : ComposeUiPlugin {
                     var model by remember {
                         mutableStateOf(prefs.getString("model", DEFAULT_MODEL) ?: DEFAULT_MODEL)
                     }
-                    var apiKey by remember { mutableStateOf(prefs.getString("key", "").orEmpty()) }
+                    var apiKey by remember { mutableStateOf(SecretStore.load(context)) }
                     var input by remember { mutableStateOf("") }
                     var busy by remember { mutableStateOf(false) }
                     var error by remember { mutableStateOf<String?>(null) }
@@ -60,8 +60,8 @@ class AiUiPlugin : ComposeUiPlugin {
                         prefs.edit()
                             .putString("endpoint", endpoint)
                             .putString("model", model)
-                            .putString("key", apiKey)
                             .apply()
+                        SecretStore.save(context, apiKey)
                     }
 
                     Column(Modifier.fillMaxSize().padding(16.dp)) {
