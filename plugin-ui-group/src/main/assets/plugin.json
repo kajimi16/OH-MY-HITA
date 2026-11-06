@@ -1,0 +1,9 @@
+{
+  "id": "com.stupidtree.hita.ui.group",
+  "name": "课表组合",
+  "version": "0.1.0",
+  "entryClass": "com.stupidtree.hita.ui.group.GroupUiPlugin",
+  "apiVersion": 7,
+  "composeVersion": "1.6.8",
+  "capabilities": ["hita.ui.group"]
+}
