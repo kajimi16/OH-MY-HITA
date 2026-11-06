@@ -221,6 +221,32 @@ class AiUiPlugin : ComposeUiPlugin {
                                 },
                             ) { Text("PDF") }
                             Button(
+                                enabled = !busy && apiKey.isNotBlank(),
+                                onClick = {
+                                    pickDocument(context, arrayOf(DOCX_MIME)) { uri ->
+                                        scope.launch {
+                                            val text = withContext(Dispatchers.IO) { readDocx(context, uri) }
+                                            if (text.isNullOrBlank()) {
+                                                error = "无法解析 DOCX"
+                                                return@launch
+                                            }
+                                            save()
+                                            error = null
+                                            val message = "DOCX 内容：\n${text.take(20_000)}"
+                                            messages += Message("user", message)
+                                            busy = true
+                                            runCatching {
+                                                withContext(Dispatchers.IO) {
+                                                    chat(endpoint, model, apiKey, messages.toList(), todayContext(host), host)
+                                                }
+                                            }.onSuccess { messages += Message("assistant", it) }
+                                                .onFailure { error = it.message ?: "请求失败" }
+                                            busy = false
+                                        }
+                                    }
+                                },
+                            ) { Text("DOCX") }
+                            Button(
                                 enabled = !busy && input.isNotBlank() && apiKey.isNotBlank(),
                                 onClick = {
                                     val text = input.trim()
@@ -253,6 +279,27 @@ class AiUiPlugin : ComposeUiPlugin {
             }
         }
     }
+
+    private fun readDocx(context: Context, uri: Uri): String? = runCatching {
+        val input = context.contentResolver.openInputStream(uri) ?: return null
+        var xml: String? = null
+        java.util.zip.ZipInputStream(input).use { zip ->
+            var entry = zip.nextEntry
+            while (entry != null) {
+                if (entry.name == "word/document.xml") {
+                    xml = zip.readBytes().toString(Charsets.UTF_8)
+                    break
+                }
+                entry = zip.nextEntry
+            }
+        }
+        val raw = xml ?: return null
+        raw.replace(Regex("</w:p>"), "\n")
+            .replace(Regex("<[^>]+>"), "")
+            .replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
+            .replace("&quot;", "\"").replace("&apos;", "'")
+            .trim()
+    }.getOrNull()
 
     private fun renderPdfPages(context: Context, uri: Uri): List<String> = runCatching {
         val pfd = context.contentResolver.openFileDescriptor(uri, "r") ?: return emptyList()
@@ -594,5 +641,6 @@ class AiUiPlugin : ComposeUiPlugin {
         const val DEFAULT_ENDPOINT = "https://api.deepseek.com/chat/completions"
         const val DEFAULT_MODEL = "deepseek-chat"
         const val SYSTEM_PROMPT = "你是 HITA 校园助手，用简洁中文回答。"
+        const val DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     }
 }
