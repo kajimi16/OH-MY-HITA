@@ -53,6 +53,39 @@ class ShareUiPlugin : ComposeUiPlugin {
                         .observeAsState(emptyList())
                     var token by remember { mutableStateOf("") }
                     var status by remember { mutableStateOf("") }
+                    val friendStore = remember { FriendStore(context) }
+                    var friends by remember { mutableStateOf(friendStore.load()) }
+
+                    fun importCode(raw: String) {
+                        if (raw.isBlank()) {
+                            status = "请先粘贴口令"
+                            return
+                        }
+                        status = "正在导入…"
+                        val main = android.os.Handler(android.os.Looper.getMainLooper())
+                        Thread {
+                            runCatching {
+                                val snapshot = TimetableShareCodec().decodeMessage(raw)
+                                val bundle = ShareMapper.bundle(snapshot)
+                                service?.saveTimetable(bundle.timetable)
+                                bundle.subjects.forEach { service?.saveSubject(it) }
+                                service?.saveEvents(bundle.events)
+                                snapshot
+                            }.onSuccess { snapshot ->
+                                val next = friendStore.remember(
+                                    snapshot.shareId,
+                                    snapshot.nickname,
+                                    raw,
+                                )
+                                main.post {
+                                    friends = next
+                                    status = "已导入「${snapshot.term.timetableName}」"
+                                }
+                            }.onFailure {
+                                main.post { status = "导入失败：${it.message}" }
+                            }
+                        }.start()
+                    }
 
                     Column(Modifier.fillMaxSize().padding(16.dp)) {
                         Text("课表分享", style = MaterialTheme.typography.h5)
@@ -67,34 +100,27 @@ class ShareUiPlugin : ComposeUiPlugin {
                                 modifier = Modifier.fillMaxWidth(),
                                 maxLines = 3,
                             )
-                            Button(onClick = {
-                                val text = token.trim()
-                                if (text.isEmpty()) {
-                                    status = "请先粘贴口令"
-                                    return@Button
-                                }
-                                status = "正在导入…"
-                                val main = android.os.Handler(android.os.Looper.getMainLooper())
-                                Thread {
-                                    runCatching {
-                                        val snapshot = TimetableShareCodec().decodeMessage(text)
-                                        val bundle = ShareMapper.bundle(snapshot)
-                                        service?.saveTimetable(bundle.timetable)
-                                        bundle.subjects.forEach { service?.saveSubject(it) }
-                                        service?.saveEvents(bundle.events)
-                                        bundle.timetable.name ?: "课表"
-                                    }.onSuccess {
-                                        main.post {
-                                            status = "已导入「$it」"
-                                            token = ""
-                                        }
-                                    }.onFailure {
-                                        main.post { status = "导入失败：${it.message}" }
-                                    }
-                                }.start()
-                            }) { Text("导入") }
+                            Button(onClick = { importCode(token.trim()) }) { Text("导入") }
                         }
                         if (status.isNotBlank()) Text(status, style = MaterialTheme.typography.caption)
+                        if (friends.isNotEmpty()) {
+                            Text("好友课表", style = MaterialTheme.typography.subtitle1,
+                                modifier = Modifier.padding(top = 12.dp))
+                            friends.forEach { friend ->
+                                Card(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
+                                    Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)) {
+                                        Text(friend.nickname, style = MaterialTheme.typography.subtitle2)
+                                        Row {
+                                            Button(onClick = { importCode(friend.code) }) { Text("再导入") }
+                                            Button(
+                                                onClick = { friends = friendStore.remove(friend.shareId) },
+                                                modifier = Modifier.padding(start = 6.dp),
+                                            ) { Text("删除") }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         Text("我的课表", style = MaterialTheme.typography.subtitle1,
                             modifier = Modifier.padding(top = 12.dp))
 
