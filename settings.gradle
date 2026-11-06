@@ -8,7 +8,7 @@ include ':model'
 include ':plugin-hita'
 include ':sample-plugin'
 include ':plugin-eas',':plugin-resource',':plugin-user'
-include ':plugin-apk-sample',':plugin-ui-sample',':plugin-ui-resource',':plugin-ui-reminder',':plugin-ui-links',':plugin-ui-appearance',':plugin-ui-news',':plugin-ui-ai',':plugin-ui-credit',':plugin-ui-share',':plugin-ui-score',':plugin-ui-training',':plugin-ui-compare',':plugin-ui-group',':plugin-ui-live'
+include ':plugin-apk-sample',':plugin-ui-sample',':plugin-ui-resource',':plugin-ui-reminder',':plugin-ui-links',':plugin-ui-appearance',':plugin-ui-news',':plugin-ui-ai',':plugin-ui-credit',':plugin-ui-share',':plugin-ui-score',':plugin-ui-training',':plugin-ui-compare',':plugin-ui-group',':plugin-ui-live',':plugin-ui-update'
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
