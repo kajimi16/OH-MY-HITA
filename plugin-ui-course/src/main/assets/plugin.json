@@ -1,7 +1,7 @@
 {
   "id": "com.stupidtree.hita.ui.course",
   "name": "选课助手",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "entryClass": "com.stupidtree.hita.ui.course.CourseUiPlugin",
   "apiVersion": 7,
   "composeVersion": "1.6.8",

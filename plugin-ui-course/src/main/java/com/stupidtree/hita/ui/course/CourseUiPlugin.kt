@@ -26,11 +26,13 @@ import androidx.compose.ui.unit.dp
 import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.ComposeUiPlugin
 import com.stupidtree.hita.api.CourseCatalogService
+import com.stupidtree.hita.api.CourseSelectionService
 import com.stupidtree.hita.api.PluginUiHost
 import com.stupidtree.hita.api.ReminderService
 import com.stupidtree.hita.api.ReminderSpec
 import com.stupidtree.hita.api.ScoreService
 import com.stupidtree.hitax.data.model.eas.ShenzhenCourseCatalogItem
+import com.stupidtree.hitax.data.model.eas.ShenzhenCourseCatalogSource
 import com.stupidtree.hitax.data.model.eas.ShenzhenCourseCatalogPage
 import com.stupidtree.hitax.data.model.eas.ShenzhenSelectionPools
 import com.google.gson.Gson
@@ -47,6 +49,7 @@ class CourseUiPlugin : ComposeUiPlugin {
             setContent {
                 MaterialTheme {
                     val catalog = host.service(CourseCatalogService.KEY)
+                    val selection = host.service(CourseSelectionService.KEY)
                     val scores = host.service(ScoreService.KEY)
                     val termsState by (scores?.terms()
                         ?: androidx.lifecycle.MutableLiveData(DataState(DataState.STATE.NOTHING)))
@@ -57,6 +60,7 @@ class CourseUiPlugin : ComposeUiPlugin {
                     var selected by remember { mutableStateOf(loadPlan(prefs)) }
                     var remindAt by remember { mutableStateOf("08:00") }
                     var reminderStatus by remember { mutableStateOf("") }
+                    var submitStatus by remember { mutableStateOf("") }
                     val reminders = host.service(ReminderService.KEY)
                     val pageLive = remember(term?.getCode(), pool.code, catalog) {
                         if (term != null && catalog != null) catalog.available(term, pool.code)
@@ -93,6 +97,7 @@ class CourseUiPlugin : ComposeUiPlugin {
                             }) { Text("提醒") }
                         }
                         if (reminderStatus.isNotBlank()) Text(reminderStatus, style = MaterialTheme.typography.caption)
+                        if (submitStatus.isNotBlank()) Text(submitStatus, style = MaterialTheme.typography.body2)
                         if (selected.isNotEmpty()) {
                             val conflicts = CoursePlan.conflicts(selected)
                             Text(
@@ -144,6 +149,35 @@ class CourseUiPlugin : ComposeUiPlugin {
                                                         else selected + item
                                                         savePlan(prefs, selected)
                                                     }) { Text(if (chosen) "移出计划" else "加入计划") }
+                                                    if (item.source == ShenzhenCourseCatalogSource.AVAILABLE) {
+                                                        Button(onClick = {
+                                                            android.app.AlertDialog.Builder(context)
+                                                                .setTitle("确认提交选课")
+                                                                .setMessage(
+                                                                    "${item.courseName}\n${item.teacher} · ${item.credits} 学分\n" +
+                                                                        "${item.schedule}\n\n此操作会写入教务选课结果。"
+                                                                )
+                                                                .setPositiveButton("确认提交") { _, _ ->
+                                                                    val live = selection?.submit(
+                                                                        term, pool.code, item.selectionRequestId, item.courseId,
+                                                                    )
+                                                                    if (live == null) {
+                                                                        submitStatus = "选课服务不可用"
+                                                                    } else {
+                                                                        val observer = object : androidx.lifecycle.Observer<DataState<com.stupidtree.hita.api.CourseSubmitResult>> {
+                                                                            override fun onChanged(value: DataState<com.stupidtree.hita.api.CourseSubmitResult>) {
+                                                                                if (value.state != DataState.STATE.SUCCESS) return
+                                                                                live.removeObserver(this)
+                                                                                submitStatus = "提交结果：${value.data?.status} ${value.data?.message.orEmpty()}"
+                                                                            }
+                                                                        }
+                                                                        live.observeForever(observer)
+                                                                    }
+                                                                }
+                                                                .setNegativeButton(android.R.string.cancel, null)
+                                                                .show()
+                                                        }) { Text("提交") }
+                                                    }
                                                 }
                                             }
                                         }
