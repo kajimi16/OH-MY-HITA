@@ -1,0 +1,9 @@
+{
+  "id": "com.stupidtree.hita.ui.live",
+  "name": "直播课",
+  "version": "0.1.0",
+  "entryClass": "com.stupidtree.hita.ui.live.LiveUiPlugin",
+  "apiVersion": 7,
+  "composeVersion": "1.6.8",
+  "capabilities": ["hita.ui.live"]
+}
