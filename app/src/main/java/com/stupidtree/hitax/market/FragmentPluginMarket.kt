@@ -186,10 +186,22 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         }
         card.toggle.visibility = View.GONE
         card.action.visibility = View.VISIBLE
-        card.action.text = "预览"
+        card.action.text = "应用"
         card.action.isEnabled = true
-        card.action.setOnClickListener { showPresetPreview(preset) }
+        card.action.setOnClickListener { confirmApplyPreset(preset) }
         card.root.setOnClickListener { showPresetPreview(preset) }
+    }
+
+    private fun confirmApplyPreset(preset: MarketPreset) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(preset.name)
+            .setMessage(
+                "将安装/启用 ${preset.refs().size} 个插件。\n\n" +
+                    "未受信任的在线插件会被跳过；可先点卡片查看完整清单。"
+            )
+            .setPositiveButton("应用") { _, _ -> viewModel.applyPreset(preset) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun showPresetPreview(preset: MarketPreset) {

@@ -93,6 +93,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
      */
     private val autoReimportIntervalMs = 12 * 60 * 60 * 1000L
     private var autoReimportAttempted = false
+    private var pendingUpdateCode: Long? = null
     private var drawerAvatar: ImageView? = null
     private var drawerNickname: TextView? = null
     private var drawerUsername: TextView? = null
@@ -187,13 +188,17 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                     0
                 ).versionCode.toLong()
             }
-            if (System.currentTimeMillis() - lastCheckTs > 5 * 60 * 1000) checkedUpdate = false
-            if (!checkedUpdate) {
-                if (LocalUserRepository.getInstance(this).getLoggedInUser().isValid()) {
-                    checkedUpdate = true
-                    lastCheckTs = System.currentTimeMillis()
+            if (!presetOnboardingSeen()) {
+                pendingUpdateCode = code
+            } else {
+                if (System.currentTimeMillis() - lastCheckTs > 5 * 60 * 1000) checkedUpdate = false
+                if (!checkedUpdate) {
+                    if (LocalUserRepository.getInstance(this).getLoggedInUser().isValid()) {
+                        checkedUpdate = true
+                        lastCheckTs = System.currentTimeMillis()
+                    }
+                    viewModel.checkForUpdate(code)
                 }
-                viewModel.checkForUpdate(code)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -308,6 +313,23 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     }
 
 
+    private fun presetOnboardingSeen(): Boolean =
+        getSharedPreferences("preset_onboarding", MODE_PRIVATE)
+            .getBoolean(KEY_PRESET_PROMPT_SEEN, false)
+
+    private fun checkPendingUpdate() {
+        val code = pendingUpdateCode ?: return
+        pendingUpdateCode = null
+        if (System.currentTimeMillis() - lastCheckTs > 5 * 60 * 1000) checkedUpdate = false
+        if (!checkedUpdate) {
+            if (LocalUserRepository.getInstance(this).getLoggedInUser().isValid()) {
+                checkedUpdate = true
+                lastCheckTs = System.currentTimeMillis()
+            }
+            viewModel.checkForUpdate(code)
+        }
+    }
+
     /**
      * 首次启动询问是否用过其他 HITA；选择“用过”直接进入插件市场的整合包入口。
      * 只提示一次，之后可在市场手动查看。
@@ -324,10 +346,12 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
             )
             .setPositiveButton("用过，查看整合包") { _, _ ->
                 prefs.edit().putBoolean(KEY_PRESET_PROMPT_SEEN, true).apply()
+                checkPendingUpdate()
                 openPluginMarket()
             }
             .setNegativeButton("第一次用") { _, _ ->
                 prefs.edit().putBoolean(KEY_PRESET_PROMPT_SEEN, true).apply()
+                checkPendingUpdate()
             }
             .setNeutralButton("稍后", null)
             .show()
