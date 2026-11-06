@@ -20,6 +20,8 @@ import com.stupidtree.hitax.data.work.CourseReminderScheduler
 import com.stupidtree.hitax.utils.IcsImportUtils
 import android.content.Intent
 import android.net.Uri
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 
@@ -102,10 +104,63 @@ class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationB
         }
     }
 
+    /** 功能中心直接列出所有已启用的运行时界面插件，避免只从市场卡片进入。 */
+    @SuppressLint("SetTextI18n")
+    private fun renderInstalledPlugins() {
+        val container = binding?.pluginEntries ?: return
+        container.removeAllViews()
+        val plugins = com.stupidtree.hitax.uiplugin.UiPluginManager(requireContext())
+            .installed()
+            .filter { it.enabled }
+            .sortedBy { it.name }
+        binding?.pluginEntriesCard?.visibility = if (plugins.isEmpty()) View.GONE else View.VISIBLE
+        val density = resources.displayMetrics.density
+        plugins.forEach { plugin ->
+            val row = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding((16 * density).toInt(), (10 * density).toInt(), (16 * density).toInt(), (10 * density).toInt())
+                isClickable = true
+                isFocusable = true
+                val out = android.util.TypedValue()
+                if (context.theme.resolveAttribute(android.R.attr.selectableItemBackground, out, true)) {
+                    foreground = androidx.core.content.ContextCompat.getDrawable(context, out.resourceId)
+                }
+            }
+            val title = TextView(requireContext()).apply {
+                text = "${plugin.name}  v${plugin.version}"
+                textSize = 15f
+                val out = android.util.TypedValue()
+                if (context.theme.resolveAttribute(android.R.attr.textColorPrimary, out, true)) {
+                    setTextColor(out.data)
+                }
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            }
+            val arrow = TextView(requireContext()).apply {
+                text = "›"
+                textSize = 22f
+                val out = android.util.TypedValue()
+                if (context.theme.resolveAttribute(android.R.attr.textColorSecondary, out, true)) {
+                    setTextColor(out.data)
+                }
+            }
+            row.addView(title)
+            row.addView(arrow)
+            row.setOnClickListener {
+                startActivity(
+                    Intent(requireContext(), com.stupidtree.hitax.uiplugin.PluginUiActivity::class.java)
+                        .putExtra(com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_PLUGIN_ID, plugin.id)
+                )
+            }
+            container.addView(row)
+        }
+    }
+
     @SuppressLint("SetTextI18n")
     override fun onStart() {
         super.onStart()
         viewModel.startRefresh()
+        renderInstalledPlugins()
 
         LocalUserRepository.getInstance(requireContext()).getLoggedInUser().let {
             if (it.isValid()) { //如果已登录
