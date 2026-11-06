@@ -286,7 +286,11 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    private fun installUiBlocking(entry: UiMarketPlugin, indexBase: String?): InstalledUiPlugin {
+    private fun installUiBlocking(
+        entry: UiMarketPlugin,
+        indexBase: String?,
+        reloadOnMainTab: Boolean = true,
+    ): InstalledUiPlugin {
         val app = getApplication<Application>()
         require(entry.sha256.matches(Regex("^[a-fA-F0-9]{64}$"))) {
             "索引缺少有效的 sha256，拒绝安装"
@@ -300,7 +304,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         return try {
             val installed = uiPluginManager.installFile(file, entry.sha256)
             MarketSources.recordInstall(ctx(), installed.id, activeSource().url)
-            if (hasMainTab(installed)) reloadUi.postValue(true)
+            if (reloadOnMainTab && hasMainTab(installed)) reloadUi.postValue(true)
             installed
         } finally {
             file.delete()
@@ -326,6 +330,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val builtins = builtin.rows().associateBy { it.id }
             var installed = 0
             var skipped = 0
+            var reloadNeeded = false
             val failures = mutableListOf<String>()
 
             for (ref in preset.refs()) {
@@ -337,8 +342,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                             if (ref.isRequired()) failures += "${ref.id}（索引缺失）"
                             continue
                         }
-                        runCatching { installUiBlocking(entry, lastIndexBase) }
-                            .onSuccess { installed++ }
+                        runCatching { installUiBlocking(entry, lastIndexBase, reloadOnMainTab = false) }
+                            .onSuccess { if (hasMainTab(it)) reloadNeeded = true; installed++ }
                             .onFailure { failures += "${entry.name}：${it.message}" }
                     }
                     "dex" -> {
@@ -364,7 +369,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                         }
                         if (row.installed) skipped++ else {
                             runCatching { builtin.setEnabled(ref.id, true) }
-                                .onSuccess { installed++ }
+                                .onSuccess { reloadNeeded = true; installed++ }
                                 .onFailure { failures += "${row.name}：${it.message}" }
                         }
                     }
@@ -377,6 +382,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                 if (failures.isNotEmpty()) append("，失败 ${failures.size}")
             }
             message.postValue(if (failures.isEmpty()) summary else summary + "；" + failures.joinToString("；"))
+            if (reloadNeeded) reloadUi.postValue(true)
             refresh()
         }
     }

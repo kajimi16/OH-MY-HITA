@@ -211,6 +211,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
     override fun initViews() {
         setUpDrawer()
+        maybeShowPresetOnboarding()
         //  binding.title.text = binding.navView.menu.getItem(0).title
         pages = buildPages()
         binding.navView.submit(
@@ -306,6 +307,31 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         }
     }
 
+
+    /**
+     * 首次启动询问是否用过其他 HITA；选择“用过”直接进入插件市场的整合包入口。
+     * 只提示一次，之后可在市场手动查看。
+     */
+    private fun maybeShowPresetOnboarding() {
+        val prefs = getSharedPreferences("preset_onboarding", MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_PRESET_PROMPT_SEEN, false)) return
+        if (isFinishing || supportFragmentManager.isStateSaved) return
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("欢迎使用 OH-MY-HITA")
+            .setMessage(
+                "你之前用过 HITA 或 HITA_Android 吗？\n\n" +
+                    "可以在插件市场预览不同版本的整合包，并一键安装插件组合。"
+            )
+            .setPositiveButton("用过，查看整合包") { _, _ ->
+                prefs.edit().putBoolean(KEY_PRESET_PROMPT_SEEN, true).apply()
+                openPluginMarket()
+            }
+            .setNegativeButton("第一次用") { _, _ ->
+                prefs.edit().putBoolean(KEY_PRESET_PROMPT_SEEN, true).apply()
+            }
+            .setNeutralButton("稍后", null)
+            .show()
+    }
 
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     /** 供占位页跳转到插件市场（第 4 个 tab）。 */
@@ -441,5 +467,6 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     companion object {
         /** 插件菜单项 id 从这里开始分配，避开 xml 里的资源 id 区间。 */
         private const val PLUGIN_MENU_ID_BASE = 0x0F000000
+        private const val KEY_PRESET_PROMPT_SEEN = "preset_prompt_seen"
     }
 }
