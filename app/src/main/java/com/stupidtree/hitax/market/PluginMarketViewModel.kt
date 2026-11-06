@@ -350,6 +350,11 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             var skipped = 0
             var reloadNeeded = false
             val failures = mutableListOf<String>()
+            val optionalFailures = mutableListOf<String>()
+
+            fun addFailure(ref: PresetPluginRef, text: String) {
+                if (ref.isRequired()) failures += text else optionalFailures += text
+            }
 
             for (ref in preset.refs()) {
                 when (ref.normalizedKind()) {
@@ -371,7 +376,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                         }
                         runCatching { installUiBlocking(entry, lastIndexBase, reloadOnMainTab = false) }
                             .onSuccess { if (hasMainTab(it)) reloadNeeded = true; installed++ }
-                            .onFailure { failures += "${entry.name}：${it.message}" }
+                            .onFailure { addFailure(ref, "${entry.name}：${it.message}") }
                     }
                     "dex" -> {
                         val row = installedDex[ref.id]
@@ -392,12 +397,12 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                             continue
                         }
                         if (!trustStore.isVerified(entry.id)) {
-                            failures += "${entry.name}（未受信任，需手动安装）"
+                            addFailure(ref, "${entry.name}（未受信任，需手动安装）")
                             continue
                         }
                         runCatching { installDexBlocking(entry) }
                             .onSuccess { installed++ }
-                            .onFailure { failures += "${entry.name}：${it.message}" }
+                            .onFailure { addFailure(ref, "${entry.name}：${it.message}") }
                     }
                     "builtin" -> {
                         val row = builtins[ref.id]
@@ -408,7 +413,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                         if (row.installed) skipped++ else {
                             runCatching { builtin.setEnabled(ref.id, true) }
                                 .onSuccess { reloadNeeded = true; installed++ }
-                                .onFailure { failures += "${row.name}：${it.message}" }
+                                .onFailure { addFailure(ref, "${row.name}：${it.message}") }
                         }
                     }
                     else -> if (ref.isRequired()) failures += "${ref.id}（未知类型）"
@@ -451,9 +456,11 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                 if (enabled > 0) append("，启用 $enabled")
                 append("，跳过 $skipped")
                 if (disabledOld > 0) append("，停用旧组合 $disabledOld")
-                if (failures.isNotEmpty()) append("，失败 ${failures.size}")
+                val allFailures = failures + optionalFailures
+                if (allFailures.isNotEmpty()) append("，失败 ${allFailures.size}")
             }
-            message.postValue(if (failures.isEmpty()) summary else summary + "；" + failures.joinToString("；"))
+            val allFailures = failures + optionalFailures
+            message.postValue(if (allFailures.isEmpty()) summary else summary + "；" + allFailures.joinToString("；"))
             if (reloadNeeded) reloadUi.postValue(true)
             refresh()
         }
