@@ -30,6 +30,8 @@
         <item name="android:windowLightStatusBar">true</item>
     
         <item name="designCornerRadius">16dp</item>
+    
+        <item name="designSpacing">16dp</item>
     </style>
 
 
@@ -145,13 +147,15 @@
         <item name="colorSecondary">#63E6D2</item>
         <item name="colorSecondaryVariant">#63E6D2</item>
         <item name="colorAccent">#BF5AF2</item>
-        <item name="backgroundColorBottom">#090B10</item>
-        <item name="backgroundColorSecond">#101318</item>
+        <item name="backgroundColorBottom">#99090B10</item>
+        <item name="backgroundColorSecond">#B3101318</item>
         <item name="textColorPrimary">#F5F7FA</item>
         <item name="textColorSecondary">#CCD2DA</item>
         <item name="android:fontFamily">@font/inter</item>
     
         <item name="designCornerRadius">24dp</item>
+    
+        <item name="designSpacing">20dp</item>
     </style>
     <style name="AppTheme.Cyber" parent="AppTheme">
         <item name="colorPrimary">#22D3EE</item>
@@ -166,6 +170,8 @@
         <item name="android:fontFamily">@font/orbitron</item>
     
         <item name="designCornerRadius">8dp</item>
+    
+        <item name="designSpacing">12dp</item>
     </style>
     <style name="AppTheme.SoraCloud" parent="AppTheme">
         <item name="colorPrimary">#F06A52</item>
@@ -180,6 +186,8 @@
         <item name="android:fontFamily">serif</item>
     
         <item name="designCornerRadius">20dp</item>
+    
+        <item name="designSpacing">16dp</item>
     </style>
     <style name="AppTheme.P5" parent="AppTheme">
         <item name="colorPrimary">#E60012</item>
@@ -194,6 +202,8 @@
         <item name="android:fontFamily">@font/p5_title</item>
     
         <item name="designCornerRadius">4dp</item>
+    
+        <item name="designSpacing">8dp</item>
     </style>
     <style name="AppTheme.DeepSpace" parent="AppTheme">
         <item name="colorPrimary">#E3C878</item>
@@ -208,6 +218,8 @@
         <item name="android:fontFamily">@font/space_grotesk</item>
     
         <item name="designCornerRadius">18dp</item>
+    
+        <item name="designSpacing">16dp</item>
     </style>
     <style name="AppTheme.Sumi" parent="AppTheme">
         <item name="colorPrimary">#E4DCCB</item>
@@ -222,5 +234,7 @@
         <item name="android:fontFamily">@font/sumi_title</item>
     
         <item name="designCornerRadius">10dp</item>
+    
+        <item name="designSpacing">14dp</item>
     </style>
 </resources>
