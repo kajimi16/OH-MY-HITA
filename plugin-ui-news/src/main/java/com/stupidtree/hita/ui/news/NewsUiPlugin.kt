@@ -141,7 +141,7 @@ class NewsUiPlugin : ComposeUiPlugin {
                 .find(body)?.groupValues?.get(1)?.trim().orEmpty()
             val date = Regex("<pubDate>(.*?)</pubDate>", RegexOption.DOT_MATCHES_ALL)
                 .find(body)?.groupValues?.get(1)?.trim().orEmpty()
-            Article(Html.fromHtml(title, Html.FROM_HTML_MODE_LEGACY).toString(), link, date)
+            Article(@Suppress("DEPRECATION") Html.fromHtml(title).toString(), link, date)
         }.take(30).toList()
 
     private data class Article(val title: String, val url: String, val date: String)
