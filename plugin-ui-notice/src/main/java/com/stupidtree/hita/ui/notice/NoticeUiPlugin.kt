@@ -128,29 +128,5 @@ class NoticeUiPlugin : ComposeUiPlugin {
         CookieManager.getInstance().getCookie(NoticeParser.PORTAL).orEmpty()
     }.getOrDefault("")
 
-    private fun fetch(cookie: String): List<CampusNotice> {
-        val result = LinkedHashMap<String, CampusNotice>()
-        for (page in 1..3) {
-            val url = NoticeParser.listUrl(page)
-            val conn = URL(url).openConnection() as HttpURLConnection
-            conn.connectTimeout = 10_000
-            conn.readTimeout = 20_000
-            conn.instanceFollowRedirects = true
-            conn.setRequestProperty("Cookie", cookie)
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 OH-MY-HITA")
-            val html = try {
-                if (NoticeParser.isLogin(conn.url.toString()) || conn.responseCode in 401..403) {
-                    error("门户会话已失效，请重新登录")
-                }
-                conn.inputStream.bufferedReader().use { it.readText() }
-            } finally {
-                conn.disconnect()
-            }
-            val parsed = NoticeParser.parse(html, url)
-            if (parsed.isEmpty()) break
-            parsed.forEach { result.putIfAbsent(it.id, it) }
-            if (result.size >= 30) break
-        }
-        return result.values.sortedByDescending { it.time }.take(30)
-    }
+    private fun fetch(cookie: String): List<CampusNotice> = NoticeFetcher.fetch(cookie)
 }

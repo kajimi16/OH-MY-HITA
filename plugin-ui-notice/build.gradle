@@ -11,7 +11,7 @@ android {
         targetSdk 33
         compileSdk 35
         versionCode 1
-        versionName "0.1.0"
+        versionName "0.1.1"
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion '1.5.8' }
@@ -35,5 +35,6 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation "androidx.compose.runtime:runtime:1.6.8"
     testImplementation 'org.jsoup:jsoup:1.18.2'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
     testImplementation 'org.jetbrains.kotlin:kotlin-test:1.9.22'
 }
