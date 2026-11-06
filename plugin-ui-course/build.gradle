@@ -11,7 +11,7 @@ android {
         targetSdk 33
         compileSdk 35
         versionCode 1
-        versionName "0.1.0"
+        versionName "0.2.0"
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion '1.5.8' }
@@ -29,4 +29,10 @@ dependencies {
     compileOnly "androidx.compose.ui:ui:1.6.8"
     compileOnly "androidx.compose.foundation:foundation:1.6.8"
     compileOnly "androidx.compose.material:material:1.6.8"
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation project(':api')
+    testImplementation "androidx.compose.runtime:runtime:1.6.8"
 }

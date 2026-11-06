@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -26,6 +27,7 @@ import com.stupidtree.hita.api.ComposeUiPlugin
 import com.stupidtree.hita.api.CourseCatalogService
 import com.stupidtree.hita.api.PluginUiHost
 import com.stupidtree.hita.api.ScoreService
+import com.stupidtree.hitax.data.model.eas.ShenzhenCourseCatalogItem
 import com.stupidtree.hitax.data.model.eas.ShenzhenCourseCatalogPage
 import com.stupidtree.hitax.data.model.eas.ShenzhenSelectionPools
 
@@ -46,6 +48,7 @@ class CourseUiPlugin : ComposeUiPlugin {
                     val term = termsState.data?.firstOrNull { it.isCurrent }
                         ?: termsState.data?.firstOrNull()
                     var pool by remember { mutableStateOf(ShenzhenSelectionPools.all.first()) }
+                    var selected by remember { mutableStateOf<List<ShenzhenCourseCatalogItem>>(emptyList()) }
                     val pageLive = remember(term?.getCode(), pool.code, catalog) {
                         if (term != null && catalog != null) catalog.available(term, pool.code)
                         else androidx.lifecycle.MutableLiveData(DataState(DataState.STATE.NOTHING))
@@ -53,7 +56,18 @@ class CourseUiPlugin : ComposeUiPlugin {
                     val page by pageLive.observeAsState(DataState(DataState.STATE.NOTHING))
                     Column(Modifier.fillMaxSize().padding(16.dp)) {
                         Text("选课助手", style = MaterialTheme.typography.h5)
-                        Text("只读课程目录；暂不执行选课。", style = MaterialTheme.typography.caption)
+                        Text("只读课程目录；可加入本地计划，暂不执行选课。", style = MaterialTheme.typography.caption)
+                        if (selected.isNotEmpty()) {
+                            val conflicts = CoursePlan.conflicts(selected)
+                            Text(
+                                "计划 ${selected.size} 门 · ${"%.1f".format(CoursePlan.credits(selected))} 学分 · 冲突 ${conflicts.size}",
+                                style = MaterialTheme.typography.body2,
+                            )
+                            conflicts.forEach {
+                                Text("冲突：${it.first.courseName} × ${it.second.courseName}",
+                                    style = MaterialTheme.typography.caption)
+                            }
+                        }
                         when {
                             catalog == null -> Text("选课服务不可用")
                             termsState.state == DataState.STATE.NOT_LOGGED_IN ->
@@ -88,6 +102,11 @@ class CourseUiPlugin : ComposeUiPlugin {
                                                         "余量 ${item.remainingSeats ?: "-"}",
                                                         style = MaterialTheme.typography.caption,
                                                     )
+                                                    val chosen = selected.any { it.id == item.id }
+                                                    Button(onClick = {
+                                                        selected = if (chosen) selected.filterNot { it.id == item.id }
+                                                        else selected + item
+                                                    }) { Text(if (chosen) "移出计划" else "加入计划") }
                                                 }
                                             }
                                         }
