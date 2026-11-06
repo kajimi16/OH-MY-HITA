@@ -17,12 +17,15 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.stupidtree.hita.api.ComposeUiPlugin
 import com.stupidtree.hita.api.PluginUiHost
 import com.stupidtree.hita.api.TimetableService
@@ -99,10 +102,12 @@ class GroupUiPlugin : ComposeUiPlugin {
         ids: List<String>,
         merged: Boolean,
     ) {
-        val events = remember(ids, merged) {
-            ids.flatMap { id ->
-                timetables.firstOrNull { it.id == id }?.let { load(service, it) }.orEmpty()
-            }.sortedBy { it.from.time }
+        val events by produceState(emptyList<EventItem>(), ids, merged) {
+            value = withContext(Dispatchers.IO) {
+                ids.flatMap { id ->
+                    timetables.firstOrNull { it.id == id }?.let { load(service, it) }.orEmpty()
+                }.sortedBy { it.from.time }
+            }
         }
         val fmt = SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault())
         LazyColumn(Modifier.padding(top = 8.dp)) {
