@@ -24,9 +24,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.stupidtree.hita.api.ComposeUiPlugin
 import com.stupidtree.hita.api.PluginUiHost
+import com.stupidtree.hita.api.TimetableService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -124,7 +127,13 @@ class AiUiPlugin : ComposeUiPlugin {
                                     scope.launch {
                                         runCatching {
                                             withContext(Dispatchers.IO) {
-                                                chat(endpoint, model, apiKey, messages.toList())
+                                                chat(
+                                                    endpoint,
+                                                    model,
+                                                    apiKey,
+                                                    messages.toList(),
+                                                    todayContext(host),
+                                                )
                                             }
                                         }.onSuccess { messages += Message("assistant", it) }
                                             .onFailure { error = it.message ?: "请求失败" }
@@ -139,18 +148,86 @@ class AiUiPlugin : ComposeUiPlugin {
         }
     }
 
+    private fun todayContext(host: PluginUiHost): String {
+        val events = runCatching {
+            host.service(TimetableService.KEY)?.getTodayEventsSync().orEmpty()
+        }.getOrDefault(emptyList())
+        if (events.isEmpty()) return "今日课表：无课程。"
+        val fmt = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+        return "今日课表：\n" + events.joinToString("\n") { event ->
+            "- ${fmt.format(java.util.Date(event.from.time))}-${fmt.format(java.util.Date(event.to.time))} " +
+                "${event.name} @ ${event.place.orEmpty()}"
+        }
+    }
+
     private fun chat(
         endpoint: String,
         model: String,
         apiKey: String,
         messages: List<Message>,
+        today: String,
     ): String {
-        val payload = mapOf(
-            "model" to model,
-            "messages" to (listOf(mapOf("role" to "system", "content" to SYSTEM_PROMPT)) +
-                messages.map { mapOf("role" to it.role, "content" to it.content) }),
-        )
-        val body = com.google.gson.Gson().toJson(payload).toByteArray()
+        val history = JsonArray()
+        fun addMessage(role: String, content: String) {
+            history.add(JsonObject().apply {
+                addProperty("role", role)
+                addProperty("content", content)
+            })
+        }
+        addMessage("system", SYSTEM_PROMPT + "\n" + today)
+        messages.forEach { addMessage(it.role, it.content) }
+
+        var response = post(endpoint, apiKey, requestBody(model, history, withTools = true))
+        var choice = response.getAsJsonArray("choices")?.firstOrNull()?.asJsonObject
+            ?.getAsJsonObject("message") ?: error("响应缺少 choices[0].message")
+        val calls = choice.getAsJsonArray("tool_calls")
+        if (calls != null && calls.size() > 0) {
+            history.add(choice)
+            calls.forEach { element ->
+                val call = element.asJsonObject
+                val id = call.get("id")?.asString ?: ""
+                val name = call.getAsJsonObject("function")?.get("name")?.asString.orEmpty()
+                val result = when (name) {
+                    "get_today_courses" -> today
+                    else -> "未知工具：$name"
+                }
+                history.add(JsonObject().apply {
+                    addProperty("role", "tool")
+                    addProperty("tool_call_id", id)
+                    addProperty("content", result)
+                })
+            }
+            response = post(endpoint, apiKey, requestBody(model, history, withTools = false))
+            choice = response.getAsJsonArray("choices")?.firstOrNull()?.asJsonObject
+                ?.getAsJsonObject("message") ?: error("响应缺少 choices[0].message")
+        }
+        return choice.get("content")?.asString ?: error("响应缺少文本内容")
+    }
+
+    private fun requestBody(model: String, history: JsonArray, withTools: Boolean): String {
+        val root = JsonObject().apply {
+            addProperty("model", model)
+            add("messages", history)
+            if (withTools) {
+                add("tools", JsonArray().apply {
+                    add(JsonObject().apply {
+                        addProperty("type", "function")
+                        add("function", JsonObject().apply {
+                            addProperty("name", "get_today_courses")
+                            addProperty("description", "查询今天课程的时间、名称和地点")
+                            add("parameters", JsonObject().apply {
+                                addProperty("type", "object")
+                                add("properties", JsonObject())
+                            })
+                        })
+                    })
+                })
+            }
+        }
+        return com.google.gson.Gson().toJson(root)
+    }
+
+    private fun post(endpoint: String, apiKey: String, body: String): JsonObject {
         val conn = URL(endpoint).openConnection() as HttpURLConnection
         conn.requestMethod = "POST"
         conn.connectTimeout = 15_000
@@ -159,16 +236,12 @@ class AiUiPlugin : ComposeUiPlugin {
         conn.setRequestProperty("Content-Type", "application/json")
         conn.setRequestProperty("Authorization", "Bearer $apiKey")
         return try {
-            conn.outputStream.use { it.write(body) }
+            conn.outputStream.use { it.write(body.toByteArray()) }
             val code = conn.responseCode
             val text = (if (code in 200..299) conn.inputStream else conn.errorStream)
                 ?.bufferedReader()?.use { it.readText() }.orEmpty()
             if (code !in 200..299) error("HTTP $code: ${text.take(300)}")
-            val root = JsonParser.parseString(text).asJsonObject
-            root.getAsJsonArray("choices")?.firstOrNull()
-                ?.asJsonObject?.getAsJsonObject("message")
-                ?.get("content")?.asString
-                ?: error("响应缺少 choices[0].message.content")
+            JsonParser.parseString(text).asJsonObject
         } finally {
             conn.disconnect()
         }
