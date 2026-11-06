@@ -54,6 +54,12 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     /** 索引里的整合包（可选字段）。 */
     val presets = MutableLiveData<List<MarketPreset>>(emptyList())
 
+    /** 当前生效的整合包 id；切换成功后更新。 */
+    val activePresetId = MutableLiveData<String?>(PresetStateStore.activeId(application))
+
+    /** 索引是否已完成一次读取（成功或失败），用于区分“还在加载”和“没有预设”。 */
+    val presetsLoaded = MutableLiveData(false)
+
     /** 可选插件源（默认源 + 自定义源）。 */
     val sources = MutableLiveData<List<MarketSource>>(emptyList())
 
@@ -67,6 +73,11 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     private var lastIndexBase: String? = null
 
     fun indexBase(): String? = lastIndexBase
+
+    /** 从持久化同步当前整合包；首启在别的 ViewModel 应用后，市场需要重新读取。 */
+    fun syncActivePreset() {
+        activePresetId.value = PresetStateStore.activeId(ctx())
+    }
 
     private fun cacheDirFor(url: String): File {
         val name = java.security.MessageDigest.getInstance("SHA-256")
@@ -85,6 +96,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     /** 索引可能在远端，读取放到后台线程。 */
     fun refresh() {
         status.postValue("正在读取插件索引…")
+        presetsLoaded.postValue(false)
         executor.execute {
             ensureDemoIndex()
             apkPlugins.postValue(
@@ -116,6 +128,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                     )
                     availableUiPlugins.postValue(index.uiPlugins)
                     presets.postValue(index.presets.orEmpty())
+                    presetsLoaded.postValue(true)
                     status.postValue(if (offline) "网络不可用，正在显示缓存索引" else null)
                     pendingUpdates.postValue(countUpdatesOutsideActive())
                 }
@@ -123,6 +136,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                     items.postValue(emptyList())
                     availableUiPlugins.postValue(emptyList())
                     presets.postValue(emptyList())
+                    presetsLoaded.postValue(true)
                     status.postValue("读取索引失败：${it.message}")
                 }
         }
@@ -317,6 +331,9 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
      * 已停用的内置插件会重新启用；未受信任的 dex 插件不会静默安装。
      */
     fun applyPreset(preset: MarketPreset) {
+        val previous = activePresetId.value
+            ?.let { id -> presets.value?.firstOrNull { it.id == id } }
+            ?.takeIf { it.id != preset.id }
         executor.execute {
             val minHost = preset.minHostApi ?: 1
             if (minHost > HITA_API_VERSION) {
@@ -325,10 +342,11 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             }
             val ui = availableUiPlugins.value.orEmpty().associateBy { it.id }
             val dex = items.value.orEmpty().associateBy { it.entry.id }
-            val installedUi = uiPluginManager.installed().map { it.id }.toSet()
+            val installedUi = uiPluginManager.installed().associateBy { it.id }
             val installedDex = installer.installed().map { it.id }.toSet()
             val builtins = builtin.rows().associateBy { it.id }
             var installed = 0
+            var enabled = 0
             var skipped = 0
             var reloadNeeded = false
             val failures = mutableListOf<String>()
@@ -336,7 +354,16 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             for (ref in preset.refs()) {
                 when (ref.normalizedKind()) {
                     "ui" -> {
-                        if (ref.id in installedUi) { skipped++; continue }
+                        val row = installedUi[ref.id]
+                        if (row != null) {
+                            if (!row.enabled && uiPluginManager.setEnabled(ref.id, true)) {
+                                enabled++
+                                if (hasMainTab(row)) reloadNeeded = true
+                            } else {
+                                skipped++
+                            }
+                            continue
+                        }
                         val entry = ui[ref.id]
                         if (entry == null) {
                             if (ref.isRequired()) failures += "${ref.id}（索引缺失）"
@@ -377,8 +404,42 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                 }
             }
 
+            var disabledOld = 0
+            if (failures.isEmpty() && previous != null) {
+                val keep = preset.refs().map { it.normalizedKind() to it.id }.toSet()
+                val installedUiNow = uiPluginManager.installed().associateBy { it.id }
+                val builtinsNow = builtin.rows().associateBy { it.id }
+                previous.refs()
+                    .filter { (it.normalizedKind() to it.id) !in keep }
+                    .forEach { ref ->
+                        when (ref.normalizedKind()) {
+                            "ui" -> {
+                                val row = installedUiNow[ref.id] ?: return@forEach
+                                if (row.enabled && uiPluginManager.setEnabled(ref.id, false)) {
+                                    disabledOld++
+                                    reloadNeeded = true
+                                }
+                            }
+                            "builtin" -> {
+                                val row = builtinsNow[ref.id] ?: return@forEach
+                                if (row.installed && builtin.setEnabled(ref.id, false).isSuccess) {
+                                    disabledOld++
+                                    reloadNeeded = true
+                                }
+                            }
+                        }
+                    }
+            }
+            if (failures.isEmpty()) {
+                PresetStateStore.setActive(ctx(), preset.id)
+                activePresetId.postValue(preset.id)
+            }
+
             val summary = buildString {
-                append("整合包 ${preset.name}：安装 $installed，跳过 $skipped")
+                append("整合包 ${preset.name}：安装 $installed")
+                if (enabled > 0) append("，启用 $enabled")
+                append("，跳过 $skipped")
+                if (disabledOld > 0) append("，停用旧组合 $disabledOld")
                 if (failures.isNotEmpty()) append("，失败 ${failures.size}")
             }
             message.postValue(if (failures.isEmpty()) summary else summary + "；" + failures.joinToString("；"))

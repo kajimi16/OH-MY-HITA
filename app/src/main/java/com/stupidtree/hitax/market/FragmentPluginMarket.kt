@@ -51,6 +51,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         viewModel.uiPlugins.observe(this) { latestUiInstalled = it; renderAll() }
         viewModel.availableUiPlugins.observe(this) { latestUiAvailable = it; renderAll() }
         viewModel.presets.observe(this) { latestPresets = it; renderDiscover() }
+        viewModel.activePresetId.observe(this) { renderDiscover() }
         viewModel.apkPlugins.observe(this) { latestApk = it; renderAll() }
         viewModel.sources.observe(this) { renderAll() }
         viewModel.pendingUpdates.observe(this) { latestPendingUpdates = it; renderAll() }
@@ -97,6 +98,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
 
     override fun onResume() {
         super.onResume()
+        viewModel.syncActivePreset()
         viewModel.refresh()
     }
 
@@ -178,28 +180,48 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     }
 
     private fun bindDiscoverPreset(card: ItemMarketPluginCardBinding, preset: MarketPreset) {
+        val activeId = viewModel.activePresetId.value
+        val isActive = activeId == preset.id
         card.name.text = preset.name
         card.meta.text = buildString {
             append("整合包")
             preset.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
             append(" · ").append(preset.refs().size).append(" 个插件")
+            if (isActive) append(" · 使用中")
         }
         card.toggle.visibility = View.GONE
         card.action.visibility = View.VISIBLE
-        card.action.text = "应用"
-        card.action.isEnabled = true
+        card.action.text = when {
+            isActive -> "使用中"
+            activeId != null -> "切换"
+            else -> "应用"
+        }
+        card.action.isEnabled = !isActive
         card.action.setOnClickListener { confirmApplyPreset(preset) }
         card.root.setOnClickListener { showPresetPreview(preset) }
     }
 
     private fun confirmApplyPreset(preset: MarketPreset) {
+        val previous = viewModel.activePresetId.value
+            ?.let { id -> latestPresets.firstOrNull { it.id == id } }
+            ?.takeIf { it.id != preset.id }
         AlertDialog.Builder(requireContext())
             .setTitle(preset.name)
             .setMessage(
-                "将安装/启用 ${preset.refs().size} 个插件。\n\n" +
-                    "未受信任的在线插件会被跳过；可先点卡片查看完整清单。"
+                buildString {
+                    if (previous != null) {
+                        append("从「${previous.name}」切换到「${preset.name}」。\n\n")
+                    }
+                    append("将安装/启用 ${preset.refs().size} 个插件。")
+                    if (previous != null) {
+                        append("\n切换成功后会停用旧整合包中不属于新组合的插件；文件保留。")
+                    }
+                    append("\n\n未受信任的在线插件会被跳过；可先点卡片查看完整清单。")
+                }
             )
-            .setPositiveButton("应用") { _, _ -> viewModel.applyPreset(preset) }
+            .setPositiveButton(if (previous != null) "切换" else "应用") { _, _ ->
+                viewModel.applyPreset(preset)
+            }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
