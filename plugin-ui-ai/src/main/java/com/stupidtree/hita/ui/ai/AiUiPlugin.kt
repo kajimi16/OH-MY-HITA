@@ -119,7 +119,7 @@ class AiUiPlugin : ComposeUiPlugin {
                                     Column(Modifier.padding(10.dp)) {
                                         Text(if (message.role == "user") "我" else "AI",
                                             style = MaterialTheme.typography.caption)
-                                        Text(if (message.imageBase64 != null) "${message.content}（含图片）" else message.content)
+                                        Text(if (message.images.isNotEmpty()) "${message.content}（含${message.images.size}张图片）" else message.content)
                                     }
                                 }
                             }
@@ -147,7 +147,7 @@ class AiUiPlugin : ComposeUiPlugin {
                                             save()
                                             error = null
                                             val text = "请描述这张图片"
-                                            messages += Message("user", text, image)
+                                            messages += Message("user", text, listOf(image))
                                             busy = true
                                             runCatching {
                                                 withContext(Dispatchers.IO) {
@@ -193,6 +193,34 @@ class AiUiPlugin : ComposeUiPlugin {
                                 },
                             ) { Text("文本") }
                             Button(
+                                enabled = !busy && apiKey.isNotBlank(),
+                                onClick = {
+                                    pickDocument(context, arrayOf("application/pdf")) { uri ->
+                                        scope.launch {
+                                            val images = withContext(Dispatchers.IO) {
+                                                renderPdfPages(context, uri)
+                                            }
+                                            if (images.isEmpty()) {
+                                                error = "无法解析 PDF"
+                                                return@launch
+                                            }
+                                            save()
+                                            error = null
+                                            val message = "PDF 页面（${images.size} 页）"
+                                            messages += Message("user", message, images)
+                                            busy = true
+                                            runCatching {
+                                                withContext(Dispatchers.IO) {
+                                                    chat(endpoint, model, apiKey, messages.toList(), todayContext(host), host)
+                                                }
+                                            }.onSuccess { messages += Message("assistant", it) }
+                                                .onFailure { error = it.message ?: "请求失败" }
+                                            busy = false
+                                        }
+                                    }
+                                },
+                            ) { Text("PDF") }
+                            Button(
                                 enabled = !busy && input.isNotBlank() && apiKey.isNotBlank(),
                                 onClick = {
                                     val text = input.trim()
@@ -225,6 +253,30 @@ class AiUiPlugin : ComposeUiPlugin {
             }
         }
     }
+
+    private fun renderPdfPages(context: Context, uri: Uri): List<String> = runCatching {
+        val pfd = context.contentResolver.openFileDescriptor(uri, "r") ?: return emptyList()
+        val images = mutableListOf<String>()
+        android.graphics.pdf.PdfRenderer(pfd).use { renderer ->
+            val count = minOf(renderer.pageCount, 3)
+            for (index in 0 until count) {
+                renderer.openPage(index).use { page ->
+                    val scale = minOf(1f, 1024f / maxOf(page.width, page.height))
+                    val bitmap = Bitmap.createBitmap(
+                        (page.width * scale).toInt().coerceAtLeast(1),
+                        (page.height * scale).toInt().coerceAtLeast(1),
+                        Bitmap.Config.ARGB_8888,
+                    )
+                    page.render(bitmap, null, null, android.graphics.pdf.PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    val out = ByteArrayOutputStream()
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
+                    bitmap.recycle()
+                    images += Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+                }
+            }
+        }
+        images
+    }.getOrDefault(emptyList())
 
     private fun pickImage(context: Context, onPicked: (Uri) -> Unit) {
         val activity = context as? ComponentActivity ?: return
@@ -290,7 +342,7 @@ class AiUiPlugin : ComposeUiPlugin {
         }
         addMessage("system", SYSTEM_PROMPT + "\n" + today)
         messages.forEach { message ->
-            if (message.imageBase64 == null) {
+            if (message.images.isEmpty()) {
                 addMessage(message.role, message.content)
             } else {
                 history.add(JsonObject().apply {
@@ -300,12 +352,14 @@ class AiUiPlugin : ComposeUiPlugin {
                             addProperty("type", "text")
                             addProperty("text", message.content)
                         })
-                        add(JsonObject().apply {
-                            addProperty("type", "image_url")
-                            add("image_url", JsonObject().apply {
-                                addProperty("url", "data:image/jpeg;base64,${message.imageBase64}")
+                        message.images.forEach { image ->
+                            add(JsonObject().apply {
+                                addProperty("type", "image_url")
+                                add("image_url", JsonObject().apply {
+                                    addProperty("url", "data:image/jpeg;base64,$image")
+                                })
                             })
-                        })
+                        }
                     })
                 })
             }
@@ -533,7 +587,7 @@ class AiUiPlugin : ComposeUiPlugin {
     private data class Message(
         val role: String,
         val content: String,
-        val imageBase64: String? = null,
+        val images: List<String> = emptyList(),
     )
 
     private companion object {
