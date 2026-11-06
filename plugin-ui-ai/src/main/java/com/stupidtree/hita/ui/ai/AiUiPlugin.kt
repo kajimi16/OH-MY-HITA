@@ -33,6 +33,7 @@ import androidx.lifecycle.Observer
 import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.PluginUiHost
 import com.stupidtree.hita.api.ResourceDataService
+import com.stupidtree.hita.api.ScoreService
 import com.stupidtree.hita.api.TimetableService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -200,6 +201,7 @@ class AiUiPlugin : ComposeUiPlugin {
                     "get_today_courses" -> today
                     "search_courses" -> searchCourses(host, call.getAsJsonObject("function")
                         ?.get("arguments")?.asString.orEmpty())
+                    "get_scores" -> scores(host)
                     else -> "未知工具：$name"
                 }
                 history.add(JsonObject().apply {
@@ -226,6 +228,17 @@ class AiUiPlugin : ComposeUiPlugin {
                         add("function", JsonObject().apply {
                             addProperty("name", "get_today_courses")
                             addProperty("description", "查询今天课程的时间、名称和地点")
+                            add("parameters", JsonObject().apply {
+                                addProperty("type", "object")
+                                add("properties", JsonObject())
+                            })
+                        })
+                    })
+                    add(JsonObject().apply {
+                        addProperty("type", "function")
+                        add("function", JsonObject().apply {
+                            addProperty("name", "get_scores")
+                            addProperty("description", "查询当前学期 GPA、排名、学分和成绩明细")
                             add("parameters", JsonObject().apply {
                                 addProperty("type", "object")
                                 add("properties", JsonObject())
@@ -275,6 +288,23 @@ class AiUiPlugin : ComposeUiPlugin {
         }
     }
 
+    private fun scores(host: PluginUiHost): String {
+        val service = host.service(ScoreService.KEY) ?: return "成绩服务不可用"
+        val terms = await(onMain { service.terms() }, 8_000) ?: return "学期查询超时"
+        if (terms.state != DataState.STATE.SUCCESS) return "查询失败：${terms.message ?: terms.state}"
+        val term = terms.data?.firstOrNull { it.isCurrent } ?: terms.data?.firstOrNull()
+            ?: return "没有学期数据"
+        val report = await(onMain { service.report(term) }, 15_000) ?: return "成绩查询超时"
+        if (report.state != DataState.STATE.SUCCESS) return "查询失败：${report.message ?: report.state}"
+        val data = report.data ?: return "没有成绩数据"
+        return buildString {
+            append("${term.name}：GPA ${data.gpa.ifBlank { "-" }}，排名 ${data.rank.ifBlank { "-" }}，学分 ${data.total.ifBlank { "-" }}")
+            data.entries.take(8).forEach {
+                append("\n- ${it.courseName}：${it.score} 分 / ${it.credits} 学分")
+            }
+        }
+    }
+
     private fun searchCourses(host: PluginUiHost, arguments: String): String {
         val query = runCatching {
             JsonParser.parseString(arguments).asJsonObject.get("query")?.asString
@@ -286,6 +316,17 @@ class AiUiPlugin : ComposeUiPlugin {
         val items = state.data.orEmpty().take(5)
         if (items.isEmpty()) return "没有找到「$query」相关课程"
         return items.joinToString("\n") { "${it.courseName}（${it.courseCode}）" }
+    }
+
+    private fun <T> onMain(block: () -> T): T {
+        val latch = CountDownLatch(1)
+        val result = AtomicReference<T>()
+        android.os.Handler(android.os.Looper.getMainLooper()).post {
+            runCatching { result.set(block()) }
+            latch.countDown()
+        }
+        latch.await(5, TimeUnit.SECONDS)
+        return result.get() ?: error("主线程调用超时")
     }
 
     private fun <T> await(liveData: LiveData<T>, timeoutMs: Long): T? {
