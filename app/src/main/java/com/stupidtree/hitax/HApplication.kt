@@ -63,6 +63,11 @@ class HApplication : Application() {
             com.stupidtree.hita.api.ReminderService.KEY,
             com.stupidtree.hitax.reminder.ReminderServiceImpl(this),
         )
+        // 宿主后台任务：WorkManager 负责持久化，插件只实现 BackgroundTask。
+        pluginHost.provideGlobal(
+            com.stupidtree.hita.api.BackgroundTaskService.KEY,
+            com.stupidtree.hitax.background.BackgroundTaskServiceImpl(this),
+        )
         // 宿主内建跳转能力：迁移期插件请求宿主打开课表详情 / 教务导入
         pluginHost.provideGlobal(HostUiService.KEY, object : HostUiService {
             override fun openTimetableDetail(context: android.content.Context, timetableId: String) {

@@ -28,6 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import com.stupidtree.hita.api.BackgroundTask
+import com.stupidtree.hita.api.BackgroundTaskHost
+import com.stupidtree.hita.api.BackgroundTaskService
 import com.stupidtree.hita.api.ComposeUiPlugin
 import com.stupidtree.hita.api.PluginUiHost
 import com.stupidtree.hita.api.ReminderService
@@ -44,11 +47,18 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ReminderUiPlugin : ComposeUiPlugin, WidgetContentProvider {
+class ReminderUiPlugin : ComposeUiPlugin, WidgetContentProvider, BackgroundTask {
 
     override val id = "com.stupidtree.hita.ui.reminder"
     override val displayName = "上课提醒"
     override val requiresApi = 7
+
+    override fun run(context: Context, host: BackgroundTaskHost): Boolean {
+        val prefs = context.getSharedPreferences("reminder_plugin", Context.MODE_PRIVATE)
+        val count = prefs.getInt("background_runs", 0) + 1
+        prefs.edit().putInt("background_runs", count).apply()
+        return true
+    }
 
     override fun buildWidget(
         context: Context,
@@ -83,6 +93,9 @@ class ReminderUiPlugin : ComposeUiPlugin, WidgetContentProvider {
                     var minutes by remember { mutableStateOf(prefs.getInt("minutes", 15).toFloat()) }
                     var status by remember { mutableStateOf("") }
                     var permission by remember { mutableStateOf(hasNotificationPermission(context)) }
+                    var backgroundRuns by remember {
+                        mutableStateOf(prefs.getInt("background_runs", 0))
+                    }
 
                     fun reschedule() {
                         val reminderService = reminders ?: run {
@@ -187,6 +200,19 @@ class ReminderUiPlugin : ComposeUiPlugin, WidgetContentProvider {
                             )
                             status = if (ok) "测试提醒已安排，10 秒后送达" else "测试提醒安排失败"
                         }) { Text("10 秒后测试") }
+                        Text("后台任务执行：$backgroundRuns 次")
+                        Button(onClick = {
+                            val service = host.service(BackgroundTaskService.KEY)
+                            if (service == null) {
+                                status = "宿主未提供后台任务服务"
+                            } else {
+                                val ok = service.scheduleOnce(ownerId, "test-once", 5_000)
+                                status = if (ok) "5 秒后台任务已注册" else "后台任务注册失败"
+                            }
+                        }) { Text("5 秒后台任务") }
+                        Button(onClick = {
+                            backgroundRuns = prefs.getInt("background_runs", 0)
+                        }) { Text("刷新执行次数") }
                         Text(status.ifBlank { "通知权限：${if (permission) "已授予" else "未授予"}" })
                         Text(
                             "提前量会保存在插件设置中；当前只安排今天的课程。",

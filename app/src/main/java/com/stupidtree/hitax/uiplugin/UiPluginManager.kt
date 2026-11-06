@@ -184,6 +184,7 @@ class UiPluginManager(private val context: Context) {
     }
 
     fun uninstall(id: String) {
+        runCatching { com.stupidtree.hitax.background.BackgroundTaskServiceImpl(context).cancelAll(id) }
         val dir = runCatching { pluginDir(id) }.getOrNull()
         if (dir != null) {
             runCatching { dir.deleteRecursively() }
