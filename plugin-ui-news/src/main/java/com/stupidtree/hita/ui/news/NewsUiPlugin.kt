@@ -1,10 +1,10 @@
 package com.stupidtree.hita.ui.news
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.text.Html
 import android.view.View
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.stupidtree.hita.api.ComposeUiPlugin
 import com.stupidtree.hita.api.PluginUiHost
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +47,7 @@ class NewsUiPlugin : ComposeUiPlugin {
                     var loading by remember { mutableStateOf(true) }
                     var error by remember { mutableStateOf<String?>(null) }
                     var reload by remember { mutableStateOf(0) }
+                    var selected by remember { mutableStateOf<Article?>(null) }
 
                     LaunchedEffect(reload) {
                         loading = true
@@ -56,34 +58,55 @@ class NewsUiPlugin : ComposeUiPlugin {
                         loading = false
                     }
 
-                    Column(Modifier.fillMaxSize().padding(16.dp)) {
-                        Row {
-                            Text("HOA 资讯", style = MaterialTheme.typography.h5,
-                                modifier = Modifier.weight(1f))
-                            Button(onClick = { reload++ }) { Text("刷新") }
+                    val article = selected
+                    if (article != null) {
+                        Column(Modifier.fillMaxSize()) {
+                            Row(Modifier.fillMaxWidth().padding(8.dp)) {
+                                Button(onClick = { selected = null }) { Text("返回") }
+                                Text(
+                                    article.title,
+                                    style = MaterialTheme.typography.subtitle1,
+                                    maxLines = 2,
+                                    modifier = Modifier.padding(start = 8.dp).weight(1f),
+                                )
+                            }
+                            AndroidView(
+                                factory = { ctx ->
+                                    WebView(ctx).apply {
+                                        settings.javaScriptEnabled = true
+                                        webViewClient = WebViewClient()
+                                        loadUrl(article.url)
+                                    }
+                                },
+                                update = { view ->
+                                    if (view.url != article.url) view.loadUrl(article.url)
+                                },
+                                modifier = Modifier.fillMaxSize(),
+                            )
                         }
-                        Text("来源：hoa.moe/blog", style = MaterialTheme.typography.caption)
+                    } else {
+                        Column(Modifier.fillMaxSize().padding(16.dp)) {
+                            Row {
+                                Text("HOA 资讯", style = MaterialTheme.typography.h5,
+                                    modifier = Modifier.weight(1f))
+                                Button(onClick = { reload++ }) { Text("刷新") }
+                            }
+                            Text("来源：hoa.moe/blog", style = MaterialTheme.typography.caption)
 
-                        when {
-                            loading -> CircularProgressIndicator(Modifier.padding(top = 24.dp))
-                            error != null -> Text("加载失败：$error")
-                            articles.isEmpty() -> Text("暂无文章")
-                            else -> LazyColumn(Modifier.padding(top = 8.dp)) {
-                                items(articles) { article ->
-                                    Card(
-                                        Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                                            .clickable {
-                                                runCatching {
-                                                    context.startActivity(
-                                                        Intent(Intent.ACTION_VIEW, Uri.parse(article.url))
-                                                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                    )
-                                                }
-                                            },
-                                    ) {
-                                        Column(Modifier.padding(12.dp)) {
-                                            Text(article.title, style = MaterialTheme.typography.subtitle1)
-                                            Text(article.date, style = MaterialTheme.typography.caption)
+                            when {
+                                loading -> CircularProgressIndicator(Modifier.padding(top = 24.dp))
+                                error != null -> Text("加载失败：$error")
+                                articles.isEmpty() -> Text("暂无文章")
+                                else -> LazyColumn(Modifier.padding(top = 8.dp)) {
+                                    items(articles) { article ->
+                                        Card(
+                                            Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                                                .clickable { selected = article },
+                                        ) {
+                                            Column(Modifier.padding(12.dp)) {
+                                                Text(article.title, style = MaterialTheme.typography.subtitle1)
+                                                Text(article.date, style = MaterialTheme.typography.caption)
+                                            }
                                         }
                                     }
                                 }
