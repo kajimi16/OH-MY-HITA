@@ -7,7 +7,38 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 [App 下载（Releases）](https://github.com/kajimi16/OH-MY-HITA/releases/latest) ·
 [国内镜像](https://ani2-ext.kajimi.cc/hita/releases/oh-my-hita-latest.apk)
 
-当前版本：`0.5.0`。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
+当前发布：`0.5.0`（API 6）。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
+
+> `feat/api-7` 开发分支已实现 API 7，尚未发布；以下能力以该分支为准。
+
+### API 7 能力
+
+| 服务 | 能力 |
+|---|---|
+| `ReminderService` | 定时提醒、开机恢复、通知 |
+| `WidgetContentProvider` | 插件桌面小组件 |
+| `BackgroundTaskService` | 一次性/周期后台任务 |
+| `LiveCourseService` | 直播课提醒与前台守护 |
+| `ScoreService` | 学期成绩、GPA、排名 |
+| `ExamService` | 考试列表 |
+| `TeacherService` | 教师检索 |
+| `TrainingPlanService` | 培养方案进度 |
+| `EmptyClassroomService` | 教学楼与指定周空教室 |
+| `ThemeController` | 主题、字体、圆角/间距 token |
+| `TimetableAppearanceService` | 壁纸、透明度、模糊、遮罩 |
+
+### 市场整合包
+
+首次启动会直接列出整合包：
+
+- `hita-l-1.5.3`：经典轻量组合
+- `hita-android-3.1.2`：HITA_Android v3.1.2 复刻，19 个插件
+
+市场卡片显示「使用中」，支持切换；切换会安装缺失插件，并停用旧组合独有的 UI/内置插件。
+所有已安装 UI 插件也会出现在「功能中心 → 已安装插件」，不必从市场卡片进入。
+
+当前复刻 UI 插件：作业、AI、资讯、提醒、网址、外观、学分、分享、成绩、培养方案、
+对比、组合、直播、更新、通知。
 
 ### 运行时插件（T1）
 
@@ -115,12 +146,12 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 
 | 模块 | 角色 |
 |---|---|
-| `:api` | 插件契约：`Plugin` / `PluginContext` / `ServiceKey` / `NavEntry` / `SearchTab` / `SyncCodec`。只有接口，不含实体类 |
+| `:api` | 插件契约：`Plugin` / `PluginContext` / `ServiceKey` / `NavEntry` / `SearchTab` / `SyncCodec`，以及 API 7 的提醒、窗口、成绩、考试、教师、培养方案、空教室、主题等服务接口 |
 | `:kernel` | 微内核：`PluginHost` 负责装载/卸载、注册表与回滚；不依赖 Android，可直接跑 JVM 单测 |
 | `:app` | 宿主（shell）：`PluginHost` 装载/卸载插件并撤销其注册；`PluginCatalog` 是构建期插件清单 |
 | `:model` | 共享数据模型：实体与 DTO，宿主 / 契约 / 插件三方共用 |
 | `:plugin-hita` | 课表插件：Room 库、DAO、仓库、ICS、`TimetableService` / `TimetableUiService`、同步 codec，以及今日桌面小组件 |
-| `:plugin-eas` | 教务插件：登录、成绩、考试、空教室、课表导入、成绩提醒 |
+| `:plugin-eas` | 教务插件：登录、成绩、考试、空教室、课表导入、成绩提醒，并提供 `ScoreService` / `ExamService` / `TrainingPlanService` / `EmptyClassroomService` |
 | `:plugin-resource` | 课程资源插件：HOA 课程资料、README 渲染、投稿、教师检索（`ResourceUiService`） |
 | `:plugin-user` | 个人主页插件：资料页与编辑页（`UserUiService`） |
 | `:theta` | 社区插件：贡献 `CommunityService`、搜索页两个 tab、抽屉入口 |
