@@ -22,7 +22,8 @@ class PluginTaskWorker(
         val manager = UiPluginManager(applicationContext)
         val record = manager.installed().firstOrNull { it.id == ownerId }
         if (record == null || !record.enabled) {
-            Log.i(TAG, "skip background task $ownerId/$taskId: plugin unavailable")
+            Log.i(TAG, "cancel background task $ownerId/$taskId: plugin unavailable")
+            BackgroundTaskServiceImpl(applicationContext).cancel(ownerId, taskId)
             return Result.success()
         }
         return runCatching {
@@ -30,7 +31,7 @@ class PluginTaskWorker(
             check(plugin is BackgroundTask) { "插件未实现 BackgroundTask" }
             plugin.run(applicationContext, Host(applicationContext))
         }.fold(
-            onSuccess = { Result.success() },
+            onSuccess = { ok -> if (ok) Result.success() else Result.retry() },
             onFailure = {
                 Log.w(TAG, "background task failed $ownerId/$taskId", it)
                 Result.failure()
