@@ -480,6 +480,8 @@ class AiUiPlugin : ComposeUiPlugin {
                     "get_exams" -> exams(host)
                     "search_teachers" -> searchTeachers(host, call.getAsJsonObject("function")
                         ?.get("arguments")?.asString.orEmpty())
+                    "get_empty_classrooms" -> emptyClassrooms(host, call.getAsJsonObject("function")
+                        ?.get("arguments")?.asString.orEmpty())
                     else -> "未知工具：$name"
                 }
                 history.add(JsonObject().apply {
@@ -537,6 +539,26 @@ class AiUiPlugin : ComposeUiPlugin {
                             add("parameters", JsonObject().apply {
                                 addProperty("type", "object")
                                 add("properties", JsonObject())
+                            })
+                        })
+                    })
+                    add(JsonObject().apply {
+                        addProperty("type", "function")
+                        add("function", JsonObject().apply {
+                            addProperty("name", "get_empty_classrooms")
+                            addProperty("description", "查询某教学楼指定教学周的空教室")
+                            add("parameters", JsonObject().apply {
+                                addProperty("type", "object")
+                                add("properties", JsonObject().apply {
+                                    add("building", JsonObject().apply {
+                                        addProperty("type", "string")
+                                        addProperty("description", "教学楼 id 或名称；省略时使用第一栋")
+                                    })
+                                    add("week", JsonObject().apply {
+                                        addProperty("type", "integer")
+                                        addProperty("description", "教学周，从 1 开始，默认 1")
+                                    })
+                                })
                             })
                         })
                     })
@@ -606,6 +628,42 @@ class AiUiPlugin : ComposeUiPlugin {
         if (items.isEmpty()) return "没有找到「$query」相关教师"
         return items.joinToString("\n") {
             "${it.name} · ${it.department} · ${it.courseName}（${it.courseCode}）"
+        }
+    }
+
+    private fun emptyClassrooms(host: PluginUiHost, arguments: String): String {
+        val args = runCatching { JsonParser.parseString(arguments).asJsonObject }.getOrNull()
+        val buildingArg = args?.get("building")?.asString?.trim().orEmpty()
+        val week = args?.get("week")?.asInt?.coerceAtLeast(1) ?: 1
+        val service = host.service(com.stupidtree.hita.api.EmptyClassroomService.KEY)
+            ?: return "空教室服务不可用"
+        val buildingState = await(onMain { service.buildings() }, 10_000)
+            ?: return "教学楼查询超时"
+        if (buildingState.state != DataState.STATE.SUCCESS) {
+            return "查询失败：${buildingState.message ?: buildingState.state}"
+        }
+        val buildings = buildingState.data.orEmpty()
+        if (buildings.isEmpty()) return "没有教学楼数据"
+        val building = buildings.firstOrNull {
+            it.id == buildingArg || it.name == buildingArg
+        } ?: if (buildingArg.isBlank()) buildings.first() else return "没有找到教学楼「$buildingArg」"
+        val state = await(onMain { service.query(building.id, week) }, 18_000)
+            ?: return "空教室查询超时"
+        if (state.state != DataState.STATE.SUCCESS) {
+            return "查询失败：${state.message ?: state.state}"
+        }
+        val rooms = state.data.orEmpty()
+        if (rooms.isEmpty()) return "第${week}周「${building.name}」没有空教室数据"
+        return buildString {
+            append("第${week}周「${building.name}」共 ${rooms.size} 间教室：")
+            rooms.take(10).forEach { room ->
+                val free = (1..7).sumOf { day ->
+                    (1..12).count { period ->
+                        com.stupidtree.hita.api.ClassroomSlot(day, period) !in room.occupied
+                    }
+                }
+                append("\n- ${room.name}：空闲 $free 节")
+            }
         }
     }
 
