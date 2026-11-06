@@ -8,9 +8,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingStart="16dp"
+        android:paddingStart="?attr/designSpacing"
         android:paddingTop="8dp"
-        android:paddingEnd="16dp">
+        android:paddingEnd="?attr/designSpacing">
 
         <TextView
             android:id="@+id/tab_discover"
@@ -66,14 +66,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
+            android:paddingBottom="?attr/designSpacing">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="16dp"
+                android:paddingStart="?attr/designSpacing"
                 android:paddingEnd="8dp">
 
                 <TextView
@@ -107,9 +107,9 @@
                 android:id="@+id/status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="16dp"
+                android:paddingStart="?attr/designSpacing"
                 android:paddingTop="4dp"
-                android:paddingEnd="16dp"
+                android:paddingEnd="?attr/designSpacing"
                 android:textColor="?attr/textColorSecondary"
                 android:textSize="13sp"
                 android:visibility="gone" />
@@ -118,7 +118,7 @@
                 android:id="@+id/discover_empty"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp"
+                android:padding="?attr/designSpacing"
                 android:text="@string/plugin_discover_empty"
                 android:textColor="?attr/textColorSecondary"
                 android:textSize="13sp"
@@ -144,16 +144,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
+            android:paddingBottom="?attr/designSpacing">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="16dp"
+                android:paddingStart="?attr/designSpacing"
                 android:paddingTop="4dp"
-                android:paddingEnd="16dp">
+                android:paddingEnd="?attr/designSpacing">
 
                 <TextView
                     android:layout_width="0dp"
@@ -176,9 +176,9 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="16dp"
+                android:paddingStart="?attr/designSpacing"
                 android:paddingTop="20dp"
-                android:paddingEnd="16dp">
+                android:paddingEnd="?attr/designSpacing">
 
                 <TextView
                     android:layout_width="0dp"
@@ -208,7 +208,7 @@
                 android:id="@+id/market_empty"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp"
+                android:padding="?attr/designSpacing"
                 android:text="@string/plugin_mine_empty"
                 android:textColor="?attr/textColorSecondary"
                 android:textSize="13sp"
@@ -234,9 +234,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="16dp"
+            android:paddingStart="?attr/designSpacing"
             android:paddingTop="8dp"
-            android:paddingEnd="16dp"
+            android:paddingEnd="?attr/designSpacing"
             android:paddingBottom="24dp">
 
             <TextView
@@ -274,7 +274,7 @@
                 android:id="@+id/guide_template"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="?attr/designSpacing"
                 android:background="?attr/selectableItemBackground"
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp"
