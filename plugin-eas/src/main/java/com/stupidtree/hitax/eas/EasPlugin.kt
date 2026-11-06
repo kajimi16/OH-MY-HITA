@@ -31,6 +31,10 @@ class EasPlugin(private val application: Application) : Plugin {
         ctx.provide(EasService.KEY, EasServiceImpl(application))
         ctx.provide(com.stupidtree.hita.api.ScoreService.KEY, ScoreServiceImpl(application))
         ctx.provide(
+            com.stupidtree.hita.api.CourseCatalogService.KEY,
+            CourseCatalogServiceImpl(application),
+        )
+        ctx.provide(
             com.stupidtree.hita.api.TrainingPlanService.KEY,
             TrainingPlanServiceImpl(application),
         )
