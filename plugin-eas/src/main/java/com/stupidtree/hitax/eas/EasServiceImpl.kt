@@ -75,6 +75,8 @@ class EasServiceImpl(private val application: Application) : EasService {
     override fun openExam(activity: FragmentActivity) =
         ensureLogin(activity, onSuccess = { activity.startActivity(Intent(activity, ExamActivity::class.java)) })
 
+    override fun exams() = repo.getExamInfo()
+
     override fun openAccount(activity: FragmentActivity) = ensureLogin(activity, onSuccess = {})
 
     override fun autoReimportIfDue() {
