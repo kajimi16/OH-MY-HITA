@@ -48,7 +48,34 @@ data class UiMarketPlugin(
     val updatedAt: String? = null,
 )
 
+/** 整合包里的一个插件引用；kind 为 ui/dex/builtin。 */
+data class PresetPluginRef(
+    val id: String,
+    val kind: String? = null,
+    val required: Boolean? = null,
+) {
+    fun normalizedKind(): String = kind?.lowercase() ?: "ui"
+    fun isRequired(): Boolean = required != false
+}
+
+/** 一站式预设：引用一组市场插件，不打包插件源码。 */
+data class MarketPreset(
+    val id: String,
+    val name: String,
+    val version: String = "1",
+    /** 复刻来源，例如 HITA_Android v3.1.2。 */
+    val source: String? = null,
+    val description: String? = null,
+    val minHostApi: Int? = null,
+    val plugins: List<PresetPluginRef>? = null,
+    val tags: List<String>? = null,
+    val author: String? = null,
+) {
+    fun refs(): List<PresetPluginRef> = plugins.orEmpty()
+}
+
 data class MarketIndex(
     val plugins: List<MarketPlugin> = emptyList(),
     val uiPlugins: List<UiMarketPlugin> = emptyList(),
+    val presets: List<MarketPreset>? = null,
 )

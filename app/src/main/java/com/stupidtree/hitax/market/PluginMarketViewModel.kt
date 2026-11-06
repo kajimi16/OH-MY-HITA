@@ -51,6 +51,9 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     /** 索引里可安装 / 可更新的界面插件。 */
     val availableUiPlugins = MutableLiveData<List<UiMarketPlugin>>(emptyList())
 
+    /** 索引里的整合包（可选字段）。 */
+    val presets = MutableLiveData<List<MarketPreset>>(emptyList())
+
     /** 可选插件源（默认源 + 自定义源）。 */
     val sources = MutableLiveData<List<MarketSource>>(emptyList())
 
@@ -112,12 +115,14 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                         }
                     )
                     availableUiPlugins.postValue(index.uiPlugins)
+                    presets.postValue(index.presets.orEmpty())
                     status.postValue(if (offline) "网络不可用，正在显示缓存索引" else null)
                     pendingUpdates.postValue(countUpdatesOutsideActive())
                 }
                 .onFailure {
                     items.postValue(emptyList())
                     availableUiPlugins.postValue(emptyList())
+                    presets.postValue(emptyList())
                     status.postValue("读取索引失败：${it.message}")
                 }
         }
@@ -183,20 +188,19 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     fun install(entry: MarketPlugin) {
         executor.execute {
             val beforeNav = navIds()
-            val error = runCatching {
-                val minApi = entry.minHostApi ?: 1
-                require(minApi <= HITA_API_VERSION) {
-                    "插件需要宿主 API $minApi，当前 ${HITA_API_VERSION}"
-                }
-                installer.install(entry, lastIndexBase)
-            }.exceptionOrNull()
-            if (error == null) {
-                MarketSources.recordInstall(ctx(), entry.id, activeSource().url)
-                // 逻辑插件可能注册/撤销抽屉导航项，变化时重建宿主界面。
-                if (navIds() != beforeNav) reloadUi.postValue(true)
-            }
+            val error = runCatching { installDexBlocking(entry) }.exceptionOrNull()
+            if (error == null && navIds() != beforeNav) reloadUi.postValue(true)
             post(error?.let { "安装失败：${it.message}" } ?: "已安装 ${entry.name}")
         }
+    }
+
+    private fun installDexBlocking(entry: MarketPlugin) {
+        val minApi = entry.minHostApi ?: 1
+        require(minApi <= HITA_API_VERSION) {
+            "插件需要宿主 API $minApi，当前 ${HITA_API_VERSION}"
+        }
+        installer.install(entry, lastIndexBase)
+        MarketSources.recordInstall(ctx(), entry.id, activeSource().url)
     }
 
     fun uninstall(entry: MarketPlugin) {
@@ -273,24 +277,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     fun installUiPluginFromUrl(entry: UiMarketPlugin, indexBase: String?) {
         executor.execute {
             val app = getApplication<Application>()
-            val error = runCatching {
-                require(entry.sha256.matches(Regex("^[a-fA-F0-9]{64}$"))) {
-                    "索引缺少有效的 sha256，拒绝安装"
-                }
-                val minApi = entry.minHostApi ?: 1
-                require(minApi <= HITA_API_VERSION) {
-                    "插件需要宿主 API $minApi，当前 ${HITA_API_VERSION}"
-                }
-                val file = java.io.File(app.cacheDir, "ui-${entry.id}.apk")
-                PluginFetch.download(entry.url, indexBase, file)
-                try {
-                    val installed = uiPluginManager.installFile(file, entry.sha256)
-                    MarketSources.recordInstall(ctx(), installed.id, activeSource().url)
-                    if (hasMainTab(installed)) reloadUi.postValue(true)
-                } finally {
-                    file.delete()
-                }
-            }.exceptionOrNull()
+            val error = runCatching { installUiBlocking(entry, indexBase) }.exceptionOrNull()
             message.postValue(
                 error?.let { app.getString(com.stupidtree.hitax.R.string.plugin_ui_install_failed, it.message ?: "") }
                     ?: app.getString(com.stupidtree.hitax.R.string.plugin_ui_installed, entry.name)
@@ -299,6 +286,100 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    private fun installUiBlocking(entry: UiMarketPlugin, indexBase: String?): InstalledUiPlugin {
+        val app = getApplication<Application>()
+        require(entry.sha256.matches(Regex("^[a-fA-F0-9]{64}$"))) {
+            "索引缺少有效的 sha256，拒绝安装"
+        }
+        val minApi = entry.minHostApi ?: 1
+        require(minApi <= HITA_API_VERSION) {
+            "插件需要宿主 API $minApi，当前 ${HITA_API_VERSION}"
+        }
+        val file = java.io.File(app.cacheDir, "ui-${entry.id}.apk")
+        PluginFetch.download(entry.url, indexBase, file)
+        return try {
+            val installed = uiPluginManager.installFile(file, entry.sha256)
+            MarketSources.recordInstall(ctx(), installed.id, activeSource().url)
+            if (hasMainTab(installed)) reloadUi.postValue(true)
+            installed
+        } finally {
+            file.delete()
+        }
+    }
+
+
+    /**
+     * 应用整合包：按清单安装缺失插件；已安装的跳过。
+     * 已停用的内置插件会重新启用；未受信任的 dex 插件不会静默安装。
+     */
+    fun applyPreset(preset: MarketPreset) {
+        executor.execute {
+            val minHost = preset.minHostApi ?: 1
+            if (minHost > HITA_API_VERSION) {
+                message.postValue("整合包需要宿主 API $minHost，当前 $HITA_API_VERSION")
+                return@execute
+            }
+            val ui = availableUiPlugins.value.orEmpty().associateBy { it.id }
+            val dex = items.value.orEmpty().associateBy { it.entry.id }
+            val installedUi = uiPluginManager.installed().map { it.id }.toSet()
+            val installedDex = installer.installed().map { it.id }.toSet()
+            val builtins = builtin.rows().associateBy { it.id }
+            var installed = 0
+            var skipped = 0
+            val failures = mutableListOf<String>()
+
+            for (ref in preset.refs()) {
+                when (ref.normalizedKind()) {
+                    "ui" -> {
+                        if (ref.id in installedUi) { skipped++; continue }
+                        val entry = ui[ref.id]
+                        if (entry == null) {
+                            if (ref.isRequired()) failures += "${ref.id}（索引缺失）"
+                            continue
+                        }
+                        runCatching { installUiBlocking(entry, lastIndexBase) }
+                            .onSuccess { installed++ }
+                            .onFailure { failures += "${entry.name}：${it.message}" }
+                    }
+                    "dex" -> {
+                        if (ref.id in installedDex) { skipped++; continue }
+                        val entry = dex[ref.id]?.entry
+                        if (entry == null) {
+                            if (ref.isRequired()) failures += "${ref.id}（索引缺失）"
+                            continue
+                        }
+                        if (!trustStore.isVerified(entry.id)) {
+                            failures += "${entry.name}（未受信任，需手动安装）"
+                            continue
+                        }
+                        runCatching { installDexBlocking(entry) }
+                            .onSuccess { installed++ }
+                            .onFailure { failures += "${entry.name}：${it.message}" }
+                    }
+                    "builtin" -> {
+                        val row = builtins[ref.id]
+                        if (row == null) {
+                            if (ref.isRequired()) failures += "${ref.id}（内置缺失）"
+                            continue
+                        }
+                        if (row.installed) skipped++ else {
+                            runCatching { builtin.setEnabled(ref.id, true) }
+                                .onSuccess { installed++ }
+                                .onFailure { failures += "${row.name}：${it.message}" }
+                        }
+                    }
+                    else -> if (ref.isRequired()) failures += "${ref.id}（未知类型）"
+                }
+            }
+
+            val summary = buildString {
+                append("整合包 ${preset.name}：安装 $installed，跳过 $skipped")
+                if (failures.isNotEmpty()) append("，失败 ${failures.size}")
+            }
+            message.postValue(if (failures.isEmpty()) summary else summary + "；" + failures.joinToString("；"))
+            refresh()
+        }
+    }
 
     /** 一键更新：每个插件优先回到它安装时的索引源解析新版本。 */
     fun updateAll() {
