@@ -135,4 +135,26 @@
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+<!-- 插件主题配色预设：只覆盖主色/强调色，保留日夜背景资源 -->
+    <style name="AppTheme.Fresh" parent="AppTheme">
+        <item name="colorPrimary">#2E7D6F</item>
+        <item name="colorPrimaryVariant">#2E7D6F</item>
+        <item name="colorSecondary">#2E7D6F</item>
+        <item name="colorAccent">#2E7D6F</item>
+    </style>
+
+    <style name="AppTheme.Focus" parent="AppTheme">
+        <item name="colorPrimary">#B45309</item>
+        <item name="colorPrimaryVariant">#B45309</item>
+        <item name="colorSecondary">#B45309</item>
+        <item name="colorAccent">#B45309</item>
+    </style>
+
+    <style name="AppTheme.HighContrast" parent="AppTheme">
+        <item name="colorPrimary">#000000</item>
+        <item name="colorPrimaryVariant">#000000</item>
+        <item name="colorSecondary">#000000</item>
+        <item name="colorAccent">#000000</item>
+    </style>
 </resources>

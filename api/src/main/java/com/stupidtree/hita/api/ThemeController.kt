@@ -10,6 +10,16 @@ interface ThemeController {
 
     fun setNightMode(night: Boolean)
 
+    /** 配色预设：classic / fresh / focus / high_contrast；非法值返回 false。 */
+    fun setColorPreset(preset: String): Boolean
+
+    fun colorPreset(): String
+
+    /** 字体缩放 0.85–1.30；下个界面生效。 */
+    fun setFontScale(scale: Float): Boolean
+
+    fun fontScale(): Float
+
     companion object {
         val KEY = ServiceKey<ThemeController>("hita.theme")
     }

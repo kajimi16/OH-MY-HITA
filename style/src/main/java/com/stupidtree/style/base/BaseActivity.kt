@@ -44,7 +44,24 @@ abstract class BaseActivity<T : ViewModel, V : ViewBinding> : AppCompatActivity(
 
     //为Activity中的View设置行为
     protected abstract fun initViews()
+    override fun attachBaseContext(newBase: android.content.Context) {
+        val config = android.content.res.Configuration(newBase.resources.configuration)
+        config.fontScale = ThemeTools.getFontScale(newBase)
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 插件可切换配色预设；在 inflate 之前覆盖宿主主题。
+        val presetStyle = when (ThemeTools.getColorPreset(this)) {
+            "fresh" -> "AppTheme_Fresh"
+            "focus" -> "AppTheme_Focus"
+            "high_contrast" -> "AppTheme_HighContrast"
+            else -> null
+        }
+        if (presetStyle != null) {
+            val id = resources.getIdentifier(presetStyle, "style", packageName)
+            if (id != 0) setTheme(id)
+        }
         //setTranslucentStatusBar()
         val mode = when (ThemeTools.getThemeMode(this)) {
             ThemeTools.MODE.DARK -> AppCompatDelegate.MODE_NIGHT_YES

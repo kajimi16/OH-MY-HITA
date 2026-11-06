@@ -57,6 +57,18 @@ class HApplication : Application() {
                     )
                 }
             }
+
+            override fun setColorPreset(preset: String): Boolean =
+                com.stupidtree.style.ThemeTools.setColorPreset(this@HApplication, preset)
+
+            override fun colorPreset(): String =
+                com.stupidtree.style.ThemeTools.getColorPreset(this@HApplication)
+
+            override fun setFontScale(scale: Float): Boolean =
+                com.stupidtree.style.ThemeTools.setFontScale(this@HApplication, scale)
+
+            override fun fontScale(): Float =
+                com.stupidtree.style.ThemeTools.getFontScale(this@HApplication)
         })
         // 宿主内建提醒能力：插件不能自己声明 receiver / 前台服务，统一交给宿主调度。
         pluginHost.provideGlobal(
