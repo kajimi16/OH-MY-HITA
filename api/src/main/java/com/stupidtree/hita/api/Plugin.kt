@@ -7,7 +7,8 @@ package com.stupidtree.hita.api
  * **破坏性**改动都必须递增此值。插件在 [Plugin.requiresApi] 中声明自己依赖的版本。
  *
  * 变更记录：
- * - 7: 新增提醒服务 `ReminderService`（加法，不破坏旧插件）
+ * - 7: 新增提醒 `ReminderService`、后台任务 `BackgroundTaskService`、
+ *      桌面小组件 `WidgetContentProvider`（均为加法，不破坏旧插件）
  * - 3: 新增运行时界面插件契约 `ComposeUiPlugin` / `PluginUiHost`（加法，不破坏旧插件）
  * - 2: 移除 `PluginContext.appContext`；新增 `PluginContext.sync`（SyncRegistry）
  * - 1: 首个版本
