@@ -258,6 +258,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         val supportsIcs = preset.migration.orEmpty().contains("timetable.ics")
         val parts = mutableListOf<String>()
         preset.description?.takeIf { it.isNotBlank() }?.let { parts += it }
+        preset.repo?.takeIf { it.isNotBlank() }?.let { parts += "原仓库：$it" }
         parts += "包含 ${preset.refs().size} 个插件：\n$lines"
         preset.minHostApi?.let { parts += "需要宿主 API $it" }
         parts += "应用时会安装缺失插件；未受信任的在线插件需要手动安装。"
