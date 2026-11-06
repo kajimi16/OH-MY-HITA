@@ -116,11 +116,20 @@ class EASource internal constructor() : EASService {
         return req.execute()
     }
 
+    /** 培训方案等新教务网页接口使用：返回原始 Jsoup 响应。 */
+    fun jwPost(
+        token: EASToken,
+        path: String,
+        data: Map<String, String> = emptyMap(),
+        referer: String = "/authentication/main",
+    ): Connection.Response = jwFormPost(token, path, data, referer)
+
     /** 新教务网页接口（xszykb），依赖登录后会话 cookies */
     private fun jwFormPost(
         token: EASToken,
         path: String,
-        data: Map<String, String> = emptyMap()
+        data: Map<String, String> = emptyMap(),
+        referer: String = "/authentication/main",
     ): Connection.Response {
         warmupJwSession(token)
         val req = Jsoup.newSession()
@@ -128,7 +137,7 @@ class EASource internal constructor() : EASService {
             .header("Accept", "*/*")
             .header("Accept-Language", "zh-CN,zh;q=0.9")
             .header("X-Requested-With", "XMLHttpRequest")
-            .header("Referer", "$jwHostName/authentication/main")
+            .header("Referer", "$jwHostName$referer")
             .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
             .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36")
             .cookies(token.cookies)
@@ -148,7 +157,7 @@ class EASource internal constructor() : EASService {
                 .header("Accept", "*/*")
                 .header("Accept-Language", "zh-CN,zh;q=0.9")
                 .header("X-Requested-With", "XMLHttpRequest")
-                .header("Referer", "$jwHostName/authentication/main")
+                .header("Referer", "$jwHostName$referer")
                 .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36")
                 .cookies(token.cookies)
