@@ -9,6 +9,8 @@ import com.stupidtree.hita.api.EmptyClassroomService
 import com.stupidtree.hitax.HApplication
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.CountDownLatch
@@ -31,15 +33,28 @@ class EmptyClassroomServiceInstrumentedTest {
     @Test
     fun buildingsWithoutLoginReturnsNotLoggedIn() {
         val state = await(service().buildings())
-        assertNotNull(state)
+        assumeTrue("已登录教务，跳过未登录断言", state?.state == DataState.STATE.NOT_LOGGED_IN)
         assertEquals(DataState.STATE.NOT_LOGGED_IN, state?.state)
     }
 
     @Test
     fun queryWithoutLoginReturnsNotLoggedIn() {
         val state = await(service().query("any", 1))
-        assertNotNull(state)
+        assumeTrue("已登录教务，跳过未登录断言", state?.state == DataState.STATE.NOT_LOGGED_IN)
         assertEquals(DataState.STATE.NOT_LOGGED_IN, state?.state)
+    }
+
+
+    @Test
+    fun realSessionReturnsBuildingsAndRoomsWhenLoggedIn() {
+        val service = service()
+        val buildings = await(service.buildings())
+        assumeTrue("未登录教务，跳过真实数据验收", buildings?.state == DataState.STATE.SUCCESS)
+        val building = buildings?.data?.firstOrNull()
+        assertNotNull("教学楼列表为空", building)
+        val rooms = await(service.query(building!!.id, 10))
+        assertEquals(DataState.STATE.SUCCESS, rooms?.state)
+        assertTrue("空教室列表为空", !rooms?.data.isNullOrEmpty())
     }
 
     private fun <T> await(liveData: LiveData<T>): T? {

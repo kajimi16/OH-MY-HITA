@@ -13,6 +13,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -33,13 +34,20 @@ class ScoreUiPlugin : ComposeUiPlugin {
             setContent {
                 MaterialTheme {
                     val service = host.service(ScoreService.KEY)
-                    val termsState by (service?.terms() ?: androidx.lifecycle.MutableLiveData(DataState(emptyList())))
-                        .observeAsState(DataState(emptyList()))
+                    val termsLive = remember(service) {
+                        service?.terms()
+                            ?: androidx.lifecycle.MutableLiveData(DataState(emptyList()))
+                    }
+                    val termsState by termsLive.observeAsState(DataState(emptyList()))
                     val term = termsState.data?.firstOrNull { it.isCurrent }
                         ?: termsState.data?.firstOrNull()
-                    val reportState by (term?.let { service?.report(it) }
-                        ?: androidx.lifecycle.MutableLiveData<DataState<ScoreReport>>(DataState(DataState.STATE.NOTHING)))
-                        .observeAsState(DataState(DataState.STATE.NOTHING))
+                    val reportLive = remember(service, term) {
+                        term?.let { service?.report(it) }
+                            ?: androidx.lifecycle.MutableLiveData<DataState<ScoreReport>>(
+                                DataState(DataState.STATE.NOTHING)
+                            )
+                    }
+                    val reportState by reportLive.observeAsState(DataState(DataState.STATE.NOTHING))
                     Column(Modifier.fillMaxSize().padding(16.dp)) {
                         Text("成绩分析", style = MaterialTheme.typography.h5)
                         when {
