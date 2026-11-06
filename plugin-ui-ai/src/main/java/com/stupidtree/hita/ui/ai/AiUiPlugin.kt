@@ -161,6 +161,38 @@ class AiUiPlugin : ComposeUiPlugin {
                                 },
                             ) { Text("图片") }
                             Button(
+                                enabled = !busy && apiKey.isNotBlank(),
+                                onClick = {
+                                    pickDocument(context, arrayOf("text/plain")) { uri ->
+                                        scope.launch {
+                                            val text = withContext(Dispatchers.IO) {
+                                                runCatching {
+                                                    context.contentResolver.openInputStream(uri)
+                                                        ?.bufferedReader()?.use { it.readText() }
+                                                        ?.take(20_000)
+                                                }.getOrNull()
+                                            }
+                                            if (text.isNullOrBlank()) {
+                                                error = "无法读取文本文件"
+                                                return@launch
+                                            }
+                                            save()
+                                            error = null
+                                            val message = "文件内容：\n$text"
+                                            messages += Message("user", message)
+                                            busy = true
+                                            runCatching {
+                                                withContext(Dispatchers.IO) {
+                                                    chat(endpoint, model, apiKey, messages.toList(), todayContext(host), host)
+                                                }
+                                            }.onSuccess { messages += Message("assistant", it) }
+                                                .onFailure { error = it.message ?: "请求失败" }
+                                            busy = false
+                                        }
+                                    }
+                                },
+                            ) { Text("文本") }
+                            Button(
                                 enabled = !busy && input.isNotBlank() && apiKey.isNotBlank(),
                                 onClick = {
                                     val text = input.trim()
@@ -202,6 +234,16 @@ class AiUiPlugin : ComposeUiPlugin {
             uri?.let(onPicked)
         }
         launcher.launch("image/*")
+    }
+
+    private fun pickDocument(context: Context, mimeTypes: Array<String>, onPicked: (Uri) -> Unit) {
+        val activity = context as? ComponentActivity ?: return
+        val registry = activity.activityResultRegistry
+        val key = "ai-file-${System.currentTimeMillis()}"
+        val launcher = registry.register(key, ActivityResultContracts.OpenDocument()) { uri ->
+            uri?.let(onPicked)
+        }
+        launcher.launch(mimeTypes)
     }
 
     private fun loadImageBase64(context: Context, uri: Uri): String? = runCatching {
