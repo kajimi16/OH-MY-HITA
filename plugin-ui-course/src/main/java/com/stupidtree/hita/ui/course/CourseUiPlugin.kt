@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
 import androidx.compose.material.Card
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.getValue
@@ -26,6 +27,8 @@ import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.ComposeUiPlugin
 import com.stupidtree.hita.api.CourseCatalogService
 import com.stupidtree.hita.api.PluginUiHost
+import com.stupidtree.hita.api.ReminderService
+import com.stupidtree.hita.api.ReminderSpec
 import com.stupidtree.hita.api.ScoreService
 import com.stupidtree.hitax.data.model.eas.ShenzhenCourseCatalogItem
 import com.stupidtree.hitax.data.model.eas.ShenzhenCourseCatalogPage
@@ -52,6 +55,9 @@ class CourseUiPlugin : ComposeUiPlugin {
                         ?: termsState.data?.firstOrNull()
                     var pool by remember { mutableStateOf(ShenzhenSelectionPools.all.first()) }
                     var selected by remember { mutableStateOf(loadPlan(prefs)) }
+                    var remindAt by remember { mutableStateOf("08:00") }
+                    var reminderStatus by remember { mutableStateOf("") }
+                    val reminders = host.service(ReminderService.KEY)
                     val pageLive = remember(term?.getCode(), pool.code, catalog) {
                         if (term != null && catalog != null) catalog.available(term, pool.code)
                         else androidx.lifecycle.MutableLiveData(DataState(DataState.STATE.NOTHING))
@@ -60,6 +66,33 @@ class CourseUiPlugin : ComposeUiPlugin {
                     Column(Modifier.fillMaxSize().padding(16.dp)) {
                         Text("选课助手", style = MaterialTheme.typography.h5)
                         Text("只读课程目录；可加入本地计划，暂不执行选课。", style = MaterialTheme.typography.caption)
+                        Row {
+                            OutlinedTextField(
+                                value = remindAt,
+                                onValueChange = { remindAt = it },
+                                label = { Text("选课提醒 HH:mm") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Button(onClick = {
+                                val trigger = SelectionAlarm.nextTrigger(remindAt, System.currentTimeMillis())
+                                if (trigger == null) {
+                                    reminderStatus = "时间格式无效"
+                                } else {
+                                    val ok = reminders?.schedule(
+                                        ReminderSpec(
+                                            ownerId = "com.stupidtree.hita.ui.course",
+                                            id = "selection-start",
+                                            triggerAtMillis = trigger,
+                                            title = "选课即将开始",
+                                            text = "打开选课助手查看课程计划",
+                                        )
+                                    ) == true
+                                    reminderStatus = if (ok) "已安排选课提醒" else "提醒失败（检查通知权限）"
+                                }
+                            }) { Text("提醒") }
+                        }
+                        if (reminderStatus.isNotBlank()) Text(reminderStatus, style = MaterialTheme.typography.caption)
                         if (selected.isNotEmpty()) {
                             val conflicts = CoursePlan.conflicts(selected)
                             Text(
