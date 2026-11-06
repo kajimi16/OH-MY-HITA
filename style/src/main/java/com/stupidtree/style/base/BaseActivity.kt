@@ -52,6 +52,19 @@ abstract class BaseActivity<T : ViewModel, V : ViewBinding> : AppCompatActivity(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // 插件可切换配色预设；在 inflate 之前覆盖宿主主题。
+        val styleTheme = when (ThemeTools.getThemeStyle(this)) {
+            ThemeTools.STYLE.APPLE_GLASS -> "AppTheme_AppleGlass"
+            ThemeTools.STYLE.CYBER -> "AppTheme_Cyber"
+            ThemeTools.STYLE.SORA_CLOUD -> "AppTheme_SoraCloud"
+            ThemeTools.STYLE.P5 -> "AppTheme_P5"
+            ThemeTools.STYLE.DEEP_SPACE -> "AppTheme_DeepSpace"
+            ThemeTools.STYLE.SUMI -> "AppTheme_Sumi"
+            else -> null
+        }
+        if (styleTheme != null) {
+            val id = resources.getIdentifier(styleTheme, "style", packageName)
+            if (id != 0) setTheme(id)
+        }
         val presetStyle = when (ThemeTools.getColorPreset(this)) {
             "fresh" -> "AppTheme_Fresh"
             "focus" -> "AppTheme_Focus"

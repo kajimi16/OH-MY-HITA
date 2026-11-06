@@ -157,4 +157,77 @@
         <item name="colorSecondary">#000000</item>
         <item name="colorAccent">#000000</item>
     </style>
+
+    <style name="AppTheme.AppleGlass" parent="AppTheme">
+        <item name="colorPrimary">#007AFF</item>
+        <item name="colorPrimaryVariant">#007AFF</item>
+        <item name="colorSecondary">#00A89D</item>
+        <item name="colorSecondaryVariant">#00A89D</item>
+        <item name="colorAccent">#AF52DE</item>
+        <item name="backgroundColorBottom">#F4F8FC</item>
+        <item name="backgroundColorSecond">#FFFFFF</item>
+        <item name="textColorPrimary">#101318</item>
+        <item name="textColorSecondary">#505761</item>
+        <item name="android:fontFamily">@font/inter</item>
+    </style>
+    <style name="AppTheme.Cyber" parent="AppTheme">
+        <item name="colorPrimary">#0891B2</item>
+        <item name="colorPrimaryVariant">#0891B2</item>
+        <item name="colorSecondary">#7C5CD6</item>
+        <item name="colorSecondaryVariant">#7C5CD6</item>
+        <item name="colorAccent">#DB2777</item>
+        <item name="backgroundColorBottom">#F3F6FC</item>
+        <item name="backgroundColorSecond">#FFFFFF</item>
+        <item name="textColorPrimary">#10182B</item>
+        <item name="textColorSecondary">#4A5570</item>
+        <item name="android:fontFamily">@font/orbitron</item>
+    </style>
+    <style name="AppTheme.SoraCloud" parent="AppTheme">
+        <item name="colorPrimary">#C94B38</item>
+        <item name="colorPrimaryVariant">#C94B38</item>
+        <item name="colorSecondary">#315D6D</item>
+        <item name="colorSecondaryVariant">#315D6D</item>
+        <item name="colorAccent">#D2A23C</item>
+        <item name="backgroundColorBottom">#F3EBD9</item>
+        <item name="backgroundColorSecond">#FFF8E8</item>
+        <item name="textColorPrimary">#25221F</item>
+        <item name="textColorSecondary">#625B50</item>
+        <item name="android:fontFamily">serif</item>
+    </style>
+    <style name="AppTheme.P5" parent="AppTheme">
+        <item name="colorPrimary">#E60012</item>
+        <item name="colorPrimaryVariant">#E60012</item>
+        <item name="colorSecondary">#101010</item>
+        <item name="colorSecondaryVariant">#101010</item>
+        <item name="colorAccent">#FFC400</item>
+        <item name="backgroundColorBottom">#F4F4F4</item>
+        <item name="backgroundColorSecond">#FFFFFF</item>
+        <item name="textColorPrimary">#101010</item>
+        <item name="textColorSecondary">#4A4A4A</item>
+        <item name="android:fontFamily">@font/p5_title</item>
+    </style>
+    <style name="AppTheme.DeepSpace" parent="AppTheme">
+        <item name="colorPrimary">#8A6D1F</item>
+        <item name="colorPrimaryVariant">#8A6D1F</item>
+        <item name="colorSecondary">#6E6394</item>
+        <item name="colorSecondaryVariant">#6E6394</item>
+        <item name="colorAccent">#9C5E72</item>
+        <item name="backgroundColorBottom">#F1EEE7</item>
+        <item name="backgroundColorSecond">#FDFBF4</item>
+        <item name="textColorPrimary">#1D2129</item>
+        <item name="textColorSecondary">#565E6E</item>
+        <item name="android:fontFamily">@font/space_grotesk</item>
+    </style>
+    <style name="AppTheme.Sumi" parent="AppTheme">
+        <item name="colorPrimary">#33322F</item>
+        <item name="colorPrimaryVariant">#33322F</item>
+        <item name="colorSecondary">#A63B2A</item>
+        <item name="colorSecondaryVariant">#A63B2A</item>
+        <item name="colorAccent">#5E6B5A</item>
+        <item name="backgroundColorBottom">#F4EEE1</item>
+        <item name="backgroundColorSecond">#FBF7EC</item>
+        <item name="textColorPrimary">#262521</item>
+        <item name="textColorSecondary">#6B655A</item>
+        <item name="android:fontFamily">@font/sumi_title</item>
+    </style>
 </resources>

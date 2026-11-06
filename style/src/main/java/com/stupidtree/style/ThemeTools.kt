@@ -7,9 +7,12 @@ import android.util.Log
 object ThemeTools {
     enum class MODE { DARK, LIGHT, FOLLOW }
 
+    enum class STYLE { CLASSIC, APPLE_GLASS, CYBER, SORA_CLOUD, P5, DEEP_SPACE, SUMI }
+
     val COLOR_PRESETS = listOf("classic", "fresh", "focus", "high_contrast")
     private const val KEY_COLOR_PRESET = "color_preset"
     private const val KEY_FONT_SCALE = "font_scale"
+    private const val KEY_STYLE = "style"
     private const val DEFAULT_FONT_SCALE = 1.0f
 
     fun getColorPreset(context: Context): String {
@@ -22,6 +25,35 @@ object ThemeTools {
         if (preset !in COLOR_PRESETS) return false
         context.getSharedPreferences("theme", Context.MODE_PRIVATE).edit()
             .putString(KEY_COLOR_PRESET, preset).apply()
+        return true
+    }
+
+    fun getThemeStyle(context: Context): STYLE {
+        val value = context.getSharedPreferences("theme", Context.MODE_PRIVATE)
+            .getString(KEY_STYLE, "classic") ?: "classic"
+        return when (value) {
+            "apple_glass" -> STYLE.APPLE_GLASS
+            "cyber" -> STYLE.CYBER
+            "sora_cloud" -> STYLE.SORA_CLOUD
+            "p5" -> STYLE.P5
+            "deep_space" -> STYLE.DEEP_SPACE
+            "sumi" -> STYLE.SUMI
+            else -> STYLE.CLASSIC
+        }
+    }
+
+    fun setThemeStyle(context: Context, style: STYLE): Boolean {
+        val value = when (style) {
+            STYLE.CLASSIC -> "classic"
+            STYLE.APPLE_GLASS -> "apple_glass"
+            STYLE.CYBER -> "cyber"
+            STYLE.SORA_CLOUD -> "sora_cloud"
+            STYLE.P5 -> "p5"
+            STYLE.DEEP_SPACE -> "deep_space"
+            STYLE.SUMI -> "sumi"
+        }
+        context.getSharedPreferences("theme", Context.MODE_PRIVATE).edit()
+            .putString(KEY_STYLE, value).apply()
         return true
     }
 

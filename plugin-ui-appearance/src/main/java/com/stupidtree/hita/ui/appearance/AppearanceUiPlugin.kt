@@ -36,6 +36,7 @@ class AppearanceUiPlugin : ComposeUiPlugin {
                     var preset by remember { mutableStateOf(theme?.colorPreset() ?: "classic") }
                     var fontScale by remember { mutableStateOf(theme?.fontScale() ?: 1f) }
                     var dark by remember { mutableStateOf(false) }
+                    var style by remember { mutableStateOf(theme?.themeStyle() ?: "classic") }
                     Column(
                         modifier = Modifier.fillMaxSize().padding(24.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -61,6 +62,25 @@ class AppearanceUiPlugin : ComposeUiPlugin {
                                     },
                                     modifier = Modifier.padding(end = 6.dp),
                                 ) { Text(if (id == preset) "✓$id" else id) }
+                            }
+                        }
+                        Text("主题风格", style = MaterialTheme.typography.subtitle1)
+                        listOf(
+                            listOf("classic", "apple_glass", "cyber", "sora_cloud"),
+                            listOf("p5", "deep_space", "sumi"),
+                        ).forEach { row ->
+                            Row {
+                                row.forEach { id ->
+                                    Button(
+                                        onClick = {
+                                            if (theme?.setThemeStyle(id) == true) {
+                                                style = id
+                                                (context as? android.app.Activity)?.recreate()
+                                            }
+                                        },
+                                        modifier = Modifier.padding(end = 6.dp),
+                                    ) { Text(if (id == style) "✓$id" else id) }
+                                }
                             }
                         }
                         Text("字体缩放 ${"%.2f".format(fontScale)}", style = MaterialTheme.typography.subtitle1)

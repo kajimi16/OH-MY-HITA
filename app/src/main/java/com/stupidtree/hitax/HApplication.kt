@@ -64,6 +64,31 @@ class HApplication : Application() {
             override fun colorPreset(): String =
                 com.stupidtree.style.ThemeTools.getColorPreset(this@HApplication)
 
+            override fun setThemeStyle(style: String): Boolean {
+                val mapped = when (style) {
+                    "apple_glass" -> com.stupidtree.style.ThemeTools.STYLE.APPLE_GLASS
+                    "cyber" -> com.stupidtree.style.ThemeTools.STYLE.CYBER
+                    "sora_cloud" -> com.stupidtree.style.ThemeTools.STYLE.SORA_CLOUD
+                    "p5" -> com.stupidtree.style.ThemeTools.STYLE.P5
+                    "deep_space" -> com.stupidtree.style.ThemeTools.STYLE.DEEP_SPACE
+                    "sumi" -> com.stupidtree.style.ThemeTools.STYLE.SUMI
+                    "classic" -> com.stupidtree.style.ThemeTools.STYLE.CLASSIC
+                    else -> return false
+                }
+                return com.stupidtree.style.ThemeTools.setThemeStyle(this@HApplication, mapped)
+            }
+
+            override fun themeStyle(): String =
+                when (com.stupidtree.style.ThemeTools.getThemeStyle(this@HApplication)) {
+                    com.stupidtree.style.ThemeTools.STYLE.APPLE_GLASS -> "apple_glass"
+                    com.stupidtree.style.ThemeTools.STYLE.CYBER -> "cyber"
+                    com.stupidtree.style.ThemeTools.STYLE.SORA_CLOUD -> "sora_cloud"
+                    com.stupidtree.style.ThemeTools.STYLE.P5 -> "p5"
+                    com.stupidtree.style.ThemeTools.STYLE.DEEP_SPACE -> "deep_space"
+                    com.stupidtree.style.ThemeTools.STYLE.SUMI -> "sumi"
+                    else -> "classic"
+                }
+
             override fun setFontScale(scale: Float): Boolean =
                 com.stupidtree.style.ThemeTools.setFontScale(this@HApplication, scale)
 

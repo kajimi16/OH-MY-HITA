@@ -15,6 +15,11 @@ interface ThemeController {
 
     fun colorPreset(): String
 
+    /** 主题风格：classic / apple_glass / cyber / sora_cloud / p5 / deep_space / sumi。 */
+    fun setThemeStyle(style: String): Boolean
+
+    fun themeStyle(): String
+
     /** 字体缩放 0.85–1.30；下个界面生效。 */
     fun setFontScale(scale: Float): Boolean
 
