@@ -6,6 +6,14 @@ package com.stupidtree.hita.api
  * 方向是**宿主 → 插件**：插件通过 `ctx.service(ThemeController.KEY)` 取得，
  * 由宿主实现（当前实现是 `AppCompatDelegate.setDefaultNightMode`）。
  */
+/** 当前主题的组件级参数；插件可用它对齐宿主视觉。 */
+data class ThemeTokens(
+    val cornerRadiusDp: Float,
+    val spacingDp: Float,
+    /** 0–1；玻璃主题较低表示更透明。 */
+    val glassAlpha: Float,
+)
+
 interface ThemeController {
 
     fun setNightMode(night: Boolean)
@@ -24,6 +32,8 @@ interface ThemeController {
     fun setFontScale(scale: Float): Boolean
 
     fun fontScale(): Float
+
+    fun tokens(): ThemeTokens
 
     companion object {
         val KEY = ServiceKey<ThemeController>("hita.theme")

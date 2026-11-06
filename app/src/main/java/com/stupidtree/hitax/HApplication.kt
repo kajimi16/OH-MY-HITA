@@ -94,6 +94,23 @@ class HApplication : Application() {
 
             override fun fontScale(): Float =
                 com.stupidtree.style.ThemeTools.getFontScale(this@HApplication)
+
+            override fun tokens(): com.stupidtree.hita.api.ThemeTokens =
+                when (com.stupidtree.style.ThemeTools.getThemeStyle(this@HApplication)) {
+                    com.stupidtree.style.ThemeTools.STYLE.APPLE_GLASS ->
+                        com.stupidtree.hita.api.ThemeTokens(24f, 20f, 0.72f)
+                    com.stupidtree.style.ThemeTools.STYLE.CYBER ->
+                        com.stupidtree.hita.api.ThemeTokens(8f, 12f, 0.85f)
+                    com.stupidtree.style.ThemeTools.STYLE.SORA_CLOUD ->
+                        com.stupidtree.hita.api.ThemeTokens(20f, 16f, 1f)
+                    com.stupidtree.style.ThemeTools.STYLE.P5 ->
+                        com.stupidtree.hita.api.ThemeTokens(4f, 8f, 1f)
+                    com.stupidtree.style.ThemeTools.STYLE.DEEP_SPACE ->
+                        com.stupidtree.hita.api.ThemeTokens(18f, 16f, 0.9f)
+                    com.stupidtree.style.ThemeTools.STYLE.SUMI ->
+                        com.stupidtree.hita.api.ThemeTokens(10f, 14f, 1f)
+                    else -> com.stupidtree.hita.api.ThemeTokens(16f, 16f, 1f)
+                }
         })
         // 宿主内建提醒能力：插件不能自己声明 receiver / 前台服务，统一交给宿主调度。
         pluginHost.provideGlobal(

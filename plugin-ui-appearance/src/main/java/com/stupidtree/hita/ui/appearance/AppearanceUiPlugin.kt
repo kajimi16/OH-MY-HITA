@@ -64,6 +64,13 @@ class AppearanceUiPlugin : ComposeUiPlugin {
                                 ) { Text(if (id == preset) "✓$id" else id) }
                             }
                         }
+                        theme?.tokens()?.let { tokens ->
+                            Text(
+                                "组件参数：圆角 ${tokens.cornerRadiusDp.toInt()}dp · " +
+                                    "间距 ${tokens.spacingDp.toInt()}dp · 玻璃 ${"%.2f".format(tokens.glassAlpha)}",
+                                style = MaterialTheme.typography.caption,
+                            )
+                        }
                         Text("主题风格", style = MaterialTheme.typography.subtitle1)
                         listOf(
                             listOf("classic", "apple_glass", "cyber", "sora_cloud"),
