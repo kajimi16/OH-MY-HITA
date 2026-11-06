@@ -11,6 +11,7 @@ import com.stupidtree.hitax.data.model.eas.ShenzhenTrainingPlanDetail
 import com.stupidtree.hitax.data.model.eas.ShenzhenTrainingPlanLevel
 import com.stupidtree.hitax.data.repository.EASRepository
 import com.stupidtree.hitax.data.source.web.eas.EASource
+import com.stupidtree.hitax.data.source.preference.EasPreferenceSource
 import com.stupidtree.hitax.data.source.web.eas.ShenzhenTrainingPlanParser
 import org.jsoup.Connection
 
@@ -24,7 +25,11 @@ internal class TrainingPlanServiceImpl(private val application: Application) : T
         val result = MutableLiveData<DataState<List<ShenzhenTrainingPlan>>>()
         Thread {
             val token = repo.getEasToken()
-            if (token.cookies.isEmpty()) {
+            if (token.webCookies.isEmpty()) {
+                listOf("SESSION", "JSESSIONID", "route", "sdp_user_token", "platformMultilingual_-_edu.cn")
+                    .forEach { key -> token.cookies[key]?.let { token.webCookies[key] = it } }
+            }
+            if (token.webCookies.isEmpty()) {
                 result.postValue(DataState(DataState.STATE.NOT_LOGGED_IN, "请先连接深圳 Web 教务"))
                 return@Thread
             }
@@ -72,7 +77,8 @@ internal class TrainingPlanServiceImpl(private val application: Application) : T
                 val matched = ShenzhenTrainingPlanParser.matchPersonalPlans(plans, major)
                 if (matched.isEmpty()) error("未找到与“$major”匹配的个人培养方案")
                 DataState(matched, DataState.STATE.SUCCESS)
-            }.onSuccess { result.postValue(it) }
+            }.also { persist(token) }
+                .onSuccess { result.postValue(it) }
                 .onFailure { result.postValue(DataState(DataState.STATE.FETCH_FAILED, it.message)) }
         }.start()
         return result
@@ -82,7 +88,11 @@ internal class TrainingPlanServiceImpl(private val application: Application) : T
         val result = MutableLiveData<DataState<ShenzhenTrainingPlanDetail>>()
         Thread {
             val token = repo.getEasToken()
-            if (token.cookies.isEmpty()) {
+            if (token.webCookies.isEmpty()) {
+                listOf("SESSION", "JSESSIONID", "route", "sdp_user_token", "platformMultilingual_-_edu.cn")
+                    .forEach { key -> token.cookies[key]?.let { token.webCookies[key] = it } }
+            }
+            if (token.webCookies.isEmpty()) {
                 result.postValue(DataState(DataState.STATE.NOT_LOGGED_IN, "请先连接深圳 Web 教务"))
                 return@Thread
             }
@@ -145,10 +155,15 @@ internal class TrainingPlanServiceImpl(private val application: Application) : T
                     ),
                     DataState.STATE.SUCCESS,
                 )
-            }.onSuccess { result.postValue(it) }
+            }.also { persist(token) }
+                .onSuccess { result.postValue(it) }
                 .onFailure { result.postValue(DataState(DataState.STATE.FETCH_FAILED, it.message)) }
         }.start()
         return result
+    }
+
+    private fun persist(token: EASToken) {
+        runCatching { EasPreferenceSource.getInstance(application).saveEasToken(token) }
     }
 
     private fun expired(response: Connection.Response): Boolean =

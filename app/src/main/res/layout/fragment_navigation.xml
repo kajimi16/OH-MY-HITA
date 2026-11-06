@@ -925,6 +925,64 @@
 
 
         <androidx.cardview.widget.CardView
+            android:id="@+id/card_web_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="?attr/designSpacing"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="?attr/designSpacing"
+            app:cardBackgroundColor="?attr/backgroundColorSecond"
+            app:cardCornerRadius="?attr/designCornerRadius"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:orientation="horizontal"
+                android:paddingStart="?attr/designSpacing"
+                android:paddingEnd="?attr/designSpacing">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_baseline_cloud_download_24"
+                    app:tint="?attr/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="?attr/designSpacing"
+                    android:layout_weight="1"
+                    android:gravity="center|start"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="连接深圳 Web 教务"
+                        android:textColor="?attr/textColorPrimary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="培养方案、考试等需要 Web 会话"
+                        android:textColor="?attr/textColorSecondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_baseline_keyboard_arrow_right_24"
+                    app:tint="?attr/colorPrimaryDisabled" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
             android:id="@+id/plugin_entries_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

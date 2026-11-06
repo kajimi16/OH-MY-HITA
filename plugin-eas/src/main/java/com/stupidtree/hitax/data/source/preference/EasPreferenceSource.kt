@@ -22,6 +22,8 @@ class EasPreferenceSource(context: Context) {
             .putString("refreshToken", token.refreshToken)
             .putString("username", token.username)
             .putString("cookies", Gson().toJson(token.cookies))
+            .putString("web_cookies", Gson().toJson(token.webCookies))
+            .putString("webBaseUrl", token.webBaseUrl)
             .putString("name", token.name)
             .putString("stutype", token.getStudentType())
             .putString("picture", token.picture)
@@ -60,6 +62,21 @@ class EasPreferenceSource(context: Context) {
         result.stuId = preference.getString("stuId", null)
         result.school = preference.getString("school", null)
         result.major = preference.getString("major", null)
+        result.webBaseUrl = preference.getString("webBaseUrl", null)
+        runCatching {
+            val web = Gson().fromJson(
+                preference.getString("web_cookies", "{}"),
+                HashMap::class.java,
+            )
+            web?.forEach { (k, v) ->
+                val key = k?.toString().orEmpty()
+                if (key.isNotBlank()) result.webCookies[key] = v?.toString().orEmpty()
+            }
+        }
+        if (result.webCookies.isEmpty()) {
+            listOf("SESSION", "JSESSIONID", "route", "sdp_user_token", "platformMultilingual_-_edu.cn")
+                .forEach { key -> result.cookies[key]?.let { result.webCookies[key] = it } }
+        }
         result.grade = preference.getString("grade", "")
         result.sfxsx = preference.getString("sfxsx", null)
         result.email = preference.getString("email", null)

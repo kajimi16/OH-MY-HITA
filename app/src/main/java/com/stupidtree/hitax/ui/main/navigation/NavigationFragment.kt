@@ -76,6 +76,14 @@ class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationB
         binding?.cardSubjects?.setOnClickListener {
             eas()?.openExam(requireActivity())
         }
+        binding?.cardWebLogin?.setOnClickListener {
+            startActivity(
+                Intent().setClassName(
+                    requireContext(),
+                    "com.stupidtree.hitax.ui.eas.login.ShenzhenWebLoginActivity",
+                )
+            )
+        }
         binding?.cardCourseLookup?.setOnClickListener {
             com.stupidtree.hitax.HitaServices.resourceUi(requireContext())
                 ?.openSearch(requireContext(), null, submit = false)
