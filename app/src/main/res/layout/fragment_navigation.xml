@@ -16,14 +16,14 @@
             android:id="@+id/user_card"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="?attr/designSpacing"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="?attr/designSpacing"
             android:layout_marginBottom="8dp"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackgroundBorderless"
             app:cardBackgroundColor="?attr/backgroundColorSecond"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="?attr/designCornerRadius"
             app:cardElevation="0dp">
 
             <LinearLayout
@@ -35,13 +35,13 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_gravity="center"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginEnd="16dp"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginStart="?attr/designSpacing"
+                    android:layout_marginTop="?attr/designSpacing"
+                    android:layout_marginEnd="?attr/designSpacing"
+                    android:layout_marginBottom="?attr/designSpacing"
                     android:focusable="true"
                     app:cardBackgroundColor="?attr/backgroundColorSecond"
-                    app:cardCornerRadius="24dp"
+                    app:cardCornerRadius="?attr/designCornerRadius"
                     app:cardElevation="0dp">
 
                     <ImageView
@@ -57,7 +57,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginEnd="16dp"
+                    android:layout_marginEnd="?attr/designSpacing"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -111,13 +111,13 @@
                 android:id="@+id/card_recent_timetable"
                 android:layout_width="match_parent"
                 android:layout_height="84dp"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="?attr/designSpacing"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:clickable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 app:cardBackgroundColor="?attr/backgroundColorSecond"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="?attr/designCornerRadius"
                 app:cardElevation="0dp">
 
                 <LinearLayout
@@ -125,8 +125,8 @@
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:orientation="horizontal"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp">
+                    android:paddingStart="?attr/designSpacing"
+                    android:paddingEnd="?attr/designSpacing">
 
                     <FrameLayout
                         android:layout_width="48dp"
@@ -192,12 +192,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="84dp"
                 android:layout_marginStart="8dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="?attr/designSpacing"
                 android:layout_weight="1"
                 android:clickable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 app:cardBackgroundColor="?attr/backgroundColorSecond"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="?attr/designCornerRadius"
                 app:cardElevation="0dp">
 
                 <LinearLayout
@@ -205,8 +205,8 @@
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:orientation="horizontal"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp">
+                    android:paddingStart="?attr/designSpacing"
+                    android:paddingEnd="?attr/designSpacing">
 
                     <FrameLayout
                         android:id="@+id/frame"
@@ -274,8 +274,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginStart="26dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginTop="?attr/designSpacing"
+            android:layout_marginEnd="?attr/designSpacing"
             android:layout_marginBottom="8dp"
             android:text="@string/navi_jw_title"
             android:textColor="?attr/textColorPrimary"
@@ -286,12 +286,12 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="?attr/designSpacing"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginEnd="?attr/designSpacing"
+            android:layout_marginBottom="?attr/designSpacing"
             app:cardBackgroundColor="?attr/backgroundColorSecond"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="?attr/designCornerRadius"
             app:cardElevation="0dp">
 
             <LinearLayout
@@ -307,7 +307,7 @@
                     android:clickable="true"
                     android:foreground="?attr/selectableItemBackgroundBorderless"
                     android:orientation="horizontal"
-                    android:paddingStart="16dp"
+                    android:paddingStart="?attr/designSpacing"
                     android:paddingTop="8dp"
                     android:paddingEnd="0dp"
                     android:paddingBottom="4dp">
@@ -336,7 +336,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="?attr/designSpacing"
                         android:layout_weight="1"
                         android:singleLine="true"
                         android:text="@string/import_timetable"
@@ -375,7 +375,7 @@
                         android:foreground="?attr/selectableItemBackgroundBorderless"
                         android:orientation="horizontal"
                         android:padding="4dp"
-                        android:paddingStart="16dp"
+                        android:paddingStart="?attr/designSpacing"
                         android:paddingEnd="0dp">
 
                         <ImageView
@@ -388,7 +388,7 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_marginStart="16dp"
+                            android:layout_marginStart="?attr/designSpacing"
                             android:layout_weight="1"
                             android:gravity="center|start"
                             android:orientation="vertical"
@@ -436,7 +436,7 @@
                         android:foreground="?attr/selectableItemBackgroundBorderless"
                         android:orientation="horizontal"
                         android:padding="4dp"
-                        android:paddingStart="16dp"
+                        android:paddingStart="?attr/designSpacing"
                         android:paddingEnd="0dp">
 
                         <ImageView
@@ -448,7 +448,7 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_marginStart="16dp"
+                            android:layout_marginStart="?attr/designSpacing"
                             android:layout_weight="1"
                             android:gravity="center|start"
                             android:orientation="vertical"
@@ -504,7 +504,7 @@
                         android:foreground="?attr/selectableItemBackgroundBorderless"
                         android:orientation="horizontal"
                         android:padding="4dp"
-                        android:paddingStart="16dp"
+                        android:paddingStart="?attr/designSpacing"
                         android:paddingEnd="0dp">
 
                         <ImageView
@@ -516,7 +516,7 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_marginStart="16dp"
+                            android:layout_marginStart="?attr/designSpacing"
                             android:layout_weight="1"
                             android:gravity="center|start"
                             android:orientation="vertical"
@@ -565,7 +565,7 @@
                         android:foreground="?attr/selectableItemBackgroundBorderless"
                         android:orientation="horizontal"
                         android:padding="4dp"
-                        android:paddingStart="16dp"
+                        android:paddingStart="?attr/designSpacing"
                         android:paddingEnd="0dp">
 
                         <ImageView
@@ -577,7 +577,7 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_marginStart="16dp"
+                            android:layout_marginStart="?attr/designSpacing"
                             android:layout_weight="1"
                             android:gravity="center|start"
                             android:orientation="vertical"
@@ -628,8 +628,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginStart="26dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginTop="?attr/designSpacing"
+            android:layout_marginEnd="?attr/designSpacing"
             android:layout_marginBottom="8dp"
             android:text="@string/navi_course_resource_title"
             android:textColor="?attr/textColorPrimary"
@@ -640,13 +640,13 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="?attr/designSpacing"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="?attr/designSpacing"
             android:layout_marginBottom="8dp"
             android:focusable="true"
             app:cardBackgroundColor="?attr/backgroundColorSecond"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="?attr/designCornerRadius"
             app:cardElevation="0dp">
 
             <LinearLayout
@@ -662,7 +662,7 @@
                     android:layout_height="64dp"
                     android:foreground="?attr/selectableItemBackgroundBorderless"
                     android:orientation="horizontal"
-                    android:paddingStart="16dp"
+                    android:paddingStart="?attr/designSpacing"
                     android:paddingEnd="8dp">
 
                     <ImageView
@@ -675,7 +675,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="?attr/designSpacing"
                         android:layout_weight="1"
                         android:gravity="center|start"
                         android:orientation="vertical">
@@ -712,8 +712,8 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0.5dp"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
+                    android:layout_marginStart="?attr/designSpacing"
+                    android:layout_marginEnd="?attr/designSpacing"
                     android:background="?attr/colorPrimaryDisabled" />
 
                 <LinearLayout
@@ -722,7 +722,7 @@
                     android:layout_height="64dp"
                     android:foreground="?attr/selectableItemBackgroundBorderless"
                     android:orientation="horizontal"
-                    android:paddingStart="16dp"
+                    android:paddingStart="?attr/designSpacing"
                     android:paddingEnd="8dp">
 
                     <ImageView
@@ -735,7 +735,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="?attr/designSpacing"
                         android:layout_weight="1"
                         android:gravity="center|start"
                         android:orientation="vertical">
@@ -778,8 +778,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginStart="26dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginTop="?attr/designSpacing"
+            android:layout_marginEnd="?attr/designSpacing"
             android:layout_marginBottom="8dp"
             android:text="设置"
             android:textColor="?attr/textColorPrimary"
@@ -790,12 +790,12 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="?attr/designSpacing"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginEnd="?attr/designSpacing"
+            android:layout_marginBottom="?attr/designSpacing"
             app:cardBackgroundColor="?attr/backgroundColorSecond"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="?attr/designCornerRadius"
             app:cardElevation="0dp">
 
             <LinearLayout
@@ -812,8 +812,8 @@
                     android:layout_height="64dp"
                     android:foreground="?attr/selectableItemBackgroundBorderless"
                     android:orientation="horizontal"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp">
+                    android:paddingStart="?attr/designSpacing"
+                    android:paddingEnd="?attr/designSpacing">
 
                     <ImageView
                         android:layout_width="32dp"
@@ -825,7 +825,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="?attr/designSpacing"
                         android:layout_weight="1"
                         android:gravity="center|start"
                         android:orientation="vertical">
@@ -861,8 +861,8 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0.5dp"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
+                    android:layout_marginStart="?attr/designSpacing"
+                    android:layout_marginEnd="?attr/designSpacing"
                     android:background="?attr/colorPrimaryDisabled" />
 
                 <!-- ICS 导入 -->
@@ -872,8 +872,8 @@
                     android:layout_height="64dp"
                     android:foreground="?attr/selectableItemBackgroundBorderless"
                     android:orientation="horizontal"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp">
+                    android:paddingStart="?attr/designSpacing"
+                    android:paddingEnd="?attr/designSpacing">
 
                     <ImageView
                         android:layout_width="32dp"
@@ -885,7 +885,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_marginStart="16dp"
+                        android:layout_marginStart="?attr/designSpacing"
                         android:layout_weight="1"
                         android:gravity="center|start"
                         android:orientation="vertical">
@@ -918,6 +918,105 @@
                         app:tint="?attr/colorPrimaryDisabled" />
 
                 </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_web_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="?attr/designSpacing"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="?attr/designSpacing"
+            app:cardBackgroundColor="?attr/backgroundColorSecond"
+            app:cardCornerRadius="?attr/designCornerRadius"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:orientation="horizontal"
+                android:paddingStart="?attr/designSpacing"
+                android:paddingEnd="?attr/designSpacing">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_baseline_cloud_download_24"
+                    app:tint="?attr/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="?attr/designSpacing"
+                    android:layout_weight="1"
+                    android:gravity="center|start"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="连接深圳 Web 教务"
+                        android:textColor="?attr/textColorPrimary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="培养方案、考试等需要 Web 会话"
+                        android:textColor="?attr/textColorSecondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_baseline_keyboard_arrow_right_24"
+                    app:tint="?attr/colorPrimaryDisabled" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/plugin_entries_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="?attr/designSpacing"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="?attr/designSpacing"
+            android:layout_marginBottom="?attr/designSpacing"
+            app:cardBackgroundColor="?attr/backgroundColorSecond"
+            app:cardCornerRadius="?attr/designCornerRadius"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="?attr/designSpacing"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="?attr/designSpacing"
+                    android:paddingBottom="4dp"
+                    android:text="已安装插件"
+                    android:textColor="?attr/textColorSecondary"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:id="@+id/plugin_entries"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
 
             </LinearLayout>
 

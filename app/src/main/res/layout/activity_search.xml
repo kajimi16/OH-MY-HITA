@@ -28,7 +28,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="36dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="?attr/designSpacing"
                 android:layout_marginBottom="8dp"
                 android:background="@drawable/element_rounded_bar_grey_light_24"
                 android:backgroundTint="#70e7e7f2"
@@ -62,7 +62,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_gravity="center"
-                    android:layout_marginEnd="16dp"
+                    android:layout_marginEnd="?attr/designSpacing"
                     android:progressTint="?attr/colorPrimary"
                     android:progressTintMode="src_in"
                     android:visibility="gone" />

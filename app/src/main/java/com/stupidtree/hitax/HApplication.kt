@@ -57,7 +57,75 @@ class HApplication : Application() {
                     )
                 }
             }
+
+            override fun setColorPreset(preset: String): Boolean =
+                com.stupidtree.style.ThemeTools.setColorPreset(this@HApplication, preset)
+
+            override fun colorPreset(): String =
+                com.stupidtree.style.ThemeTools.getColorPreset(this@HApplication)
+
+            override fun setThemeStyle(style: String): Boolean {
+                val mapped = when (style) {
+                    "apple_glass" -> com.stupidtree.style.ThemeTools.STYLE.APPLE_GLASS
+                    "cyber" -> com.stupidtree.style.ThemeTools.STYLE.CYBER
+                    "sora_cloud" -> com.stupidtree.style.ThemeTools.STYLE.SORA_CLOUD
+                    "p5" -> com.stupidtree.style.ThemeTools.STYLE.P5
+                    "deep_space" -> com.stupidtree.style.ThemeTools.STYLE.DEEP_SPACE
+                    "sumi" -> com.stupidtree.style.ThemeTools.STYLE.SUMI
+                    "classic" -> com.stupidtree.style.ThemeTools.STYLE.CLASSIC
+                    else -> return false
+                }
+                return com.stupidtree.style.ThemeTools.setThemeStyle(this@HApplication, mapped)
+            }
+
+            override fun themeStyle(): String =
+                when (com.stupidtree.style.ThemeTools.getThemeStyle(this@HApplication)) {
+                    com.stupidtree.style.ThemeTools.STYLE.APPLE_GLASS -> "apple_glass"
+                    com.stupidtree.style.ThemeTools.STYLE.CYBER -> "cyber"
+                    com.stupidtree.style.ThemeTools.STYLE.SORA_CLOUD -> "sora_cloud"
+                    com.stupidtree.style.ThemeTools.STYLE.P5 -> "p5"
+                    com.stupidtree.style.ThemeTools.STYLE.DEEP_SPACE -> "deep_space"
+                    com.stupidtree.style.ThemeTools.STYLE.SUMI -> "sumi"
+                    else -> "classic"
+                }
+
+            override fun setFontScale(scale: Float): Boolean =
+                com.stupidtree.style.ThemeTools.setFontScale(this@HApplication, scale)
+
+            override fun fontScale(): Float =
+                com.stupidtree.style.ThemeTools.getFontScale(this@HApplication)
+
+            override fun tokens(): com.stupidtree.hita.api.ThemeTokens =
+                when (com.stupidtree.style.ThemeTools.getThemeStyle(this@HApplication)) {
+                    com.stupidtree.style.ThemeTools.STYLE.APPLE_GLASS ->
+                        com.stupidtree.hita.api.ThemeTokens(24f, 20f, 0.72f)
+                    com.stupidtree.style.ThemeTools.STYLE.CYBER ->
+                        com.stupidtree.hita.api.ThemeTokens(8f, 12f, 0.85f)
+                    com.stupidtree.style.ThemeTools.STYLE.SORA_CLOUD ->
+                        com.stupidtree.hita.api.ThemeTokens(20f, 16f, 1f)
+                    com.stupidtree.style.ThemeTools.STYLE.P5 ->
+                        com.stupidtree.hita.api.ThemeTokens(4f, 8f, 1f)
+                    com.stupidtree.style.ThemeTools.STYLE.DEEP_SPACE ->
+                        com.stupidtree.hita.api.ThemeTokens(18f, 16f, 0.9f)
+                    com.stupidtree.style.ThemeTools.STYLE.SUMI ->
+                        com.stupidtree.hita.api.ThemeTokens(10f, 14f, 1f)
+                    else -> com.stupidtree.hita.api.ThemeTokens(16f, 16f, 1f)
+                }
         })
+        // 宿主内建提醒能力：插件不能自己声明 receiver / 前台服务，统一交给宿主调度。
+        pluginHost.provideGlobal(
+            com.stupidtree.hita.api.ReminderService.KEY,
+            com.stupidtree.hitax.reminder.ReminderServiceImpl(this),
+        )
+        pluginHost.provideGlobal(
+            com.stupidtree.hita.api.LiveCourseService.KEY,
+            com.stupidtree.hitax.livecourse.LiveCourseServiceImpl(this),
+        )
+        // 宿主后台任务：WorkManager 负责持久化，插件只实现 BackgroundTask。
+        pluginHost.provideGlobal(
+            com.stupidtree.hita.api.BackgroundTaskService.KEY,
+            com.stupidtree.hitax.background.BackgroundTaskServiceImpl(this),
+        )
         // 宿主内建跳转能力：迁移期插件请求宿主打开课表详情 / 教务导入
         pluginHost.provideGlobal(HostUiService.KEY, object : HostUiService {
             override fun openTimetableDetail(context: android.content.Context, timetableId: String) {

@@ -1,0 +1,11 @@
+{
+  "id": "com.stupidtree.hita.ui.reminder",
+  "name": "上课提醒",
+  "version": "0.1.2",
+  "entryClass": "com.stupidtree.hita.ui.reminder.ReminderUiPlugin",
+  "apiVersion": 7,
+  "composeVersion": "1.6.8",
+  "capabilities": [
+    "hita.ui.reminder"
+  ]
+}

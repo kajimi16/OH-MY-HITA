@@ -11,6 +11,10 @@ class EASToken {
     var refreshToken: String? = null
     // route / JSESSIONID 由 Jsoup session 自动管理，同时存一份供跨请求复用
     var cookies = HashMap<String, String>()
+    /** 深圳 Web 教务会话 cookie，与 API cookies 分离。 */
+    var webCookies = HashMap<String, String>()
+    /** 深圳 Web 会话基址：直连或 jw 代理。 */
+    var webBaseUrl: String? = null
 
     var username: String? = null
     var password: String? = null

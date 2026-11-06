@@ -46,6 +46,16 @@ class EASource internal constructor() : EASService {
 
     private val hostName = "https://mjw.hitsz.edu.cn/incoSpringBoot"
     private val jwHostName = "https://jw.hitsz.edu.cn"
+    private val jwProxyHostName = "https://jw-hitsz-edu-cn.hitsz.edu.cn"
+
+    /** 代理 SESSION 不能发给直连域名；直连/代理按 token 或 cookie 形态选择。 */
+    private fun jwBase(token: EASToken): String {
+        token.webBaseUrl?.trimEnd('/')?.takeIf { it == jwHostName || it == jwProxyHostName }?.let { return it }
+        val web = if (token.webCookies.isNotEmpty()) token.webCookies else token.cookies
+        val proxySession = !web["SESSION"].isNullOrBlank() &&
+            web["JSESSIONID"].isNullOrBlank()
+        return if (proxySession) jwProxyHostName else jwHostName
+    }
     private val basicAuth = "Basic aW5jb246MTIzNDU="
     private val timeout = 15000
 
@@ -116,49 +126,65 @@ class EASource internal constructor() : EASService {
         return req.execute()
     }
 
+    /** 培训方案等新教务网页接口使用：返回原始 Jsoup 响应。 */
+    fun jwPost(
+        token: EASToken,
+        path: String,
+        data: Map<String, String> = emptyMap(),
+        referer: String = "/authentication/main",
+    ): Connection.Response = jwFormPost(token, path, data, referer)
+
     /** 新教务网页接口（xszykb），依赖登录后会话 cookies */
     private fun jwFormPost(
         token: EASToken,
         path: String,
-        data: Map<String, String> = emptyMap()
+        data: Map<String, String> = emptyMap(),
+        referer: String = "/authentication/main",
     ): Connection.Response {
-        warmupJwSession(token)
+        val cookieJar = token.webCookies.takeIf { it.isNotEmpty() } ?: token.cookies
+        if (token.webCookies.isEmpty()) warmupJwSession(token)
         val req = Jsoup.newSession()
-            .url("$jwHostName$path")
+            .url("${jwBase(token)}$path")
             .header("Accept", "*/*")
             .header("Accept-Language", "zh-CN,zh;q=0.9")
             .header("X-Requested-With", "XMLHttpRequest")
-            .header("Referer", "$jwHostName/authentication/main")
+            .header("Referer", "${jwBase(token)}$referer")
+            .header("RoleCode", "01")
+            .header("Origin", jwBase(token))
             .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
             .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36")
-            .cookies(token.cookies)
+            .cookies(cookieJar)
             .timeout(timeout)
             .ignoreContentType(true)
             .ignoreHttpErrors(true)
             .method(Connection.Method.POST)
         data.forEach { (k, v) -> req.data(k, v) }
         var resp = req.execute()
-        token.cookies.putAll(resp.cookies())
+        cookieJar.putAll(resp.cookies())
+        if (cookieJar !== token.cookies) token.cookies.putAll(resp.cookies())
 
         // jw 会话可能独立过期：检测 401 后尝试静默重登一次并重试同一请求
         if (resp.statusCode() == 401 && tryRelogin(token)) {
             warmupJwSession(token)
             val retryReq = Jsoup.newSession()
-                .url("$jwHostName$path")
+                .url("${jwBase(token)}$path")
                 .header("Accept", "*/*")
                 .header("Accept-Language", "zh-CN,zh;q=0.9")
+                .header("RoleCode", "01")
+                .header("Origin", jwBase(token))
                 .header("X-Requested-With", "XMLHttpRequest")
-                .header("Referer", "$jwHostName/authentication/main")
+                .header("Referer", "${jwBase(token)}$referer")
                 .header("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36")
-                .cookies(token.cookies)
+                .cookies(cookieJar)
                 .timeout(timeout)
                 .ignoreContentType(true)
                 .ignoreHttpErrors(true)
                 .method(Connection.Method.POST)
             data.forEach { (k, v) -> retryReq.data(k, v) }
             resp = retryReq.execute()
-            token.cookies.putAll(resp.cookies())
+            cookieJar.putAll(resp.cookies())
+            if (cookieJar !== token.cookies) token.cookies.putAll(resp.cookies())
         }
         return resp
     }
@@ -178,17 +204,19 @@ class EASource internal constructor() : EASService {
     private fun warmupJwSession(token: EASToken) {
         try {
             val resp = Jsoup.newSession()
-                .url("$jwHostName/authentication/main")
+                .url("${jwBase(token)}/authentication/main")
                 .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                 .header("Accept-Language", "zh-CN,zh;q=0.9")
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36")
-                .cookies(token.cookies)
+                .cookies(token.webCookies.takeIf { it.isNotEmpty() } ?: token.cookies)
                 .timeout(timeout)
                 .followRedirects(true)
                 .ignoreHttpErrors(true)
                 .method(Connection.Method.GET)
                 .execute()
-            token.cookies.putAll(resp.cookies())
+            val jar = token.webCookies.takeIf { it.isNotEmpty() } ?: token.cookies
+            jar.putAll(resp.cookies())
+            if (jar !== token.cookies) token.cookies.putAll(resp.cookies())
         } catch (_: Exception) {
         }
     }

@@ -3,4 +3,5 @@
     <exclude domain="file" path="timetable-wallpaper.png" />
     <exclude domain="file" path="timetable-wallpaper.png.new" />
     <exclude domain="file" path="timetable-wallpaper.png.bak" />
+    <exclude domain="sharedpref" path="local_eas_token.xml" />
 </full-backup-content>

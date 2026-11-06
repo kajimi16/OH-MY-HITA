@@ -1,6 +1,7 @@
 package com.stupidtree.hitax.plugin
 
 import com.stupidtree.hita.api.HostUiService
+import com.stupidtree.hita.api.RuntimeUiService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hitax.data.model.timetable.EventItem
 
@@ -13,6 +14,7 @@ import com.stupidtree.hitax.data.model.timetable.EventItem
 object HitaRuntime {
     @Volatile var timetable: TimetableService? = null
     @Volatile var hostUi: HostUiService? = null
+    @Volatile var runtimeUi: RuntimeUiService? = null
 
     /** 小组件用：插件缺席（空壳）时给空列表，避免 RemoteViews 崩溃。 */
     fun todayEvents(): List<EventItem> = timetable?.getTodayEventsSync() ?: emptyList()

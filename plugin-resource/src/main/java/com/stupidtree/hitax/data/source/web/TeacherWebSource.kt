@@ -22,7 +22,7 @@ object TeacherWebSource : TeacherService {
         Thread {
             try {
                 val teacherProfile = mutableMapOf<String, String>()
-                val d: Document = Jsoup.connect("http://faculty.hitsz.edu.cn/$teacherUrl")
+                val d: Document = Jsoup.connect("https://homepage.hit.edu.cn/$teacherUrl")
                     .header(
                         "User-Agent",
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
@@ -66,7 +66,7 @@ object TeacherWebSource : TeacherService {
             try {
                 val infoToAdd = mutableMapOf<String, String>()
                 val teachersPage: Document =
-                    Jsoup.connect("http://faculty.hitsz.edu.cn/TeacherHome/teacherBody.do")
+                    Jsoup.connect("https://homepage.hit.edu.cn/TeacherHome/teacherBody.do")
                         .header(
                             "User-Agent",
                             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
@@ -105,11 +105,11 @@ object TeacherWebSource : TeacherService {
                     if (k.isEmpty()) continue
                     var d: Document?
                     d = try {
-                        Jsoup.connect("http://faculty.hitsz.edu.cn/hompage/findTeachersByName.do")
-                            .cookies(mapOf())
+                        Jsoup.connect("https://homepage.hit.edu.cn/hompage/findTeachersByName.do")
                             .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36")
+                            .header("X-Requested-With", "XMLHttpRequest")
                             .data("userName", k)
-                            .data("X-Requested-With", "XMLHttpRequest").post()
+                            .get()
                     } catch (e: IOException) {
                         result.postValue(DataState(DataState.STATE.FETCH_FAILED))
                         return@Thread

@@ -9,12 +9,12 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginStart="?attr/designSpacing"
+        android:layout_marginTop="?attr/designSpacing"
+        android:layout_marginEnd="?attr/designSpacing"
+        android:layout_marginBottom="?attr/designSpacing"
         app:cardBackgroundColor="?attr/backgroundColorSecond"
-        app:cardCornerRadius="24dp"
+        app:cardCornerRadius="?attr/designCornerRadius"
         app:cardElevation="0dp">
 
 
@@ -56,9 +56,9 @@
                 android:layout_height="48dp"
                 android:layout_gravity="center"
                 android:layout_marginStart="24dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="?attr/designSpacing"
                 android:layout_marginEnd="24dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="?attr/designSpacing"
                 android:background="@drawable/element_rounded_button_bg_primary"
                 android:text="@string/login"
                 android:textColor="@color/white"

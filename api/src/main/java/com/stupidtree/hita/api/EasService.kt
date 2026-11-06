@@ -35,6 +35,7 @@ interface EasService {
 
     fun openExam(activity: FragmentActivity)
 
+
     /** 打开登录/账号面板。 */
     fun openAccount(activity: FragmentActivity)
 

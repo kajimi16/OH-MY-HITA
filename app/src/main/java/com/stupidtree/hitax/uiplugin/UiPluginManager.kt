@@ -103,6 +103,7 @@ class UiPluginManager(private val context: Context) {
         val composeVersion: String,
         val capabilities: List<String>,
         val mainTabs: List<com.stupidtree.hita.api.MainTabSpec> = emptyList(),
+        val minSdk: Int = 0,
     )
 
     private fun requireValidId(id: String) {
@@ -132,6 +133,9 @@ class UiPluginManager(private val context: Context) {
         val meta = readMetadata(file)
         require(meta.apiVersion <= HITA_API_VERSION) {
             "插件需要 api ${meta.apiVersion}，当前宿主 $HITA_API_VERSION"
+        }
+        require(meta.minSdk <= android.os.Build.VERSION.SDK_INT) {
+            "插件需要 Android API ${meta.minSdk}，当前设备 ${android.os.Build.VERSION.SDK_INT}"
         }
         require(meta.composeVersion.isBlank() || meta.composeVersion == COMPOSE_RUNTIME_VERSION) {
             "插件基于 Compose ${meta.composeVersion}，宿主运行时为 $COMPOSE_RUNTIME_VERSION"
@@ -184,6 +188,7 @@ class UiPluginManager(private val context: Context) {
     }
 
     fun uninstall(id: String) {
+        runCatching { com.stupidtree.hitax.background.BackgroundTaskServiceImpl(context).cancelAll(id) }
         val dir = runCatching { pluginDir(id) }.getOrNull()
         if (dir != null) {
             runCatching { dir.deleteRecursively() }
@@ -227,6 +232,7 @@ class UiPluginManager(private val context: Context) {
                 composeVersion = obj.get("composeVersion")?.asString ?: "",
                 capabilities = obj.getAsJsonArray("capabilities")
                     ?.mapNotNull { it.asString } ?: emptyList(),
+                minSdk = obj.get("minSdk")?.asInt ?: 0,
                 mainTabs = obj.getAsJsonArray("mainTabs")
                     ?.mapNotNull { element ->
                         runCatching {

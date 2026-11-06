@@ -9,12 +9,12 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginStart="?attr/designSpacing"
+        android:layout_marginTop="?attr/designSpacing"
+        android:layout_marginEnd="?attr/designSpacing"
+        android:layout_marginBottom="?attr/designSpacing"
         app:cardBackgroundColor="?attr/backgroundColorSecond"
-        app:cardCornerRadius="24dp"
+        app:cardCornerRadius="?attr/designCornerRadius"
         app:cardElevation="0dp">
 
         <LinearLayout
@@ -84,7 +84,7 @@
                 <RadioButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="?attr/designSpacing"
                     android:buttonTint="@color/subject3"
                     android:drawableEnd="@drawable/ic_female_pink_24"
                     android:drawablePadding="12dp" />
@@ -110,9 +110,9 @@
                 android:layout_height="48dp"
                 android:layout_gravity="center"
                 android:layout_marginStart="24dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="?attr/designSpacing"
                 android:layout_marginEnd="24dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="?attr/designSpacing"
                 android:background="@drawable/element_rounded_button_bg_primary"
                 android:text="@string/sign_up"
                 android:textColor="@color/white"

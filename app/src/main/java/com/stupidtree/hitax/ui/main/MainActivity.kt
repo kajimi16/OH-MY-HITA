@@ -15,7 +15,10 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.GravityCompat
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.drawerlayout.widget.DrawerLayout.GONE
 import androidx.fragment.app.Fragment
@@ -25,6 +28,8 @@ import com.stupidtree.hita.api.NavEntry
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.databinding.ActivityMainBinding
+import com.stupidtree.hitax.market.MarketPreset
+import com.stupidtree.hitax.market.PluginMarketViewModel
 import com.stupidtree.hitax.ui.about.ActivityAbout
 import com.stupidtree.hitax.ui.about.UserAgreementDialog
 import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
@@ -93,6 +98,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
      */
     private val autoReimportIntervalMs = 12 * 60 * 60 * 1000L
     private var autoReimportAttempted = false
+    private var pendingUpdateCode: Long? = null
     private var drawerAvatar: ImageView? = null
     private var drawerNickname: TextView? = null
     private var drawerUsername: TextView? = null
@@ -187,13 +193,17 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                     0
                 ).versionCode.toLong()
             }
-            if (System.currentTimeMillis() - lastCheckTs > 5 * 60 * 1000) checkedUpdate = false
-            if (!checkedUpdate) {
-                if (LocalUserRepository.getInstance(this).getLoggedInUser().isValid()) {
-                    checkedUpdate = true
-                    lastCheckTs = System.currentTimeMillis()
+            if (!presetOnboardingSeen()) {
+                pendingUpdateCode = code
+            } else {
+                if (System.currentTimeMillis() - lastCheckTs > 5 * 60 * 1000) checkedUpdate = false
+                if (!checkedUpdate) {
+                    if (LocalUserRepository.getInstance(this).getLoggedInUser().isValid()) {
+                        checkedUpdate = true
+                        lastCheckTs = System.currentTimeMillis()
+                    }
+                    viewModel.checkForUpdate(code)
                 }
-                viewModel.checkForUpdate(code)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -211,6 +221,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
     override fun initViews() {
         setUpDrawer()
+        maybeShowPresetOnboarding()
         //  binding.title.text = binding.navView.menu.getItem(0).title
         pages = buildPages()
         binding.navView.submit(
@@ -306,6 +317,161 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         }
     }
 
+
+    private fun presetOnboardingSeen(): Boolean =
+        getSharedPreferences("preset_onboarding", MODE_PRIVATE)
+            .getBoolean(KEY_PRESET_PROMPT_SEEN, false)
+
+    private fun checkPendingUpdate() {
+        val code = pendingUpdateCode ?: return
+        pendingUpdateCode = null
+        if (System.currentTimeMillis() - lastCheckTs > 5 * 60 * 1000) checkedUpdate = false
+        if (!checkedUpdate) {
+            if (LocalUserRepository.getInstance(this).getLoggedInUser().isValid()) {
+                checkedUpdate = true
+                lastCheckTs = System.currentTimeMillis()
+            }
+            viewModel.checkForUpdate(code)
+        }
+    }
+
+    /**
+     * 首次启动直接选择整合包；选择后应用并记录当前组合。
+     * 只提示一次，之后可在市场切换。
+     */
+    private fun maybeShowPresetOnboarding() {
+        val prefs = getSharedPreferences("preset_onboarding", MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_PRESET_PROMPT_SEEN, false)) return
+        if (isFinishing || supportFragmentManager.isStateSaved) return
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("欢迎使用 OH-MY-HITA")
+            .setMessage(
+                "选择一个整合包开始：\n\n" +
+                    "· HITA-L：经典轻量组合\n" +
+                    "· HITA_Android 3.1.2：完整复刻组合\n\n" +
+                    "也可以先从零开始，之后在插件市场随时切换。"
+            )
+            .setPositiveButton("选择整合包") { _, _ ->
+                prefs.edit().putBoolean(KEY_PRESET_PROMPT_SEEN, true).apply()
+                showPresetChooser()
+            }
+            .setNegativeButton("从零开始") { _, _ ->
+                prefs.edit().putBoolean(KEY_PRESET_PROMPT_SEEN, true).apply()
+                checkPendingUpdate()
+            }
+            .setNeutralButton("稍后", null)
+            .show()
+    }
+
+    /** 读取市场索引并弹出整合包列表；失败时回退到插件市场。 */
+    private fun showPresetChooser() {
+        val vm = ViewModelProvider(this)[PluginMarketViewModel::class.java]
+        var applying: androidx.appcompat.app.AlertDialog? = null
+        var applyStarted = false
+        var finished = false
+        var fellBack = false
+        var recreationRequested = false
+        lateinit var presetsObserver: Observer<List<MarketPreset>>
+        lateinit var statusObserver: Observer<String?>
+        lateinit var loadedObserver: Observer<Boolean>
+        lateinit var loading: androidx.appcompat.app.AlertDialog
+
+        fun finishOnboarding(checkUpdate: Boolean = true) {
+            if (finished) return
+            finished = true
+            if (checkUpdate) checkPendingUpdate()
+        }
+
+        fun recreateOnce() {
+            if (recreationRequested || isFinishing) return
+            recreationRequested = true
+            recreate()
+        }
+
+        fun fallback(message: String) {
+            if (fellBack) return
+            fellBack = true
+            vm.presets.removeObserver(presetsObserver)
+            vm.status.removeObserver(statusObserver)
+            vm.presetsLoaded.removeObserver(loadedObserver)
+            loading.dismiss()
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            finishOnboarding(checkUpdate = false)
+            openPluginMarket()
+        }
+
+        fun cancelLoading() {
+            vm.presets.removeObserver(presetsObserver)
+            vm.status.removeObserver(statusObserver)
+            vm.presetsLoaded.removeObserver(loadedObserver)
+            loading.dismiss()
+            finishOnboarding()
+        }
+
+        loading = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("整合包")
+            .setMessage("正在读取市场索引…")
+            .setNegativeButton(android.R.string.cancel) { _, _ -> cancelLoading() }
+            .show()
+
+        presetsObserver = Observer { presets ->
+            if (presets.isNullOrEmpty()) return@Observer
+            vm.presets.removeObserver(presetsObserver)
+            vm.status.removeObserver(statusObserver)
+            vm.presetsLoaded.removeObserver(loadedObserver)
+            loading.dismiss()
+            var checked = 0
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("选择整合包")
+                .setSingleChoiceItems(
+                    presets.map { "${it.name}（${it.refs().size} 个插件）" }.toTypedArray(),
+                    checked,
+                ) { _, which -> checked = which }
+                .setPositiveButton("应用") { _, _ ->
+                    val preset = presets.getOrNull(checked) ?: return@setPositiveButton
+                    applyStarted = true
+                    applying = androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("正在应用")
+                        .setMessage("正在安装「${preset.name}」，请稍候…")
+                        .setCancelable(false)
+                        .show()
+                    vm.applyPreset(preset)
+                }
+                .setNegativeButton("稍后", null)
+                .setOnDismissListener { if (!applyStarted) finishOnboarding() }
+                .show()
+        }
+        statusObserver = Observer { text ->
+            if (text?.startsWith("读取索引失败") == true) {
+                fallback("读取市场失败，请到插件市场重试")
+            }
+        }
+        loadedObserver = Observer { loaded ->
+            if (loaded && vm.presets.value.isNullOrEmpty()) {
+                fallback("市场暂无整合包，已打开插件市场")
+            }
+        }
+        vm.presets.observe(this, presetsObserver)
+        vm.status.observe(this, statusObserver)
+        vm.presetsLoaded.observe(this, loadedObserver)
+        vm.activePresetId.observe(this) { id ->
+            if (applyStarted && id != null) recreateOnce()
+        }
+        vm.message.observe(this) { text ->
+            if (text == null) return@observe
+            applying?.dismiss()
+            applying = null
+            Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+            vm.consumeMessage()
+            if (applyStarted) finishOnboarding()
+        }
+        vm.reloadUi.observe(this) { reload ->
+            if (reload) {
+                vm.consumeReloadUi()
+                recreateOnce()
+            }
+        }
+    }
 
     @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     /** 供占位页跳转到插件市场（第 4 个 tab）。 */
@@ -441,5 +607,6 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     companion object {
         /** 插件菜单项 id 从这里开始分配，避开 xml 里的资源 id 区间。 */
         private const val PLUGIN_MENU_ID_BASE = 0x0F000000
+        private const val KEY_PRESET_PROMPT_SEEN = "preset_prompt_seen"
     }
 }

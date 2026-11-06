@@ -58,6 +58,39 @@ class MarketIndexTest {
     }
 
     @Test
+    fun parsesPresetAndPluginRefs() {
+        val index = gson.fromJson(
+            """
+            {"presets":[{
+              "id":"hita-android-3.1.2","name":"HITA Android 3.1.2 复刻",
+              "version":"1","source":"HITA_Android v3.1.2","minHostApi":7,
+              "plugins":[
+                {"id":"com.stupidtree.hitax.timetable","kind":"builtin"},
+                {"id":"com.example.ui","kind":"ui","required":false}
+              ]
+            }]}
+            """.trimIndent(),
+            MarketIndex::class.java,
+        )
+
+        val preset = index.presets!!.single()
+        assertEquals("hita-android-3.1.2", preset.id)
+        assertEquals(7, preset.minHostApi)
+        assertEquals(2, preset.refs().size)
+        assertEquals("builtin", preset.refs()[0].normalizedKind())
+        assertTrue(preset.refs()[0].isRequired())
+        assertEquals("ui", preset.refs()[1].normalizedKind())
+        assertEquals(false, preset.refs()[1].isRequired())
+    }
+
+    @Test
+    fun oldIndexWithoutPresetsKeepsNull() {
+        val index = gson.fromJson("""{"plugins":[],"uiPlugins":[]}""", MarketIndex::class.java)
+        assertNull(index.presets)
+        assertTrue(index.presets.orEmpty().isEmpty())
+    }
+
+    @Test
     fun parsesMarketMetadata() {
         val index = gson.fromJson(
             """

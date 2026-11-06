@@ -21,8 +21,9 @@ class EasPreferenceSource(context: Context) {
             .putString("accessToken", token.accessToken)
             .putString("refreshToken", token.refreshToken)
             .putString("username", token.username)
-            .putString("password", token.password)
             .putString("cookies", Gson().toJson(token.cookies))
+            .putString("web_cookies", Gson().toJson(token.webCookies))
+            .putString("webBaseUrl", token.webBaseUrl)
             .putString("name", token.name)
             .putString("stutype", token.getStudentType())
             .putString("picture", token.picture)
@@ -39,11 +40,8 @@ class EasPreferenceSource(context: Context) {
 
 
     fun clearEasToken() {
-        preference.edit()
-            .putString("accessToken", null)
-            .putString("refreshToken", null)
-            .putString("cookies", null)
-            .apply()
+        // 清理所有字段，包括旧版本可能残留的密码。
+        preference.edit().clear().apply()
     }
 
     fun getEasToken(): EASToken {
@@ -51,7 +49,10 @@ class EasPreferenceSource(context: Context) {
         result.accessToken = preference.getString("accessToken", null)
         result.refreshToken = preference.getString("refreshToken", null)
         result.username = preference.getString("username", null)
-        result.password = preference.getString("password", null)
+        // 密码不再持久化；旧版本残留字段在读取时清除。
+        if (preference.contains("password")) {
+            preference.edit().remove("password").apply()
+        }
         result.name = preference.getString("name", null)
         result.stutype = if (preference.getString("stutype", "1")
                 .equals("1")
@@ -61,6 +62,21 @@ class EasPreferenceSource(context: Context) {
         result.stuId = preference.getString("stuId", null)
         result.school = preference.getString("school", null)
         result.major = preference.getString("major", null)
+        result.webBaseUrl = preference.getString("webBaseUrl", null)
+        runCatching {
+            val web = Gson().fromJson(
+                preference.getString("web_cookies", "{}"),
+                HashMap::class.java,
+            )
+            web?.forEach { (k, v) ->
+                val key = k?.toString().orEmpty()
+                if (key.isNotBlank()) result.webCookies[key] = v?.toString().orEmpty()
+            }
+        }
+        if (result.webCookies.isEmpty()) {
+            listOf("SESSION", "JSESSIONID", "route", "sdp_user_token", "platformMultilingual_-_edu.cn")
+                .forEach { key -> result.cookies[key]?.let { result.webCookies[key] = it } }
+        }
         result.grade = preference.getString("grade", "")
         result.sfxsx = preference.getString("sfxsx", null)
         result.email = preference.getString("email", null)

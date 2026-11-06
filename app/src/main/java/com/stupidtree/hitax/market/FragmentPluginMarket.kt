@@ -32,6 +32,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     private var latestDex: List<PluginMarketViewModel.Item> = emptyList()
     private var latestUiInstalled: List<InstalledUiPlugin> = emptyList()
     private var latestUiAvailable: List<UiMarketPlugin> = emptyList()
+    private var latestPresets: List<MarketPreset> = emptyList()
     private var latestApk: List<ApkPlugin> = emptyList()
     private var latestPendingUpdates = 0
     private var query: String = ""
@@ -49,6 +50,8 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         viewModel.items.observe(this) { latestDex = it; renderAll() }
         viewModel.uiPlugins.observe(this) { latestUiInstalled = it; renderAll() }
         viewModel.availableUiPlugins.observe(this) { latestUiAvailable = it; renderAll() }
+        viewModel.presets.observe(this) { latestPresets = it; renderDiscover() }
+        viewModel.activePresetId.observe(this) { renderDiscover() }
         viewModel.apkPlugins.observe(this) { latestApk = it; renderAll() }
         viewModel.sources.observe(this) { renderAll() }
         viewModel.pendingUpdates.observe(this) { latestPendingUpdates = it; renderAll() }
@@ -95,6 +98,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
 
     override fun onResume() {
         super.onResume()
+        viewModel.syncActivePreset()
         viewModel.refresh()
     }
 
@@ -146,6 +150,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     }
 
     private sealed class DiscoverEntry {
+        data class Preset(val preset: MarketPreset) : DiscoverEntry()
         data class Ui(val plugin: UiMarketPlugin, val installedVersion: String?) : DiscoverEntry()
         data class Dex(val item: PluginMarketViewModel.Item) : DiscoverEntry()
     }
@@ -153,6 +158,9 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     private fun renderDiscover() {
         val installedUi = latestUiInstalled.associateBy { it.id }
         val entries = mutableListOf<DiscoverEntry>()
+        latestPresets
+            .filter { matches(query, it.name, it.description, it.source, it.tags?.joinToString(" ")) }
+            .forEach { entries += DiscoverEntry.Preset(it) }
         latestUiAvailable
             .filter { matches(query, it.name, it.description, it.tags?.joinToString(" ")) }
             .forEach { entries += DiscoverEntry.Ui(it, installedUi[it.id]?.version) }
@@ -164,10 +172,115 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         binding?.marketSource?.text = viewModel.activeSource().name
         renderGrid(binding?.discoverContainer, entries) { card, entry ->
             when (entry) {
+                is DiscoverEntry.Preset -> bindDiscoverPreset(card, entry.preset)
                 is DiscoverEntry.Ui -> bindDiscoverUi(card, entry.plugin, entry.installedVersion)
                 is DiscoverEntry.Dex -> bindDiscoverDex(card, entry.item)
             }
         }
+    }
+
+    private fun bindDiscoverPreset(card: ItemMarketPluginCardBinding, preset: MarketPreset) {
+        val activeId = viewModel.activePresetId.value
+        val isActive = activeId == preset.id
+        card.name.text = preset.name
+        card.meta.text = buildString {
+            append("整合包")
+            preset.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+            append(" · ").append(preset.refs().size).append(" 个插件")
+            if (isActive) append(" · 使用中")
+        }
+        card.toggle.visibility = View.GONE
+        card.action.visibility = View.VISIBLE
+        card.action.text = when {
+            isActive -> "使用中"
+            activeId != null -> "切换"
+            else -> "应用"
+        }
+        card.action.isEnabled = !isActive
+        card.action.setOnClickListener { confirmApplyPreset(preset) }
+        card.root.setOnClickListener { showPresetPreview(preset) }
+    }
+
+    private fun confirmApplyPreset(preset: MarketPreset) {
+        val previous = viewModel.activePresetId.value
+            ?.let { id -> latestPresets.firstOrNull { it.id == id } }
+            ?.takeIf { it.id != preset.id }
+        AlertDialog.Builder(requireContext())
+            .setTitle(preset.name)
+            .setMessage(
+                buildString {
+                    if (previous != null) {
+                        append("从「${previous.name}」切换到「${preset.name}」。\n\n")
+                    }
+                    append("将安装/启用 ${preset.refs().size} 个插件。")
+                    if (previous != null) {
+                        append("\n切换成功后会停用旧整合包中不属于新组合的插件；文件保留。")
+                    }
+                    append("\n\n未受信任的在线插件会被跳过；可先点卡片查看完整清单。")
+                }
+            )
+            .setPositiveButton(if (previous != null) "切换" else "应用") { _, _ ->
+                viewModel.applyPreset(preset)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showPresetPreview(preset: MarketPreset) {
+        val builtin = latestBuiltin.associateBy { it.id }
+        val uiInstalled = latestUiInstalled.associateBy { it.id }
+        val dexInstalled = latestDex.associateBy { it.entry.id }
+        val uiAvailable = latestUiAvailable.associateBy { it.id }
+        val dexAvailable = latestDex.associateBy { it.entry.id }
+
+        val lines = preset.refs().map { ref ->
+            val (label, state) = when (ref.normalizedKind()) {
+                "builtin" -> ref.id to when {
+                    builtin[ref.id] == null -> "内置缺失"
+                    builtin.getValue(ref.id).installed -> "已启用"
+                    else -> "未启用"
+                }
+                "ui" -> ref.id to when {
+                    ref.id in uiInstalled -> "已安装"
+                    ref.id in uiAvailable -> "未安装"
+                    else -> "索引缺失"
+                }
+                "dex" -> ref.id to when {
+                    ref.id in dexInstalled -> "已安装"
+                    ref.id in dexAvailable -> "未安装"
+                    else -> "索引缺失"
+                }
+                else -> ref.id to "未知类型"
+            }
+            "· $label  $state"
+        }.joinToString("\n")
+
+        val supportsIcs = preset.migration.orEmpty().contains("timetable.ics")
+        val parts = mutableListOf<String>()
+        preset.description?.takeIf { it.isNotBlank() }?.let { parts += it }
+        parts += "包含 ${preset.refs().size} 个插件：\n$lines"
+        preset.minHostApi?.let { parts += "需要宿主 API $it" }
+        parts += "应用时会安装缺失插件；未受信任的在线插件需要手动安装。"
+        if (supportsIcs) {
+            parts += "旧版课表可在 HITA_Android 中导出 ICS 后导入，不读取其私有数据库。"
+        }
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setTitle(preset.name)
+            .setMessage(parts.joinToString("\n\n"))
+            .setPositiveButton("应用") { _, _ -> viewModel.applyPreset(preset) }
+            .setNegativeButton(android.R.string.cancel, null)
+        if (supportsIcs) {
+            dialog.setNeutralButton("导入课表") { _, _ ->
+                startActivity(
+                    android.content.Intent(
+                        requireContext(),
+                        PresetMigrationActivity::class.java,
+                    )
+                )
+            }
+        }
+        dialog.show()
     }
 
     private fun bindDiscoverUi(
