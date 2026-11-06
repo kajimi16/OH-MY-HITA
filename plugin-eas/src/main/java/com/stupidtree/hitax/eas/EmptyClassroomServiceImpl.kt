@@ -39,8 +39,10 @@ class EmptyClassroomServiceImpl(application: Application) : EmptyClassroomServic
             val term = termState.data?.firstOrNull { it.isCurrent }
                 ?: termState.data?.firstOrNull()
             if (termState.state != DataState.STATE.SUCCESS || term == null) {
-                if (termState.state != DataState.STATE.SUCCESS) {
-                    out.value = DataState(termState.state, termState.message)
+                out.value = if (termState.state == DataState.STATE.SUCCESS) {
+                    DataState(DataState.STATE.NOT_EXIST, "没有学期数据")
+                } else {
+                    DataState(termState.state, termState.message)
                 }
                 out.removeSource(terms)
             } else {
