@@ -1,7 +1,13 @@
 package com.stupidtree.hita.ui.ai
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Base64
 import android.view.View
+import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,6 +46,7 @@ import com.stupidtree.hita.api.TimetableService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.CountDownLatch
@@ -112,7 +119,7 @@ class AiUiPlugin : ComposeUiPlugin {
                                     Column(Modifier.padding(10.dp)) {
                                         Text(if (message.role == "user") "我" else "AI",
                                             style = MaterialTheme.typography.caption)
-                                        Text(message.content)
+                                        Text(if (message.imageBase64 != null) "${message.content}（含图片）" else message.content)
                                     }
                                 }
                             }
@@ -125,6 +132,34 @@ class AiUiPlugin : ComposeUiPlugin {
                                 label = { Text("输入消息") },
                                 modifier = Modifier.weight(1f),
                             )
+                            Button(
+                                enabled = !busy && apiKey.isNotBlank(),
+                                onClick = {
+                                    pickImage(context) { uri ->
+                                        scope.launch {
+                                            val image = withContext(Dispatchers.IO) {
+                                                loadImageBase64(context, uri)
+                                            }
+                                            if (image == null) {
+                                                error = "无法读取图片"
+                                                return@launch
+                                            }
+                                            save()
+                                            error = null
+                                            val text = "请描述这张图片"
+                                            messages += Message("user", text, image)
+                                            busy = true
+                                            runCatching {
+                                                withContext(Dispatchers.IO) {
+                                                    chat(endpoint, model, apiKey, messages.toList(), todayContext(host), host)
+                                                }
+                                            }.onSuccess { messages += Message("assistant", it) }
+                                                .onFailure { error = it.message ?: "请求失败" }
+                                            busy = false
+                                        }
+                                    }
+                                },
+                            ) { Text("图片") }
                             Button(
                                 enabled = !busy && input.isNotBlank() && apiKey.isNotBlank(),
                                 onClick = {
@@ -159,6 +194,31 @@ class AiUiPlugin : ComposeUiPlugin {
         }
     }
 
+    private fun pickImage(context: Context, onPicked: (Uri) -> Unit) {
+        val activity = context as? ComponentActivity ?: return
+        val registry = activity.activityResultRegistry
+        val key = "ai-image-${System.currentTimeMillis()}"
+        val launcher = registry.register(key, ActivityResultContracts.GetContent()) { uri ->
+            uri?.let(onPicked)
+        }
+        launcher.launch("image/*")
+    }
+
+    private fun loadImageBase64(context: Context, uri: Uri): String? = runCatching {
+        val raw = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+        val bitmap = BitmapFactory.decodeByteArray(raw, 0, raw.size) ?: return null
+        val max = 1024
+        val scale = minOf(1f, max.toFloat() / maxOf(bitmap.width, bitmap.height))
+        val scaled = if (scale < 1f) {
+            Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt(), (bitmap.height * scale).toInt(), true)
+        } else bitmap
+        val out = ByteArrayOutputStream()
+        scaled.compress(Bitmap.CompressFormat.JPEG, 85, out)
+        if (scaled !== bitmap) scaled.recycle()
+        bitmap.recycle()
+        Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+    }.getOrNull()
+
     private fun todayContext(host: PluginUiHost): String {
         val events = runCatching {
             host.service(TimetableService.KEY)?.getTodayEventsSync().orEmpty()
@@ -187,7 +247,27 @@ class AiUiPlugin : ComposeUiPlugin {
             })
         }
         addMessage("system", SYSTEM_PROMPT + "\n" + today)
-        messages.forEach { addMessage(it.role, it.content) }
+        messages.forEach { message ->
+            if (message.imageBase64 == null) {
+                addMessage(message.role, message.content)
+            } else {
+                history.add(JsonObject().apply {
+                    addProperty("role", message.role)
+                    add("content", JsonArray().apply {
+                        add(JsonObject().apply {
+                            addProperty("type", "text")
+                            addProperty("text", message.content)
+                        })
+                        add(JsonObject().apply {
+                            addProperty("type", "image_url")
+                            add("image_url", JsonObject().apply {
+                                addProperty("url", "data:image/jpeg;base64,${message.imageBase64}")
+                            })
+                        })
+                    })
+                })
+            }
+        }
 
         var response = post(endpoint, apiKey, requestBody(model, history, withTools = true))
         var choice = response.getAsJsonArray("choices")?.firstOrNull()?.asJsonObject
@@ -408,7 +488,11 @@ class AiUiPlugin : ComposeUiPlugin {
         return result.get()
     }
 
-    private data class Message(val role: String, val content: String)
+    private data class Message(
+        val role: String,
+        val content: String,
+        val imageBase64: String? = null,
+    )
 
     private companion object {
         const val DEFAULT_ENDPOINT = "https://api.deepseek.com/chat/completions"
