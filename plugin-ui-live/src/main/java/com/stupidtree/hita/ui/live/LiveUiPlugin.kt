@@ -24,8 +24,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import com.stupidtree.hita.api.ComposeUiPlugin
 import com.stupidtree.hita.api.PluginUiHost
-import com.stupidtree.hita.api.ReminderService
-import com.stupidtree.hita.api.ReminderSpec
+import com.stupidtree.hita.api.LiveCourseService
+import com.stupidtree.hita.api.LiveCourseSpec
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import java.util.regex.Pattern
@@ -41,13 +41,14 @@ class LiveUiPlugin : ComposeUiPlugin {
             setContent {
                 MaterialTheme {
                     val timetable = remember { host.service(TimetableService.KEY) }
-                    val reminders = remember { host.service(ReminderService.KEY) }
+                    val liveCourses = remember { host.service(LiveCourseService.KEY) }
                     var status by remember { mutableStateOf("") }
                     val events = remember { runCatching { timetable?.getTodayEventsSync().orEmpty() }.getOrDefault(emptyList()) }
                     Column(Modifier.fillMaxSize().padding(16.dp)) {
                         Text("直播课", style = MaterialTheme.typography.h5)
-                        Text("扫描今日课程中的线上链接；仅做提醒与打开，不含前台守护。",
+                        Text("扫描今日课程中的线上链接；课前由宿主前台服务守护并可打开直播。",
                             style = MaterialTheme.typography.caption)
+
                         if (events.isEmpty()) {
                             Text("今日没有课程", modifier = Modifier.padding(top = 24.dp))
                         } else {
@@ -72,11 +73,19 @@ class LiveUiPlugin : ComposeUiPlugin {
                                                     },
                                                 ) { Text("打开链接") }
                                                 Button(onClick = {
-                                                    val trigger = event.from.time - 5 * 60_000L
-                                                    val ok = reminders?.schedule(
-                                                        ReminderSpec(ownerId, event.id.toString(), trigger, "直播课即将开始", event.name)
+                                                    val url = findUrl(event)
+                                                    val ok = liveCourses?.schedule(
+                                                        LiveCourseSpec(
+                                                            ownerId = ownerId,
+                                                            id = event.id.toString(),
+                                                            title = event.name,
+                                                            url = url.orEmpty(),
+                                                            startAtMillis = event.from.time,
+                                                            endAtMillis = event.to.time,
+                                                            advanceMinutes = 5,
+                                                        )
                                                     ) == true
-                                                    status = if (ok) "已安排 ${event.name} 提醒" else "提醒失败"
+                                                    status = if (ok) "已安排直播课守护：${event.name}" else "守护安排失败"
                                                 }) { Text("提前 5 分钟提醒") }
                                             }
                                         }

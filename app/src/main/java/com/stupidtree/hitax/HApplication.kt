@@ -117,6 +117,10 @@ class HApplication : Application() {
             com.stupidtree.hita.api.ReminderService.KEY,
             com.stupidtree.hitax.reminder.ReminderServiceImpl(this),
         )
+        pluginHost.provideGlobal(
+            com.stupidtree.hita.api.LiveCourseService.KEY,
+            com.stupidtree.hitax.livecourse.LiveCourseServiceImpl(this),
+        )
         // 宿主后台任务：WorkManager 负责持久化，插件只实现 BackgroundTask。
         pluginHost.provideGlobal(
             com.stupidtree.hita.api.BackgroundTaskService.KEY,
