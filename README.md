@@ -1,5 +1,7 @@
 # OH-MY-HITA
 
+> **纯 vibe coding 项目**：功能、重构与测试主要由 AI 编码代理完成；发布前请自行审查代码与产物。
+
 HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 
 [App 下载（Releases）](https://github.com/kajimi16/OH-MY-HITA/releases/latest) ·
