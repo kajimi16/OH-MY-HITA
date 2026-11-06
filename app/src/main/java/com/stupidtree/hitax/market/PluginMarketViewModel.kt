@@ -343,7 +343,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val ui = availableUiPlugins.value.orEmpty().associateBy { it.id }
             val dex = items.value.orEmpty().associateBy { it.entry.id }
             val installedUi = uiPluginManager.installed().associateBy { it.id }
-            val installedDex = installer.installed().map { it.id }.toSet()
+            val installedDex = installer.installed().associateBy { it.id }
             val builtins = builtin.rows().associateBy { it.id }
             var installed = 0
             var enabled = 0
@@ -374,7 +374,18 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                             .onFailure { failures += "${entry.name}：${it.message}" }
                     }
                     "dex" -> {
-                        if (ref.id in installedDex) { skipped++; continue }
+                        val row = installedDex[ref.id]
+                        if (row != null) {
+                            if (!installer.isEnabled(ref.id) && runCatching {
+                                    installer.setEnabled(ref.id, true)
+                                }.isSuccess
+                            ) {
+                                enabled++
+                            } else {
+                                skipped++
+                            }
+                            continue
+                        }
                         val entry = dex[ref.id]?.entry
                         if (entry == null) {
                             if (ref.isRequired()) failures += "${ref.id}（索引缺失）"

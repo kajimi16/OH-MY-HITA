@@ -370,6 +370,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         var applyStarted = false
         var finished = false
         var fellBack = false
+        var recreationRequested = false
         lateinit var presetsObserver: Observer<List<MarketPreset>>
         lateinit var statusObserver: Observer<String?>
         lateinit var loadedObserver: Observer<Boolean>
@@ -379,6 +380,12 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
             if (finished) return
             finished = true
             if (checkUpdate) checkPendingUpdate()
+        }
+
+        fun recreateOnce() {
+            if (recreationRequested || isFinishing) return
+            recreationRequested = true
+            recreate()
         }
 
         fun fallback(message: String) {
@@ -447,6 +454,9 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         vm.presets.observe(this, presetsObserver)
         vm.status.observe(this, statusObserver)
         vm.presetsLoaded.observe(this, loadedObserver)
+        vm.activePresetId.observe(this) { id ->
+            if (applyStarted && id != null) recreateOnce()
+        }
         vm.message.observe(this) { text ->
             if (text == null) return@observe
             applying?.dismiss()
@@ -458,7 +468,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         vm.reloadUi.observe(this) { reload ->
             if (reload) {
                 vm.consumeReloadUi()
-                recreate()
+                recreateOnce()
             }
         }
     }
