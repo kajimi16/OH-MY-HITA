@@ -11,7 +11,7 @@ android {
         targetSdk 33
         compileSdk 35
         versionCode 1
-        versionName "0.2.0"
+        versionName "0.3.1"
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion '1.5.8' }

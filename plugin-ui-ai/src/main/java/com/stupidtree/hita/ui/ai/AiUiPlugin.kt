@@ -28,13 +28,20 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.stupidtree.hita.api.ComposeUiPlugin
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
+import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.PluginUiHost
+import com.stupidtree.hita.api.ResourceDataService
 import com.stupidtree.hita.api.TimetableService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 class AiUiPlugin : ComposeUiPlugin {
     override val id = "com.stupidtree.hita.ui.ai"
@@ -133,6 +140,7 @@ class AiUiPlugin : ComposeUiPlugin {
                                                     apiKey,
                                                     messages.toList(),
                                                     todayContext(host),
+                                                    host,
                                                 )
                                             }
                                         }.onSuccess { messages += Message("assistant", it) }
@@ -166,6 +174,7 @@ class AiUiPlugin : ComposeUiPlugin {
         apiKey: String,
         messages: List<Message>,
         today: String,
+        host: PluginUiHost,
     ): String {
         val history = JsonArray()
         fun addMessage(role: String, content: String) {
@@ -189,6 +198,8 @@ class AiUiPlugin : ComposeUiPlugin {
                 val name = call.getAsJsonObject("function")?.get("name")?.asString.orEmpty()
                 val result = when (name) {
                     "get_today_courses" -> today
+                    "search_courses" -> searchCourses(host, call.getAsJsonObject("function")
+                        ?.get("arguments")?.asString.orEmpty())
                     else -> "未知工具：$name"
                 }
                 history.add(JsonObject().apply {
@@ -221,6 +232,23 @@ class AiUiPlugin : ComposeUiPlugin {
                             })
                         })
                     })
+                    add(JsonObject().apply {
+                        addProperty("type", "function")
+                        add("function", JsonObject().apply {
+                            addProperty("name", "search_courses")
+                            addProperty("description", "搜索 HOA 课程资料，返回课程名与代码")
+                            add("parameters", JsonObject().apply {
+                                addProperty("type", "object")
+                                add("properties", JsonObject().apply {
+                                    add("query", JsonObject().apply {
+                                        addProperty("type", "string")
+                                        addProperty("description", "课程名、代码或关键词")
+                                    })
+                                })
+                                add("required", JsonArray().apply { add("query") })
+                            })
+                        })
+                    })
                 })
             }
         }
@@ -245,6 +273,39 @@ class AiUiPlugin : ComposeUiPlugin {
         } finally {
             conn.disconnect()
         }
+    }
+
+    private fun searchCourses(host: PluginUiHost, arguments: String): String {
+        val query = runCatching {
+            JsonParser.parseString(arguments).asJsonObject.get("query")?.asString
+        }.getOrNull()?.trim().orEmpty()
+        if (query.isEmpty()) return "缺少 query"
+        val service = host.service(ResourceDataService.KEY) ?: return "课程资源服务不可用"
+        val state = await(service.searchCourses(query), 12_000) ?: return "搜索超时"
+        if (state.state != DataState.STATE.SUCCESS) return "搜索失败：${state.message ?: state.state}"
+        val items = state.data.orEmpty().take(5)
+        if (items.isEmpty()) return "没有找到「$query」相关课程"
+        return items.joinToString("\n") { "${it.courseName}（${it.courseCode}）" }
+    }
+
+    private fun <T> await(liveData: LiveData<T>, timeoutMs: Long): T? {
+        val latch = CountDownLatch(1)
+        val result = AtomicReference<T>()
+        val observer = object : Observer<T> {
+            override fun onChanged(value: T) {
+                result.set(value)
+                liveData.removeObserver(this)
+                latch.countDown()
+            }
+        }
+        android.os.Handler(android.os.Looper.getMainLooper()).post {
+            liveData.observeForever(observer)
+        }
+        latch.await(timeoutMs, TimeUnit.MILLISECONDS)
+        android.os.Handler(android.os.Looper.getMainLooper()).post {
+            liveData.removeObserver(observer)
+        }
+        return result.get()
     }
 
     private data class Message(val role: String, val content: String)
