@@ -29,5 +29,6 @@ class EasPlugin(private val application: Application) : Plugin {
     override fun install(ctx: PluginContext) {
         EasRuntime.ctx = ctx
         ctx.provide(EasService.KEY, EasServiceImpl(application))
+        ctx.provide(com.stupidtree.hita.api.ScoreService.KEY, ScoreServiceImpl(application))
     }
 }
