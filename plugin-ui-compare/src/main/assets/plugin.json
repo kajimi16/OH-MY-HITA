@@ -1,0 +1,9 @@
+{
+  "id": "com.stupidtree.hita.ui.compare",
+  "name": "课表对比",
+  "version": "0.1.0",
+  "entryClass": "com.stupidtree.hita.ui.compare.CompareUiPlugin",
+  "apiVersion": 7,
+  "composeVersion": "1.6.8",
+  "capabilities": ["hita.ui.compare"]
+}
