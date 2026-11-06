@@ -103,11 +103,7 @@ class CompareUiPlugin : ComposeUiPlugin {
         val fmt = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
         val eventsA = load(service, a)
         val eventsB = load(service, b)
-        return eventsA.flatMap { left ->
-            eventsB.filter { right ->
-                left.from.time < right.to.time && right.from.time < left.to.time
-            }.map { right -> left to right }
-        }.take(50)
+        return CompareLogic.overlaps(eventsA, eventsB).take(50)
     }
 
     private fun load(service: TimetableService, timetable: Timetable): List<EventItem> {
