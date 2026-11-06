@@ -33,17 +33,43 @@ import com.stupidtree.hita.api.PluginUiHost
 import com.stupidtree.hita.api.ReminderService
 import com.stupidtree.hita.api.ReminderSpec
 import com.stupidtree.hita.api.TimetableService
+import com.stupidtree.hita.api.WidgetContent
+import com.stupidtree.hita.api.WidgetContentProvider
+import com.stupidtree.hita.api.WidgetHost
+import com.stupidtree.hita.api.WidgetOptions
+import com.stupidtree.hita.api.WidgetRow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ReminderUiPlugin : ComposeUiPlugin {
+class ReminderUiPlugin : ComposeUiPlugin, WidgetContentProvider {
 
     override val id = "com.stupidtree.hita.ui.reminder"
     override val displayName = "上课提醒"
     override val requiresApi = 7
+
+    override fun buildWidget(
+        context: Context,
+        host: WidgetHost,
+        options: WidgetOptions,
+    ): WidgetContent {
+        val timetable = host.service(TimetableService.KEY)
+        val events = runCatching { timetable?.getTodayEventsSync().orEmpty() }.getOrDefault(emptyList())
+        val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+        return WidgetContent(
+            title = "今日课程",
+            subtitle = if (events.isEmpty()) "今天没有课程" else "共 ${events.size} 节",
+            rows = events.take(6).map { event ->
+                WidgetRow(
+                    leading = formatter.format(Date(event.from.time)),
+                    title = event.name,
+                    trailing = event.place.orEmpty(),
+                )
+            },
+        )
+    }
 
     override fun createView(context: Context, host: PluginUiHost): View {
         val prefs = context.getSharedPreferences("reminder_plugin", Context.MODE_PRIVATE)

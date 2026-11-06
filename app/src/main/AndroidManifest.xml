@@ -70,6 +70,20 @@
             </intent-filter>
         </activity>
         <receiver
+            android:name=".widget.PluginWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/plugin_widget_info" />
+        </receiver>
+        <activity
+            android:name=".widget.PluginWidgetConfigureActivity"
+            android:exported="true" />
+
+        <receiver
             android:name=".reminder.ReminderReceiver"
             android:exported="false" />
         <receiver
