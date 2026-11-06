@@ -7,5 +7,6 @@
   "composeVersion": "1.6.8",
   "capabilities": [
     "hita.ui.share"
-  ]
+  ],
+  "minSdk": 26
 }

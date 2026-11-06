@@ -67,5 +67,12 @@ class ShareCodecTest {
         assertEquals(listOf("高等数学"), bundle.subjects.map { it.name })
         assertEquals(1, bundle.events.size)
         assertEquals("A101", bundle.events[0].place)
+
+        // 导入后的 bundle 再导出，验证同一课表可 round-trip。
+        val reExported = ShareMapper.snapshot(bundle.timetable, bundle.events, "测试")
+        val decoded = TimetableShareCodec().decodeMessage(TimetableShareCodec().encode(reExported))
+        assertEquals(listOf("高等数学"), decoded.courses)
+        assertEquals(1, decoded.occurrences.size)
+        assertEquals("A101", decoded.occurrences[0].place)
     }
 }

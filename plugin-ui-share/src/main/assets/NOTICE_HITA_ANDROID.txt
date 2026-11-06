@@ -1,0 +1,4 @@
+The HITA1 protocol implementation in this plugin is ported from HITA_Android
+(https://github.com/HIT-A/HITA_Android), licensed under the MIT License.
+
+Copyright (c) HITA_Android contributors.
