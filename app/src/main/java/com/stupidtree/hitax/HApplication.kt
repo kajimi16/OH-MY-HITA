@@ -58,6 +58,11 @@ class HApplication : Application() {
                 }
             }
         })
+        // 宿主内建提醒能力：插件不能自己声明 receiver / 前台服务，统一交给宿主调度。
+        pluginHost.provideGlobal(
+            com.stupidtree.hita.api.ReminderService.KEY,
+            com.stupidtree.hitax.reminder.ReminderServiceImpl(this),
+        )
         // 宿主内建跳转能力：迁移期插件请求宿主打开课表详情 / 教务导入
         pluginHost.provideGlobal(HostUiService.KEY, object : HostUiService {
             override fun openTimetableDetail(context: android.content.Context, timetableId: String) {

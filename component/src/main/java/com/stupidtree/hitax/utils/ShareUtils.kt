@@ -9,7 +9,7 @@ object ShareUtils {
         return buildShareIntentForStream(uri, mimeType)
     }
 
-    internal fun buildShareIntentForStream(stream: Parcelable, mimeType: String): Intent {
+    fun buildShareIntentForStream(stream: Parcelable, mimeType: String): Intent {
         return Intent(Intent.ACTION_SEND).apply {
             type = mimeType
             putExtra(Intent.EXTRA_STREAM, stream)
