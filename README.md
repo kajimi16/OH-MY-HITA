@@ -9,8 +9,14 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 [旧版本（0.7.2 及更早，已归档）](https://github.com/kajimi16/OH-MY-HITA-legacy/releases) ·
 [文档索引](docs/README.md)
 
-当前发布：`0.7.3`（API 8）。包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
+当前发布：`0.7.3`（API 8）。`0.8.0` 开发中：API 9 新增动效与音效/触感能力。
+包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
 0.7.2 及更早版本保留在已归档的旧仓库，仅供下载与追溯。
+
+### API 9 开发中能力
+
+- `MotionController`：宿主/插件共用的动效时长、缓动、系统动画缩放。
+- `FeedbackService`：语义化 UI 音效与触感，宿主统一静音与辅助功能策略。
 
 ### API 8 能力
 
@@ -155,7 +161,7 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 
 | 模块 | 角色 |
 |---|---|
-| `:api` | 插件契约：`Plugin` / `PluginContext` / `ServiceKey` / `NavEntry` / `SearchTab` / `SyncCodec`，以及 API 8 的提醒、窗口、成绩、考试、教师、培养方案、空教室、主题等服务接口 |
+| `:api` | 插件契约：`Plugin` / `PluginContext` / `ServiceKey` / `NavEntry` / `SearchTab` / `SyncCodec`，以及 API 9 的提醒、窗口、成绩、考试、教师、培养方案、空教室、主题、动效与反馈服务接口 |
 | `:kernel` | 微内核：`PluginHost` 负责装载/卸载、注册表与回滚；不依赖 Android，可直接跑 JVM 单测 |
 | `:app` | 宿主（shell）：`PluginHost` 装载/卸载插件并撤销其注册；`PluginCatalog` 是构建期插件清单 |
 | `:model` | 共享数据模型：实体与 DTO，宿主 / 契约 / 插件三方共用 |

@@ -131,6 +131,14 @@ class HApplication : Application() {
                     else -> com.stupidtree.hita.api.ThemeTokens(16f, 16f, 1f)
                 }
         })
+        pluginHost.provideGlobal(
+            com.stupidtree.hita.api.MotionController.KEY,
+            com.stupidtree.hitax.motion.MotionControllerImpl(this@HApplication),
+        )
+        pluginHost.provideGlobal(
+            com.stupidtree.hita.api.FeedbackService.KEY,
+            com.stupidtree.hitax.feedback.FeedbackServiceImpl(this@HApplication),
+        )
         // 宿主内建提醒能力：插件不能自己声明 receiver / 前台服务，统一交给宿主调度。
         pluginHost.provideGlobal(
             com.stupidtree.hita.api.ReminderService.KEY,

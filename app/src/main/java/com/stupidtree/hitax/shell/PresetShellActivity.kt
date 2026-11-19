@@ -83,8 +83,12 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -113,6 +117,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.text.style.TextOverflow
+import com.stupidtree.hita.api.FeedbackEvent
+import com.stupidtree.hita.api.FeedbackService
+import com.stupidtree.hita.api.MotionController
+import com.stupidtree.hita.api.MotionEasing
+import com.stupidtree.hita.api.MotionTokens
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.R
@@ -219,6 +228,26 @@ private fun HitaAndroidShell(
     var selected by remember { mutableIntStateOf(1) }
     var drawerOpen by remember { mutableStateOf(false) }
     val shellContext = androidx.compose.ui.platform.LocalContext.current
+    val hostApplication = shellContext.applicationContext as? HApplication
+    val motion = remember(hostApplication) {
+        hostApplication?.pluginHost?.service(MotionController.KEY)
+    }
+    val motionLive = remember(motion) {
+        motion?.observe() ?: androidx.lifecycle.MutableLiveData(MotionTokens())
+    }
+    val motionTokens by motionLive.observeAsState(MotionTokens())
+    val feedback = remember(hostApplication) {
+        hostApplication?.pluginHost?.service(FeedbackService.KEY)
+    }
+    val tabEasing = when (motionTokens.easing) {
+        MotionEasing.EMPHASIZED -> LinearOutSlowInEasing
+        MotionEasing.LINEAR -> LinearEasing
+        else -> FastOutSlowInEasing
+    }
+    val tabSpec = tween<Float>(
+        durationMillis = if (motionTokens.enabled) motionTokens.durationShortMs else 0,
+        easing = tabEasing,
+    )
     var showUsageConsent by remember {
         mutableStateOf(!com.stupidtree.hitax.data.source.preference.UsageStatsStore.hasAsked(shellContext))
     }
@@ -266,7 +295,7 @@ private fun HitaAndroidShell(
         Box(Modifier.weight(1f)) {
             AnimatedContent(
                 targetState = selected,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                transitionSpec = { fadeIn(tabSpec) togetherWith fadeOut(tabSpec) },
                 label = "shell_tab",
             ) { tab ->
                 when (tab) {
@@ -312,7 +341,10 @@ private fun HitaAndroidShell(
                                     .width(tabWidth)
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(22.dp))
-                                    .clickable { selected = index }
+                                    .clickable {
+                                        selected = index
+                                        feedback?.play(FeedbackEvent.TAB)
+                                    }
                                     .padding(horizontal = 8.dp, vertical = 4.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center,

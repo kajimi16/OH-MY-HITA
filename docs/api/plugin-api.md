@@ -109,11 +109,37 @@ interface SyncCodec {
 ### ThemeController
 
 ```kotlin
-interface ThemeController { fun setNightMode(night: Boolean) }
-// 用法：ctx.service(ThemeController.KEY)?.setNightMode(true)
+interface ThemeController {
+    fun setNightMode(night: Boolean)
+    fun setColorPreset(preset: String): Boolean
+    fun setThemeStyle(style: String): Boolean
+    fun setFontScale(scale: Float): Boolean
+    fun tokens(): ThemeTokens
+}
 ```
 
 宿主侧已经把线程编排放进实现里（post 到主线程），插件无需关心 Android 主线程约束。
+`ThemeTokens` 目前包含圆角、间距、玻璃透明度，不包含动效或音效。
+
+### MotionController（API 9）
+
+```kotlin
+val motion = ctx.service(MotionController.KEY)
+val tokens = motion?.tokens()
+```
+
+`MotionTokens` 提供 `enabled`、短/中/长时长、缓动和系统动画缩放。插件动画应读取它，
+不要写死时长；`reduced` 或系统动画缩放为 0 时，宿主和插件应一起取消动画。
+
+### FeedbackService（API 9）
+
+```kotlin
+val feedback = ctx.service(FeedbackService.KEY)
+feedback?.play(FeedbackEvent.CLICK)
+feedback?.haptic(HapticType.LIGHT)
+```
+
+插件只传语义事件；宿主统一处理音量、静音、系统触感和辅助功能。UI 音效与通知渠道声音分离。
 
 ## 插件模板
 
@@ -165,7 +191,7 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 - `app/src/main/assets/plugin_exemptions.json` 是精确豁免表，键为 `id@version`，
   值为允许的宿主版本列表；升级插件或宿主都不继承豁免。空表表示没有豁免。
 - 内核装载时检查 `requiresApi <= HITA_API_VERSION` 与 ABI；不满足直接拒绝并记录原因。
-- 当前版本 **8**（8：`provide` 不再静默覆盖同名服务；7：新增提醒、后台任务、小组件服务）。
+- 当前版本 **9**（9：新增动效/触感服务；8：`provide` 不再静默覆盖同名服务）。
 
 变更记录：
 
@@ -179,6 +205,7 @@ interface ThemeController { fun setNightMode(night: Boolean) }
 | 6 | 新增原生课表外观服务 `TimetableAppearanceService` |
 | 7 | 新增提醒、后台任务、桌面小组件服务（加法） |
 | 8 | `provide` 改为显式冲突：宿主全局优先，插件间先提供者胜出 |
+| 9 | 新增 `MotionController`、`FeedbackService`（加法） |
 
 ## 组合安全开关与诊断
 
