@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<!-- 课程资源插件 -->
+<string name="course_contribution_author_date">日期</string>
+<string name="course_contribution_author_link">链接</string>
+<string name="course_contribution_author_name">署名</string>
+<string name="course_contribution_content">内容</string>
+<string name="course_contribution_course">子课程</string>
+<string name="course_contribution_fill_author">请填写署名</string>
+<string name="course_contribution_fill_content">请填写内容</string>
+<string name="course_contribution_mode_course_review">子课程评价</string>
+<string name="course_contribution_mode_multi_teacher_review">子课程教师评价</string>
+<string name="course_contribution_mode_section_append">章节补充</string>
+<string name="course_contribution_mode_teacher_review">授课教师评价</string>
+<string name="course_contribution_pick_course">请选择子课程</string>
+<string name="course_contribution_pick_section">请选择章节</string>
+<string name="course_contribution_pick_teacher">请选择教师</string>
+<string name="course_contribution_pick_type">请选择追加类型</string>
+<string name="course_contribution_section">章节</string>
+<string name="course_contribution_section_hint">填写章节标题（如 考核/考试）</string>
+<string name="course_contribution_submit">提交追加 PR</string>
+<string name="course_contribution_success">提交成功：%s</string>
+<string name="course_contribution_teacher">教师</string>
+<string name="course_contribution_teacher_hint">填写教师姓名</string>
+<string name="course_contribution_title">追加课程内容</string>
+<string name="course_contribution_topic">主题</string>
+<string name="course_contribution_type">追加类型</string>
+<string name="course_readme_loading">正在加载 README…</string>
+<string name="course_readme_missing">还没有这门课程的内容，可以点击追加课程内容在临时仓库进行 PR。</string>
+<string name="course_readme_source">来源：%s</string>
+<string name="course_resource_contribute">追加课程补充</string>
+<string name="course_resource_empty">没有找到相关课程资源</string>
+<string name="course_resource_failed">课程资源加载失败</string>
+<string name="course_resource_hint">输入课程名、课程代码或教师名</string>
+<string name="course_resource_open">查看课程资源</string>
+<string name="course_resource_submit_title">选择课程并追加内容</string>
+<string name="course_resource_title">课程资源</string>
+<string name="tab_search_teacher">教师</string>
+<string name="teacher_total_searched">共查找到%d位教师</string>
+</resources>

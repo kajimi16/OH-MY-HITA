@@ -1,0 +1,10 @@
+[Unit]
+Description=每小时同步 OH-MY-HITA 发布包
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=300
+Persistent=true
+
+[Install]
+WantedBy=timers.target

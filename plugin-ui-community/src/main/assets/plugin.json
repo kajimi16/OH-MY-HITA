@@ -1,0 +1,9 @@
+{
+  "id": "com.stupidtree.hita.ui.community",
+  "name": "深圳课程浏览",
+  "version": "0.1.0",
+  "entryClass": "com.stupidtree.hita.ui.community.CommunityUiPlugin",
+  "apiVersion": 7,
+  "composeVersion": "1.6.8",
+  "capabilities": ["hita.ui.community"]
+}

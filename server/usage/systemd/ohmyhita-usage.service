@@ -1,0 +1,18 @@
+[Unit]
+Description=OH-MY-HITA usage API
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Environment=USAGE_DB=/var/lib/ohmyhita-usage/usage.db
+Environment=USAGE_HOST=127.0.0.1
+Environment=USAGE_PORT=8791
+ExecStart=/usr/bin/python3 /opt/ohmyhita-usage/python_server.py
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

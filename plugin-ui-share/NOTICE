@@ -1,0 +1,12 @@
+HITA1 share protocol
+====================
+
+The files under src/main/java/com/stupidtree/hita/ui/share/protocol/
+are ported from HITA_Android timetable-core:
+https://github.com/HIT-A/HITA_Android/tree/v3.1.2/timetable-core/src/main/kotlin/cn/limpu/hita/feature/timetableshare/protocol
+
+Copyright (c) HITA_Android contributors.
+Licensed under the MIT License. See LICENSE_HITA_ANDROID in this directory.
+
+The protocol implementation was adapted to the OH-MY-HITA plugin package and
+host timetable model; protocol limits and validation behavior are preserved.

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <queries>
+        <intent>
+            <action android:name="com.stupidtree.hita.action.PLUGIN_APK" />
+        </intent>
+    </queries>
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <application
+        android:name=".HApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
+
+        <receiver
+            android:name=".debug.PluginDiagnosticsReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.stupidtree.hitax.DEBUG_DUMP_PLUGINS" />
+                <action android:name="com.stupidtree.hitax.DEBUG_DUMP_COMPOSITION" />
+                <action android:name="com.stupidtree.hitax.DEBUG_SET_KILL_SWITCH" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name=".uiplugin.PluginUiActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".shell.PresetShellActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ui.main.MainActivity"
+            android:launchMode="singleTop" />
+        <activity
+            android:name=".ui.ActivitySplash"
+            android:exported="true"
+            android:theme="@style/SplashTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.search.SearchActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan">
+            <tools:validation testUrl="http://hita.store/search" />
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="hita.store"
+                    android:pathPrefix="/search"
+                    android:scheme="http" />
+            </intent-filter>
+        </activity>
+        <service
+            android:name=".livecourse.LiveCourseGuardService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse" />
+        <receiver
+            android:name=".livecourse.LiveCourseReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".livecourse.LiveCourseBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".widget.PluginWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/plugin_widget_info" />
+        </receiver>
+        <activity
+            android:name=".market.PresetMigrationActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".market.PluginMarketActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+
+        <activity
+            android:name=".widget.PluginWidgetConfigureActivity"
+            android:exported="true" />
+
+        <receiver
+            android:name=".reminder.ReminderReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".reminder.ReminderBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <activity android:name=".ui.about.ActivityAbout" />
+        <activity android:name=".ui.news.lecture.ActivityLecture" />
+        <activity android:name=".ui.news.NewsDetailActivity" />
+        <activity
+            android:name=".shell.news.ShellPortalLoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".shell.news.ShellNewsDetailActivity"
+            android:exported="false" />
+    </application>
+
+</manifest>

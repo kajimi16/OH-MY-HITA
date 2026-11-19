@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name="com.stupidtree.hitax.ui.resource.CourseResourceSearchActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.stupidtree.hitax.ui.resource.CourseReadmeActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.stupidtree.hitax.ui.resource.CourseContributionActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.stupidtree.hitax.ui.resource.InternalWebActivity"
+            android:exported="false" />
+    </application>
+</manifest>

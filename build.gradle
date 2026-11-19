@@ -1,0 +1,82 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    ext {
+        compose_version = '1.6.8'
+        kotlin_version = '1.9.24'
+    }
+    repositories {
+        maven { url = uri("https://maven.aliyun.com/repository/google") }
+        maven { url = uri("https://maven.aliyun.com/repository/central") }
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
+        maven { url = uri("https://mirrors.tencent.com/nexus/repository/maven-public/") }
+        maven { url = uri("https://www.jitpack.io") }
+        maven { url = uri("https://repo.grails.org/grails/core") }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.5.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        maven { url = uri("https://maven.aliyun.com/repository/google") }
+        maven { url = uri("https://maven.aliyun.com/repository/central") }
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
+        // JitPack 放在腾讯镜像之前，确保 github 上的库能正确解析
+        maven { url = uri("https://www.jitpack.io") }
+        maven { url = uri("https://mirrors.tencent.com/nexus/repository/maven-public/") }
+        maven { url = uri("https://repo.grails.org/grails/core") }
+    }
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.buildDir
+}
+
+// Root aliases so `./gradlew :verifyMarketIndex` / `:verifyPluginBoundary` work.
+tasks.register('verifyMarketIndex') {
+    group = 'verification'
+    dependsOn ':app:verifyMarketIndex'
+}
+tasks.register('verifyPluginBoundary') {
+    group = 'verification'
+    dependsOn ':app:verifyPluginBoundary'
+}
+tasks.register('verifyApiAbi') {
+    group = 'verification'
+    dependsOn ':api:verifyApiAbi'
+}
+
+// Fix for KAPT with JDK 16+
+allprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "1.8"
+            freeCompilerArgs += [
+                "-Xjvm-default=all"
+            ]
+        }
+    }
+    
+    // Configure KAPT JVM arguments for JDK 16+
+    plugins.withId('kotlin-kapt') {
+        kapt {
+            javacOptions {
+                option("--add-exports", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED")
+                option("--add-exports", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED")
+                option("--add-exports", "jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED")
+                option("--add-exports", "jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED")
+                option("--add-exports", "jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED")
+                option("--add-exports", "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED")
+                option("--add-exports", "jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED")
+                option("--add-exports", "jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED")
+                option("--add-exports", "jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED")
+                option("--add-exports", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED")
+                option("--add-exports", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED")
+            }
+        }
+    }
+}

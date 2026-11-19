@@ -1,0 +1,377 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
+}
+
+// CI 通过 -PappVersionName / -PappVersionCode 覆盖。
+// 本地默认 versionCode 取当前时间戳（秒），保证本地包能覆盖 CI 包、CI 包也能覆盖本地包。
+def appVersionCodeValue = (project.findProperty("appVersionCode") ?: System.currentTimeMillis().intdiv(1000L)).toInteger()
+def appVersionNameValue = (project.findProperty("appVersionName") ?: "0.0.1") as String
+// 插件市场索引地址；留空时读应用私有目录（仅 debug 有内置演示）
+def pluginIndexUrl = (project.findProperty("pluginIndexUrl") ?: "") as String
+// 使用统计/插件人数后端；换成自己的 Worker 域名即可，路径固定 /api/usage、/api/market/stats。
+def usageBaseUrl = (project.findProperty("usageBaseUrl") ?: "https://api.hita.limpu.cn") as String
+// 由 :api:generateApiAbi 生成；发布插件时把同一个哈希写进索引的 apiAbi。
+def apiAbiFile = rootProject.file("api/api-abi.txt")
+def apiAbiValue = apiAbiFile.exists()
+        ? (apiAbiFile.readLines().find { it.trim() && !it.startsWith("#") } ?: "")
+        : ""
+
+// 发布签名优先读取用户目录下的私有属性文件；CI 仍可写入 local.properties。
+// 缺失时打未签名包。
+def keystoreProps = new Properties()
+def externalKeystoreProps = new File(System.getProperty("user.home"), ".oh-my-hita/release.properties")
+if (externalKeystoreProps.exists()) {
+    externalKeystoreProps.withInputStream { keystoreProps.load(it) }
+}
+def keystorePropsFile = rootProject.file("local.properties")
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+def hasReleaseKeystore = keystoreProps.getProperty("RELEASE_KEYSTORE") != null
+
+
+android {
+
+//    buildToolsVersion '31.0.0-rc5'
+
+    defaultConfig {
+        // 与原版 HITA 不同的包名，二者可共存安装。
+        applicationId "io.github.kajimi16.ohmyhita"
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 35
+        versionCode appVersionCodeValue
+        versionName appVersionNameValue
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField "String", "UPDATE_URL", '"https://github.com/kajimi16/OH-MY-HITA/releases/latest"'
+        buildConfigField "String", "UPDATE_VERSION_NAME", "\"${appVersionNameValue}\""
+        buildConfigField "long", "UPDATE_VERSION_CODE", "${appVersionCodeValue}L"
+        buildConfigField "String", "UPDATE_LOG", '""'
+        buildConfigField "boolean", "UPDATE_ALLOW_PRERELEASE", "true"
+        // 插件市场索引地址；为空时读 filesDir/market/index.json（本地联调）
+        buildConfigField "String", "COMPOSE_RUNTIME_VERSION", "\"${compose_version}\""
+        buildConfigField "String", "PLUGIN_INDEX_URL", "\"${pluginIndexUrl}\""
+        buildConfigField "String", "USAGE_BASE_URL", "\"${usageBaseUrl}\""
+        buildConfigField "String", "API_ABI", "\"${apiAbiValue}\""
+    }
+//    viewBinding{
+//        enabled = true
+//    }
+    buildFeatures {
+        //dataBinding = true
+        // for view binding :
+        buildConfig = true
+        viewBinding = true
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.14'
+    }
+
+    signingConfigs {
+        release {
+            if (hasReleaseKeystore) {
+                storeFile file(keystoreProps.getProperty("RELEASE_KEYSTORE"))
+                storePassword keystoreProps.getProperty("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias keystoreProps.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword keystoreProps.getProperty("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
+    lint {
+        // 存量问题固定下来；新增问题仍然会让 CI 失败。
+        baseline = file("lint-baseline.xml")
+        abortOnError true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+//        useIR = true
+    }
+    namespace 'com.stupidtree.hitax'
+
+}
+
+dependencies {
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.viewpager:viewpager:1.0.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.4'
+    implementation 'androidx.room:room-runtime:2.6.1'
+    kapt 'androidx.room:room-compiler:2.6.1'
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+    implementation platform('androidx.compose:compose-bom:2024.06.00')
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.activity:activity-compose:1.9.1'
+    implementation 'com.github.ibrahimsn98:SmoothBottomBar:1.7.6'
+    implementation project(path: ':api')
+    implementation project(path: ':kernel')
+    // 插件在运行时打包进 APK，但不在宿主编译期可见（防止宿主越界引用插件实现）
+    runtimeOnly project(path: ':plugin-hita')
+    runtimeOnly project(path: ':plugin-eas')
+    runtimeOnly project(path: ':plugin-resource')
+    runtimeOnly project(path: ':plugin-user')
+    implementation project(path: ':component')
+    implementation project(path: ':user')
+    implementation project(path: ':sync')
+    implementation project(path: ':style')
+    runtimeOnly project(path: ':theta')
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+
+
+    //kotlin的viewModel
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4"
+    //Glide图片加载
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+//retrofit2的gson转换器
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
+    //jsoup爬虫
+    implementation 'org.jsoup:jsoup:1.18.2'
+
+    //buttonLoading
+    implementation 'br.com.simplepass:loading-button-android:2.2.0'
+    //折叠布局
+    implementation 'net.cachapa.expandablelayout:expandablelayout:2.9.2'
+
+    //时间轴
+    implementation 'com.github.alorma:timelineview:2.3.0'
+    //圆形进度
+    implementation 'com.github.lzyzsd:circleprogress:1.2.1'
+
+    //多行collapsingToolbar
+    implementation 'net.opacapp:multiline-collapsingtoolbar:27.1.1'
+
+    implementation 'com.beloo.widget:ChipsLayoutManager:0.3.7@aar'//流式布局
+
+    implementation 'com.cncoderx.wheelview:library:1.2.2'//滚轮选择器
+
+
+
+
+    //jetpack compose
+    implementation "androidx.compose.ui:ui:$compose_version"
+    // Tooling support (Previews, etc.)
+    implementation "androidx.compose.ui:ui-tooling:$compose_version"
+    // Foundation (Border, Background, Box, Image, Scroll, shapes, animations, etc.)
+    implementation "androidx.compose.foundation:foundation:$compose_version"
+    // Material Design
+    implementation "androidx.compose.material:material:$compose_version"
+    // Material design icons
+    implementation "androidx.compose.material:material-icons-core:$compose_version"
+    implementation "androidx.compose.material:material-icons-extended:$compose_version"
+    // Integration with observables
+    implementation "androidx.compose.runtime:runtime-livedata"
+    // UI Tests
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+
+    //setContent被移除
+    implementation 'androidx.activity:activity-compose:1.9.1'
+
+    implementation 'org.mnode.ical4j:ical4j:1.0.2'
+
+    //爆炸效果
+    implementation 'tyrantgit:explosionfield:1.0.1'
+
+    // WorkManager for periodic course-snatching
+    implementation 'androidx.work:work-runtime-ktx:2.9.1'
+    implementation 'io.noties.markwon:core:4.6.2'
+    implementation 'io.noties.markwon:linkify:4.6.2'
+    implementation 'io.noties.markwon:ext-tables:4.6.2'
+    implementation 'io.noties.markwon:ext-tasklist:4.6.2'
+    implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
+    implementation 'io.noties.markwon:ext-latex:4.6.2'
+    implementation 'io.noties.markwon:image-glide:4.6.2'
+    implementation 'io.noties.markwon:html:4.6.2'
+    // syntax highlight removed (prism4j artifacts not available in current mirrors)
+    implementation 'ru.noties:jlatexmath-android:0.2.0'
+
+    // Chat attachments: PDF/Office parsing.
+    implementation 'com.tom-roush:pdfbox-android:2.0.27.0'
+}
+
+// Compatibility alias for tooling/scripts that still invoke :app:testClasses (Java plugin task).
+tasks.register('testClasses') {
+    group = 'verification'
+    description = 'Compatibility task alias for legacy invocations; runs debug unit tests.'
+    dependsOn 'testDebugUnitTest'
+}
+
+// 宿主不得直接依赖插件的仓库 / DAO / 数据库实现——只能通过 :api 的服务契约访问。
+// 同时检查插件模块自身的依赖 allowlist：禁止 :app 和插件间依赖。
+tasks.register('verifyPluginBoundary') {
+    def forbidden = [
+            'com.stupidtree.hitax.data.repository.TimetableRepository',
+            'com.stupidtree.hitax.data.repository.SubjectRepository',
+            'com.stupidtree.hitax.data.repository.IcsImport',
+            'com.stupidtree.hitax.data.source.dao.'
+    ]
+    def sharedModules = [':api', ':model', ':component', ':style', ':user', ':sync']
+    def pluginAllow = [
+            'plugin-hita'    : [':api', ':model', ':style', ':component', ':user', ':sync'],
+            'plugin-eas'     : [':api', ':model', ':component', ':style', ':user', ':sync'],
+            'plugin-resource': [':api', ':model', ':component', ':style'],
+            'plugin-user'    : [':api', ':model', ':user', ':component', ':style', ':sync'],
+            'theta'          : [':api', ':style', ':component', ':user'],
+    ]
+    doLast {
+        def offenders = []
+        fileTree('src/main/java').matching { include '**/*.kt' }.each { f ->
+            def text = f.text
+            forbidden.each { token ->
+                if (text.contains(token)) offenders << "${f.path}: $token"
+            }
+        }
+
+        def moduleNames = rootProject.file('.').listFiles()
+                ?.findAll { it.isDirectory() && (it.name.startsWith('plugin-') || it.name == 'theta') }
+                ?.collect { it.name } ?: []
+        moduleNames.each { module ->
+            def build = rootProject.file("${module}/build.gradle")
+            if (!build.isFile()) return
+            def allowed = module.startsWith('plugin-ui-')
+                    ? [':api']
+                    : (pluginAllow[module] ?: sharedModules)
+            def matcher = build.text =~ /project\s*\(\s*(?:path\s*:\s*)?['"](:[A-Za-z0-9_-]+)['"]\s*\)/
+            matcher.each { match ->
+                def dep = match[1]
+                if (dep == ':app' || dep.startsWith(':plugin-') || !allowed.contains(dep)) {
+                    offenders << "${module}/build.gradle: unsupported dependency $dep"
+                }
+            }
+        }
+
+        if (!offenders.isEmpty()) {
+            throw new GradleException("插件依赖越界：\n" + offenders.join("\n"))
+        }
+    }
+}
+
+// 市场索引的基本契约校验：唯一 id、sha256、API 范围、preset 引用存在。
+tasks.register('verifyMarketIndex') {
+    group = 'verification'
+    def indexFile = rootProject.file('market/index.json')
+    def pluginApi = rootProject.file('api/src/main/java/com/stupidtree/hita/api/Plugin.kt')
+    doLast {
+        if (!indexFile.isFile()) throw new GradleException("market/index.json 不存在")
+        def hostApi = 0
+        def apiMatcher = pluginApi.text =~ /HITA_API_VERSION\s*=\s*(\d+)/
+        if (apiMatcher.find()) hostApi = apiMatcher.group(1).toInteger()
+        if (hostApi <= 0) throw new GradleException("无法从 Plugin.kt 解析 HITA_API_VERSION")
+
+        def json = new groovy.json.JsonSlurper().parse(indexFile)
+        def errors = []
+        def seen = [] as Set
+        def plugins = json.plugins ?: []
+        def uiPlugins = json.uiPlugins ?: []
+
+        def validateArtifact = { String kind, plugin ->
+            if (!plugin.id) errors << "${kind}: 条目缺少 id"
+            def key = "${kind}:${plugin.id}".toString()
+            if (plugin.id && !seen.add(key)) errors << "重复 ${kind} id: ${plugin.id}"
+            if (!plugin.name) errors << "${kind}:${plugin.id}: 缺少 name"
+            if (!(plugin.sha256 ==~ /[0-9a-fA-F]{64}/)) {
+                errors << "${kind}:${plugin.id}: sha256 不是 64 位十六进制"
+            }
+            if (!plugin.url) errors << "${kind}:${plugin.id}: 缺少 url"
+            def minApi = plugin.minHostApi
+            if (minApi != null && minApi > hostApi) {
+                errors << "${kind}:${plugin.id}: minHostApi ${minApi} > host ${hostApi}"
+            }
+            def maxApi = plugin.maxHostApi
+            if (maxApi != null && minApi != null && maxApi < minApi) {
+                errors << "${kind}:${plugin.id}: maxHostApi ${maxApi} < minHostApi ${minApi}"
+            }
+            if (plugin.apiVersion != null && plugin.apiVersion > hostApi) {
+                errors << "${kind}:${plugin.id}: apiVersion ${plugin.apiVersion} > host ${hostApi}"
+            }
+        }
+        plugins.each { validateArtifact('dex', it) }
+        uiPlugins.each { validateArtifact('ui', it) }
+
+        def builtinFile = rootProject.file('app/src/main/assets/plugins.json')
+        if (!builtinFile.isFile()) throw new GradleException("app/src/main/assets/plugins.json 不存在")
+        // 已知服务名只来自 :api 的 ServiceKey 声明；内置插件清单里的 requires/provides
+        // 必须使用其中一个，否则是拼写错误或引用了插件私有/已删除的服务。
+        def knownServices = new TreeSet<String>()
+        def apiDir = rootProject.file('api/src/main/java/com/stupidtree/hita/api')
+        if (!apiDir.isDirectory()) throw new GradleException("api 源码目录不存在：${apiDir}")
+        rootProject.fileTree(apiDir).matching { include '**/*.kt' }.each { apiFile ->
+            def serviceMatcher = apiFile.text =~ /ServiceKey<[^>]+>\s*\(\s*"([^"]+)"\s*\)/
+            while (serviceMatcher.find()) knownServices.add(serviceMatcher.group(1))
+        }
+        if (knownServices.isEmpty()) {
+            throw new GradleException("无法从 :api 源码解析任何 ServiceKey.name")
+        }
+        def builtinJson = new groovy.json.JsonSlurper().parse(builtinFile)
+        (builtinJson.plugins ?: []).each { entry ->
+            if (!entry.id) {
+                errors << "builtin: 条目缺少 id"
+            } else if (!seen.add("builtin:${entry.id}".toString())) {
+                errors << "重复 builtin id: ${entry.id}"
+            }
+            if (!entry.class) errors << "builtin:${entry.id}: 缺少 class"
+            ['requires', 'provides'].each { field ->
+                (entry[field] ?: []).each { service ->
+                    if (!(service in knownServices)) {
+                        errors << "builtin:${entry.id}: ${field} 引用了 :api 中不存在的服务 '${service}'"
+                    }
+                }
+            }
+        }
+
+        def known = seen as Set
+        (json.presets ?: []).each { preset ->
+            (preset.plugins ?: []).each { ref ->
+                if (!ref.id) {
+                    errors << "preset ${preset.id}: 空引用"
+                    return
+                }
+                def kind = (ref.kind ?: 'ui').toString().toLowerCase()
+                if (!(kind in ['ui', 'dex', 'builtin'])) {
+                    errors << "preset ${preset.id}: 未知 kind ${ref.kind}"
+                } else if (!known.contains("${kind}:${ref.id}".toString())) {
+                    errors << "preset ${preset.id}: 引用不存在的 ${kind}:${ref.id}"
+                }
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new GradleException("market/index.json 校验失败：\n" + errors.join("\n"))
+        }
+    }
+}
+
+tasks.matching { it.name == 'preBuild' }.configureEach {
+    dependsOn 'verifyPluginBoundary', 'verifyMarketIndex'
+}

@@ -1,0 +1,32 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
+
+android {
+    defaultConfig {
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 35
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+
+    namespace 'com.stupidtree.hita.kernel'
+}
+
+// 内核只依赖插件契约，不依赖宿主、不依赖业务。
+dependencies {
+    api project(':api')
+    testImplementation 'junit:junit:4.13.2'
+}

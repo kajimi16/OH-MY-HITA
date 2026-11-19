@@ -1,0 +1,515 @@
+{
+  "plugins": [
+    {
+      "id": "com.example.hello",
+      "name": "示例逻辑插件",
+      "version": "0.1.0",
+      "apiVersion": 2,
+      "url": "hello.dex",
+      "sha256": "c37ee3ec5f9a1c26a09fdc722efde5b38bb577ffd5e588149aef1093e9943e2c",
+      "entryClass": "com.example.hello.HelloPlugin"
+    }
+  ],
+  "uiPlugins": [
+    {
+      "id": "com.stupidtree.hita.ui.resource",
+      "name": "课程资源",
+      "version": "0.4.8",
+      "url": "https://ani2-ext.kajimi.cc/hita/market/course-resource-0.4.8.apk",
+      "sha256": "8fc623f80e63875caf0d4aa28c6a54854b302d3b15be0443fce2415bfdb97a15",
+      "description": "课程资料浏览与搜索（运行时界面插件）。",
+      "changelog": "首个市场版本；支持课程搜索与 README 渲染。",
+      "size": 647061,
+      "minHostApi": 3,
+      "author": "kajimi16",
+      "tags": [
+        "HITA",
+        "插件"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-05"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.anime",
+      "name": "番剧",
+      "version": "0.1.0",
+      "url": "https://raw.githubusercontent.com/kajimi16/hita-community-plugins/master/dist/anime-0.1.0.apk",
+      "sha256": "15cafca7b773835ea80e4a3958fb1a99d494b1ef0abe078e865e4787e5f4b1dc",
+      "description": "Bangumi 今日放送与搜索",
+      "changelog": "首个原型版本",
+      "size": 22346,
+      "minHostApi": 4,
+      "author": "kajimi16",
+      "tags": [
+        "HITA",
+        "插件"
+      ],
+      "repo": "https://github.com/kajimi16/hita-community-plugins",
+      "updatedAt": "2026-11-05"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.announcement",
+      "name": "公告",
+      "version": "0.1.0",
+      "url": "announcement-0.1.0.apk",
+      "sha256": "d08394f99458c9d1d9bef454f64701d63e9486bdd520bae766356bf6503a00a2",
+      "description": "版本/服务公告列表（运行时界面插件）。",
+      "minHostApi": 7,
+      "size": 822186,
+      "tags": [
+        "HITA",
+        "插件"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-19"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.community",
+      "name": "深圳课程浏览",
+      "version": "0.1.0",
+      "url": "community-0.1.0.apk",
+      "sha256": "e719ef7f718c8bb2ecdea44ef6512feb42e1c8633a95116d0441e9291796bd92",
+      "description": "深圳教务入口（后续升级原生课程池）。",
+      "minHostApi": 7,
+      "size": 840316,
+      "tags": [
+        "HITA",
+        "插件"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-19"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.reminder",
+      "name": "上课提醒",
+      "version": "0.1.2",
+      "url": "../dist/hita-reminder-0.1.2.apk",
+      "sha256": "b2460fbeb8780d217d8f01f94553a7b8ac2eb4a52313f9e51476d155c01d380f",
+      "size": 621917,
+      "minHostApi": 7,
+      "description": "上课提醒与今日课程小组件",
+      "author": "kajimi16",
+      "tags": [
+        "课表",
+        "提醒"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.links",
+      "name": "实用网址",
+      "version": "0.1.1",
+      "url": "../dist/hita-links-0.1.1.apk",
+      "sha256": "0b604df16f4fe03a396030d03fdbefe05c4a1ba0f51d6aa1abe397efab9d98b8",
+      "size": 618541,
+      "minHostApi": 7,
+      "description": "教务、HOA、校园网、图书馆入口",
+      "author": "kajimi16",
+      "tags": [
+        "网址",
+        "教务"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.appearance",
+      "name": "外观与字体",
+      "version": "0.1.2",
+      "url": "../dist/hita-appearance-0.1.2.apk",
+      "sha256": "555015214d9ec2e4e21287577d15a904ce1464c87fa72ceee69fec2c43949e38",
+      "size": 619065,
+      "minHostApi": 7,
+      "description": "深色、配色预设与字体缩放",
+      "author": "kajimi16",
+      "tags": [
+        "主题",
+        "字体"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.news",
+      "name": "资讯",
+      "version": "0.1.3",
+      "url": "../dist/hita-news-0.1.3.apk",
+      "sha256": "0ffd32380ee0b8cc51d2a2b68c98da237d43a626064aac564c61fc7f1eb499be",
+      "size": 623461,
+      "minHostApi": 7,
+      "description": "HOA 博客资讯",
+      "author": "kajimi16",
+      "tags": [
+        "资讯",
+        "HOA"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06",
+      "changelog": "修复 API 23 的 HTML 解析；文章插件内阅读"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.ai",
+      "name": "AI 助手",
+      "version": "0.11.2",
+      "url": "../dist/hita-ai-0.11.2.apk",
+      "sha256": "8d931c42ec509c331d075e2c0164f6c5e487faead68409c97043e0c65b4a01a8",
+      "size": 647733,
+      "minHostApi": 7,
+      "description": "OpenAI 兼容对话助手（自带 API Key）",
+      "author": "kajimi16",
+      "tags": [
+        "AI",
+        "对话"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06",
+      "changelog": "新增空教室查询工具"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.credit",
+      "name": "学分统计",
+      "version": "0.1.0",
+      "url": "../dist/hita-credit-0.1.0.apk",
+      "sha256": "68ffbd4fd6b02514e102509879437417a06655b398146a6985f7a938cfcdac4a",
+      "size": 617393,
+      "minHostApi": 7,
+      "description": "按课表统计课程与学分",
+      "author": "kajimi16",
+      "tags": [
+        "学分",
+        "统计"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.share",
+      "name": "课表分享",
+      "version": "0.2.3",
+      "url": "../dist/hita-share-0.2.3.apk",
+      "sha256": "62bcb64ec9ee0c778e3a388173a1ab7b3ce0fddefeb5f5eca3fda124ed59c666",
+      "size": 643205,
+      "minHostApi": 7,
+      "description": "导出 ICS 并系统分享",
+      "author": "kajimi16",
+      "tags": [
+        "课表",
+        "分享"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06",
+      "changelog": "新增好友课表收藏：保存口令、再导入、删除"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.score",
+      "name": "成绩分析",
+      "version": "0.1.1",
+      "url": "../dist/hita-score-0.1.1.apk",
+      "sha256": "bc0b6205d23eae15f079006ed03fc4ea29139732258f6ac91ba6f44a7f7b1e07",
+      "size": 615641,
+      "minHostApi": 7,
+      "description": "GPA、排名与成绩明细",
+      "author": "kajimi16",
+      "tags": [
+        "成绩",
+        "GPA"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06",
+      "changelog": "修复真实账号下成绩页一直加载中"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.training",
+      "name": "培养方案",
+      "version": "0.1.0",
+      "url": "../dist/hita-training-0.1.0.apk",
+      "sha256": "4ef7f77e663206a84e56078e010b203895b331e7ac4c336382c4763043a3f26c",
+      "size": 616761,
+      "minHostApi": 7,
+      "description": "深圳教务培养方案与完成度",
+      "author": "kajimi16",
+      "tags": [
+        "培养方案",
+        "学分"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.compare",
+      "name": "课表对比",
+      "version": "0.1.1",
+      "url": "../dist/hita-compare-0.1.1.apk",
+      "sha256": "02343e161614e49ae637c33fb03b5068d43bf498b3ecc41d9efc140751e58cfa",
+      "size": 620717,
+      "minHostApi": 7,
+      "description": "两份课表时间重叠对比",
+      "author": "kajimi16",
+      "tags": [
+        "课表",
+        "对比"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.group",
+      "name": "课表组合",
+      "version": "0.1.1",
+      "url": "../dist/hita-group-0.1.1.apk",
+      "sha256": "685a64e4a53b70c318108736566f50edbfa135abc6ee2710d6202c55843e6f93",
+      "size": 624961,
+      "minHostApi": 7,
+      "description": "组内切换与合并视图",
+      "author": "kajimi16",
+      "tags": [
+        "课表",
+        "组合"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.live",
+      "name": "直播课",
+      "version": "0.2.0",
+      "url": "../dist/hita-live-0.2.0.apk",
+      "sha256": "1ef5da2e1d0ed9c899f171a7edbab3d8b266448f41d035256467de2076e8c8ae",
+      "size": 619017,
+      "minHostApi": 7,
+      "description": "今日直播链接与提醒",
+      "author": "kajimi16",
+      "tags": [
+        "直播",
+        "提醒"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.update",
+      "name": "应用更新",
+      "version": "0.1.0",
+      "url": "../dist/hita-update-0.1.0.apk",
+      "sha256": "7395a60498e9695a770f0203f3e0e625a1366d231e3c37ac648d4aa6cd26e781",
+      "size": 616437,
+      "minHostApi": 7,
+      "description": "GitHub Release 更新检查",
+      "author": "kajimi16",
+      "tags": [
+        "更新"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.notice",
+      "name": "校园通知",
+      "version": "0.1.1",
+      "url": "../dist/hita-notice-0.1.1.apk",
+      "sha256": "9673150b0fbfa37fd73e82a8f1453d23a4c0d0f8a4e20dd82c89ecef016913e6",
+      "size": 626665,
+      "minHostApi": 7,
+      "description": "info.hitsz 门户通知（WebView 登录）",
+      "author": "kajimi16",
+      "tags": [
+        "通知",
+        "校园"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.homework",
+      "name": "作业",
+      "version": "0.1.1",
+      "url": "../dist/hita-homework-0.1.1.apk",
+      "sha256": "c4e154688abaeb9205bd3aebcac94be44193197677238d3f4a44bc002218000f",
+      "size": 626481,
+      "minHostApi": 7,
+      "description": "本地作业清单：按日期分组、完成/删除、离线保存",
+      "author": "kajimi16",
+      "tags": [
+        "作业",
+        "待办"
+      ],
+      "repo": "https://github.com/kajimi16/OH-MY-HITA",
+      "updatedAt": "2026-11-06",
+      "changelog": "移除不可点复选框；minSdk 降到 23"
+    }
+  ],
+  "presets": [
+    {
+      "id": "hita-l-1.5.3",
+      "name": "HITA-L v1.5.3",
+      "version": "1",
+      "source": "HITA-L v1.5.3",
+      "minHostApi": 6,
+      "description": "当前基础预设：课表、教务、课程资源、个人主页与社区。",
+      "plugins": [
+        {
+          "id": "com.stupidtree.hitax.timetable",
+          "kind": "builtin"
+        },
+        {
+          "id": "com.stupidtree.hitax.eas",
+          "kind": "builtin"
+        },
+        {
+          "id": "com.stupidtree.hitax.resource",
+          "kind": "builtin"
+        },
+        {
+          "id": "com.stupidtree.hitax.user",
+          "kind": "builtin"
+        },
+        {
+          "id": "com.stupidtree.hita.theta",
+          "kind": "builtin"
+        }
+      ],
+      "repo": "https://github.com/LiPu-jpg/HITA_L"
+    },
+    {
+      "id": "hita-android-3.1.2",
+      "name": "HITA Android 3.1.2 复刻",
+      "version": "0.1",
+      "source": "HITA_Android v3.1.2",
+      "minHostApi": 7,
+      "description": "按市场插件复刻 HITA_Android v3.1.2；底栏按上游固定为 待办/今日/时间表/助手/资讯/更多。资讯位用 HOA 资讯源（θ 社区后端当前不可用）；不采集用量统计。",
+      "plugins": [
+        {
+          "id": "com.stupidtree.hitax.timetable",
+          "kind": "builtin"
+        },
+        {
+          "id": "com.stupidtree.hitax.eas",
+          "kind": "builtin"
+        },
+        {
+          "id": "com.stupidtree.hitax.resource",
+          "kind": "builtin"
+        },
+        {
+          "id": "com.stupidtree.hitax.user",
+          "kind": "builtin"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.homework",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.reminder",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.news",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.links",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.appearance",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.ai",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.credit",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.share",
+          "kind": "ui",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hita.ui.score",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.training",
+          "kind": "ui",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hita.ui.compare",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.group",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.live",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.update",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.notice",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.announcement",
+          "kind": "ui",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hita.ui.community",
+          "kind": "ui",
+          "required": false
+        }
+      ],
+      "migration": [
+        "timetable.ics"
+      ],
+      "repo": "https://github.com/HIT-A/HITA_Android",
+      "tabs": [
+        {
+          "id": "com.stupidtree.hita.ui.homework",
+          "title": "待办",
+          "order": 0,
+          "iconAsset": "builtin:check"
+        },
+        {
+          "id": "hita.timeline",
+          "title": "今日",
+          "order": 1,
+          "iconAsset": "builtin:today"
+        },
+        {
+          "id": "hita.timetable",
+          "title": "时间表",
+          "order": 2,
+          "iconAsset": "builtin:timetable"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.ai",
+          "title": "助手",
+          "order": 3,
+          "iconAsset": "builtin:toys"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.news",
+          "title": "资讯",
+          "order": 4,
+          "iconAsset": "builtin:blog"
+        },
+        {
+          "id": "hita.more",
+          "title": "更多",
+          "order": 5,
+          "iconAsset": "builtin:navigation"
+        }
+      ]
+    }
+  ]
+}

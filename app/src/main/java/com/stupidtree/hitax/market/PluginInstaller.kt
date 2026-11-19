@@ -1,0 +1,301 @@
+package com.stupidtree.hitax.market
+
+import android.content.Context
+import android.util.Log
+import com.google.gson.Gson
+import com.stupidtree.hita.kernel.PluginArtifactMeta
+import com.stupidtree.hita.kernel.PluginDescriptor
+import com.stupidtree.hita.kernel.PluginHost
+import com.stupidtree.hita.kernel.PluginLoader
+import com.stupidtree.hita.kernel.PluginOrigin
+import com.stupidtree.hitax.BuildConfig
+import com.stupidtree.hitax.plugin.PluginExemptions
+import java.io.File
+
+/**
+ * T1 运行时插件的安装器：下载 → 校验 sha256 → 装进私有目录 → DexClassLoader 装载。
+ *
+ * 不处理 UI，也不决定什么时候安装，只保证「装/卸/恢复」三件事是幂等的。
+ */
+class PluginInstaller(
+    private val context: Context,
+    private val host: PluginHost,
+) {
+
+    private val root = File(context.filesDir, "runtime-plugins")
+    private val installedFile = File(root, "installed.json")
+    private val disabledFile = File(root, "disabled.json")
+    private val gson = Gson()
+
+    /** 停用集合：保留 plugin.dex，只是不装载。 */
+    private fun disabledIds(): Set<String> =
+        parseDisabled(if (disabledFile.isFile) disabledFile.readText() else null)
+
+    private fun saveDisabled(ids: Set<String>) {
+        root.mkdirs()
+        disabledFile.writeText(gson.toJson(ids.toList()))
+    }
+
+    fun isEnabled(id: String): Boolean = id !in disabledIds()
+
+    /** 开关语义：停用只卸载出内核并保留文件；启用从已落盘 dex 重新装载。 */
+    fun setEnabled(id: String, enabled: Boolean) {
+        val entry = installed().firstOrNull { it.id == id }
+            ?: throw IllegalStateException("插件未安装")
+        if (enabled && CompositionStore.isKillSwitched(context, CompositionKind.DEX, id)) {
+            throw IllegalStateException("插件已被宿主安全开关停用")
+        }
+        if (enabled) {
+            val dir = File(root, id)
+            val dex = File(dir, "plugin.dex")
+            if (!dex.isFile) throw IllegalStateException("插件文件不存在，请重新安装")
+            PluginLoader(host, logger = { m, e -> log(m, e) })
+                .loadAndInstall(
+                    dex,
+                    entry.entryClass,
+                    File(dir, "opt"),
+                    entry.artifactMeta(),
+                    entry.descriptor(),
+                    BuildConfig.API_ABI.takeIf { it.isNotBlank() },
+                    entry.isExempt(),
+                    android.os.Build.VERSION.SDK_INT,
+                )
+            saveDisabled(disabledIds() - id)
+        } else {
+            runCatching { host.uninstall(id) }
+            saveDisabled(disabledIds() + id)
+        }
+        Log.i(TAG, "setEnabled ${entry.id}=$enabled")
+    }
+
+    fun installed(): List<MarketPlugin> = runCatching {
+        if (!installedFile.isFile) return emptyList()
+        filterInstalled(
+            gson.fromJson(installedFile.readText(), Array<MarketPlugin>::class.java).toList(),
+            root,
+        )
+    }.getOrDefault(emptyList())
+
+    /**
+     * 准备阶段：下载到 `.staging-<id>/plugin.dex` 并校验 sha256。
+     *
+     * 不卸载旧插件、不改 `installed.json`；失败只清理自己的 staging。
+     */
+    fun prepare(entry: MarketPlugin, indexBase: String?): PreparedArtifact.Dex {
+        require(!CompositionStore.isKillSwitched(context, CompositionKind.DEX, entry.id)) {
+            "插件已被宿主安全开关停用"
+        }
+        val staging = File(root, "$STAGING_PREFIX${entry.id}")
+        staging.deleteRecursively()
+        staging.mkdirs()
+        val newDex = File(staging, "plugin.dex")
+        try {
+            fetch(entry, indexBase, newDex)
+
+            val actual = PluginLoader.sha256(newDex)
+            if (!actual.equals(entry.sha256, ignoreCase = true)) {
+                throw IllegalStateException("sha256 校验失败：期望 ${entry.sha256}，实际 $actual")
+            }
+            return PreparedArtifact.Dex(entry, newDex)
+        } catch (t: Throwable) {
+            // 下载/校验失败发生在替换之前：旧插件与旧文件都还在，不要动它们。
+            staging.deleteRecursively()
+            throw t
+        }
+    }
+
+    /**
+     * 把已准备好的 dex 换入运行时目录并装载。不访问网络。
+     *
+     * 失败时恢复旧文件与旧装载状态；staging 目录在成功和失败路径都会清理。
+     */
+    fun attach(prepared: PreparedArtifact.Dex) {
+        val entry = prepared.entry
+        val dir = File(root, entry.id)
+        val staging = prepared.stagedDex.parentFile ?: File(root, "$STAGING_PREFIX${entry.id}")
+        val backup = File(root, "$BACKUP_PREFIX${entry.id}")
+        backup.deleteRecursively()
+        val wasEnabled = isEnabled(entry.id)
+        val wasInstalledInHost = host.isInstalled(entry.id)
+        val oldEntry = installed().firstOrNull { it.id == entry.id }
+        var swapped = false
+        var hostDetached = false
+
+        try {
+            check(prepared.stagedDex.isFile) { "插件文件已丢失，请重新安装" }
+
+            // 旧版本仍在内存里时先卸载，否则 PluginHost.install 会直接忽略新实例。
+            if (wasInstalledInHost) {
+                host.uninstall(entry.id)
+                hostDetached = true
+            }
+            if (dir.exists()) {
+                check(dir.renameTo(backup)) { "无法备份旧版本，取消安装" }
+                swapped = true
+            }
+            dir.mkdirs()
+            check(prepared.stagedDex.renameTo(File(dir, "plugin.dex"))) { "插件落盘失败" }
+
+            PluginLoader(host, logger = { m, e -> log(m, e) })
+                .loadAndInstall(
+                    File(dir, "plugin.dex"),
+                    entry.entryClass,
+                    File(dir, "opt"),
+                    entry.artifactMeta(),
+                    entry.descriptor(),
+                    BuildConfig.API_ABI.takeIf { it.isNotBlank() },
+                    entry.isExempt(),
+                    android.os.Build.VERSION.SDK_INT,
+                )
+            if (!wasEnabled) host.uninstall(entry.id)
+
+            saveInstalled(installed().filterNot { it.id == entry.id } + entry)
+            saveDisabled(if (wasEnabled) disabledIds() - entry.id else disabledIds() + entry.id)
+            backup.deleteRecursively()
+            Log.i(TAG, "installed ${entry.id}@${entry.version}")
+        } catch (t: Throwable) {
+            if (swapped) {
+                host.uninstall(entry.id)
+                hostDetached = true
+                dir.deleteRecursively()
+                if (backup.exists()) backup.renameTo(dir)
+            }
+            if (hostDetached) {
+                host.uninstall(entry.id)
+                if (wasEnabled && oldEntry != null && File(dir, "plugin.dex").isFile) {
+                    runCatching {
+                        PluginLoader(host, logger = { m, e -> log(m, e) }).loadAndInstall(
+                            File(dir, "plugin.dex"),
+                            oldEntry.entryClass,
+                            File(dir, "opt"),
+                            oldEntry.artifactMeta(),
+                            oldEntry.descriptor(),
+                            BuildConfig.API_ABI.takeIf { it.isNotBlank() },
+                            oldEntry.isExempt(),
+                            android.os.Build.VERSION.SDK_INT,
+                        )
+                    }.onFailure { log("rollback failed: ${entry.id}", it) }
+                }
+            }
+            throw t
+        } finally {
+            staging.deleteRecursively()
+        }
+    }
+
+    /**
+     * 安装一个市场插件：prepare + attach 的兼容包装。
+     * 失败时抛异常，调用方负责提示；staging 会被清理。
+     */
+    fun install(entry: MarketPlugin, indexBase: String?) {
+        attach(prepare(entry, indexBase))
+    }
+
+    /** 清理所有未完成的 staging 目录（成功、失败、取消路径都适用）。 */
+    fun cleanupStaging() {
+        root.listFiles { file -> file.isDirectory && file.name.startsWith(STAGING_PREFIX) }
+            ?.forEach { it.deleteRecursively() }
+    }
+
+    fun uninstall(id: String) {
+        runCatching { host.uninstall(id) }
+        File(root, id).deleteRecursively()
+        saveInstalled(installed().filterNot { it.id == id })
+        saveDisabled(disabledIds() - id)
+    }
+
+    /** 应用启动时恢复上次安装过的运行时插件。单个失败不影响其它插件。 */
+    fun restore() {
+        val safety = CompositionStore.killSwitches(context)
+        installed().forEach { entry ->
+            if (CompositionTarget(CompositionKind.DEX, entry.id) in safety) {
+                Log.i(TAG, "skip ${entry.id}: host kill switch")
+                return@forEach
+            }
+            if (!isEnabled(entry.id)) {
+                Log.i(TAG, "skip ${entry.id}: disabled")
+                return@forEach
+            }
+            val dex = File(File(root, entry.id), "plugin.dex")
+            if (!dex.isFile) {
+                Log.w(TAG, "skip ${entry.id}: plugin.dex missing")
+                return@forEach
+            }
+            runCatching {
+                PluginLoader(host, logger = { m, e -> log(m, e) })
+                    .loadAndInstall(
+                        dex,
+                        entry.entryClass,
+                        File(File(root, entry.id), "opt"),
+                        entry.artifactMeta(),
+                        entry.descriptor(),
+                        BuildConfig.API_ABI.takeIf { it.isNotBlank() },
+                        entry.isExempt(),
+                        android.os.Build.VERSION.SDK_INT,
+                    )
+            }.onFailure { log("restore failed: ${entry.id}", it) }
+        }
+    }
+
+    private fun MarketPlugin.artifactMeta(): PluginArtifactMeta = PluginArtifactMeta(
+        id = id,
+        requiresApi = apiVersion,
+        minHostApi = minHostApi,
+        maxHostApi = maxHostApi,
+        apiAbi = apiAbi,
+        minSdk = minSdk,
+        version = version,
+    )
+
+    private fun MarketPlugin.descriptor(): PluginDescriptor = PluginDescriptor(
+        id = id,
+        requires = requires,
+        provides = provides,
+        origin = PluginOrigin.DEX,
+        version = version,
+    )
+
+    private fun MarketPlugin.isExempt(): Boolean = PluginExemptions.isExempt(
+        context,
+        id,
+        version,
+        com.stupidtree.hita.api.HITA_API_VERSION,
+    )
+
+    private fun fetch(entry: MarketPlugin, indexBase: String?, target: File) {
+        PluginFetch.download(entry.url, indexBase, target)
+    }
+
+    private fun saveInstalled(list: List<MarketPlugin>) {
+        root.mkdirs()
+        installedFile.writeText(gson.toJson(list))
+    }
+
+    private fun log(message: String, error: Throwable?) {
+        if (error == null) Log.i(TAG, message) else Log.e(TAG, message, error)
+    }
+
+    companion object {
+        private const val TAG = "PluginInstaller"
+        private const val STAGING_PREFIX = ".staging-"
+        private const val BACKUP_PREFIX = ".backup-"
+
+        /** 容忍损坏/缺失的 disabled.json：宁可全部启用，也不要启动崩溃。 */
+        internal fun parseDisabled(text: String?): Set<String> = runCatching {
+            if (text.isNullOrBlank()) emptySet()
+            else Gson().fromJson(text, Array<String>::class.java).toSet()
+        }.getOrDefault(emptySet())
+
+        /** 文件被外部删除或内容损坏时不要继续显示「已安装」。 */
+        internal fun filterInstalled(
+            records: List<MarketPlugin>,
+            root: File,
+        ): List<MarketPlugin> = records.filter { record ->
+            val dex = File(File(root, record.id), "plugin.dex")
+            dex.isFile && runCatching {
+                PluginLoader.sha256(dex).equals(record.sha256, ignoreCase = true)
+            }.getOrDefault(false)
+        }
+    }
+
+}

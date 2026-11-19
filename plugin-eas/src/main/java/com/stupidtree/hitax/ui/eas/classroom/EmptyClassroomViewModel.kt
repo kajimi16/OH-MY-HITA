@@ -1,0 +1,81 @@
+package com.stupidtree.hitax.ui.eas.classroom
+
+import com.stupidtree.hitax.eas.EasRuntime
+import android.app.Application
+import androidx.lifecycle.*
+import com.stupidtree.hitax.data.model.eas.TermItem
+import com.stupidtree.hitax.data.model.timetable.TimePeriodInDay
+import com.stupidtree.hitax.data.repository.EASRepository
+import com.stupidtree.component.data.DataState
+import com.stupidtree.component.data.Trigger
+import com.stupidtree.hitax.ui.eas.EASViewModel
+import com.stupidtree.component.data.MTransformations
+
+class EmptyClassroomViewModel(application: Application) : EASViewModel(application) {
+    /**
+     * 仓库区
+     */
+    private val easRepository = EASRepository.getInstance(application)
+    private val timetableRepository = com.stupidtree.hitax.eas.EasRuntime.timetableOrThrow()
+
+
+    private val pageController = MutableLiveData<Trigger>()
+    val termsLiveData: LiveData<DataState<List<TermItem>>> = pageController.switchMap {
+        return@switchMap easRepository.getAllTerms().map { state ->
+            val data = state.data
+            if (state.state != DataState.STATE.SUCCESS || data.isNullOrEmpty()) {
+                return@map state
+            }
+            val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR).toString()
+            val filtered = data.filter { term ->
+                term.yearCode.contains(currentYear) || term.yearName.contains(currentYear) || term.name.contains(currentYear)
+            }
+            val finalList = if (filtered.isNotEmpty()) filtered else data
+            DataState(finalList, state.state)
+        }
+    }
+    val buildingsLiveData: LiveData<DataState<List<BuildingItem>>> = pageController.switchMap {
+            return@switchMap easRepository.getTeachingBuildings()
+        }
+    val selectedTermLiveData = MutableLiveData<TermItem>()
+    val selectedBuildingLiveData = MutableLiveData<BuildingItem>()
+    val selectedWeekLiveData: MediatorLiveData<Int> =
+        MTransformations.switchMap(selectedTermLiveData) { term ->
+            return@switchMap timetableRepository.getCurrentWeekOfTimetable(term?.getCode())
+        }
+    val timetableStructureLiveData: LiveData<DataState<MutableList<TimePeriodInDay>>> = selectedTermLiveData.switchMap {
+        return@switchMap easRepository.getScheduleStructure(it)
+    }
+    val classroomLiveData: MediatorLiveData<DataState<List<ClassroomItem>>> =
+        MTransformations.switchMap(timetableStructureLiveData) {
+            val res = MediatorLiveData<DataState<List<ClassroomItem>>>()
+            res.addSource(selectedWeekLiveData) { week ->
+                selectedTermLiveData.value?.let { term ->
+                    selectedBuildingLiveData.value?.let { building ->
+                        res.addSource(easRepository.queryEmptyClassroom(term, building, week)) {
+                            res.value = it
+                        }
+                    }
+                }
+            }
+            res.addSource(selectedBuildingLiveData) { building ->
+                selectedTermLiveData.value?.let { term ->
+                    res.addSource(
+                        easRepository.queryEmptyClassroom(
+                            term,
+                            building,
+                            selectedWeekLiveData.value ?: 1
+                        )
+                    ) {
+                        res.value = it
+                    }
+                }
+            }
+            return@switchMap res
+        }
+
+
+    fun startRefresh() {
+        pageController.value = Trigger.actioning
+    }
+}

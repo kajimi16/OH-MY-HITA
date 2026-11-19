@@ -1,0 +1,20 @@
+OH-MY-HITA
+==========
+
+OH-MY-HITA is derived from HITA_X and HITA_L, which in turn derive from
+HITA_Android.
+
+Original project and upstream sources:
+- https://github.com/StupidTrees/HITA_X
+- https://github.com/LiPu-jpg/HITA_L
+- https://github.com/HIT-A/HITA_Android
+
+Copyright (c) 2018-present Stupid Tree
+Copyright (c) 2026 Jiao Ziang
+Copyright (c) 2026 Chami
+
+The original code and this derivative are distributed under the MIT License.
+See LICENSE in the repository root.
+
+Additional attribution for the HITA1 share protocol is in
+plugin-ui-share/NOTICE and plugin-ui-share/LICENSE_HITA_ANDROID.

@@ -1,0 +1,171 @@
+name: Release
+
+# 合并进 master 即发版：自动取最近的 v* tag，patch +1，打 tag 并创建 Release。
+# 也可以手动推 tag（v1.2.3）来指定版本号。
+
+on:
+  push:
+    branches: [ master ]
+    tags: [ 'v*' ]
+    # 纯文档 / CI 配置的合并不发版
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '发布版本号，例如 0.1.0；留空则按最新 tag patch+1'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Ensure SDK 35
+        run: |
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$SDK"
+          ls "$SDK/platforms" || true
+          if [ ! -d "$SDK/platforms/android-35" ]; then
+            yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" > /dev/null
+          fi
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        id: ver
+        run: |
+          INPUT_VERSION="${{ inputs.version }}"
+          # 需要 minor/major 版本时，在本次发布中修改 release-version.txt；
+          # 文件相对上一个 tag 没变化时，保持原来的 patch+1 行为。
+          FILE_VERSION=""
+          if [ -f release-version.txt ]; then
+            FILE_VERSION="$(tr -d '[:space:]' < release-version.txt)"
+          fi
+          if [ -n "$INPUT_VERSION" ]; then
+            # 手动指定版本：不依赖先推 tag，发布时 gh release create 会自动建 tag
+            VERSION="$INPUT_VERSION"
+            PREV="$(git tag -l 'v*' --sort=-v:refname | grep -vx "v${VERSION}" | head -n1)"
+          elif [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            # 手动发版时，最新的 tag 就是当前这个，要取它的上一个
+            PREV="$(git tag -l 'v*' --sort=-v:refname | grep -vx "v${VERSION}" | head -n1)"
+          else
+            PREV="$(git tag -l 'v*' --sort=-v:refname | head -n1)"
+            if [ -n "$FILE_VERSION" ] && { [ -z "$PREV" ] || ! git diff --quiet "$PREV" HEAD -- release-version.txt; }; then
+              VERSION="$FILE_VERSION"
+            else
+              LATEST="${PREV#v}"
+              [ -z "$LATEST" ] && LATEST="0.0.0"
+              IFS=. read -r MA MI PA <<< "$LATEST"
+              VERSION="$MA.$MI.$((PA+1))"
+            fi
+          fi
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "invalid release version: $VERSION" >&2
+            exit 1
+          }
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "prev=$PREV" >> "$GITHUB_OUTPUT"
+          # versionCode 用时间戳：与 dev 构建共享同一条单调序列。
+          echo "code=$(date +%s)" >> "$GITHUB_OUTPUT"
+          echo "resolved $VERSION"
+
+      - name: Configure signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          cat > local.properties <<EOF
+          sdk.dir=${ANDROID_HOME:-/usr/local/lib/android/sdk}
+          RELEASE_KEYSTORE=$RUNNER_TEMP/release.jks
+          RELEASE_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD
+          RELEASE_KEY_ALIAS=$KEY_ALIAS
+          RELEASE_KEY_PASSWORD=$KEY_PASSWORD
+          EOF
+
+      - name: Run release gates
+        run: >
+          ./gradlew :verifyMarketIndex :verifyPluginBoundary :verifyApiAbi
+          :api:testDebugUnitTest :kernel:testDebugUnitTest :app:testDebugUnitTest
+          :plugin-hita:testDebugUnitTest :plugin-eas:testDebugUnitTest
+          :plugin-resource:testDebugUnitTest :theta:testDebugUnitTest
+          :component:testDebugUnitTest :style:testDebugUnitTest :user:testDebugUnitTest
+          :app:lintDebug
+
+      - name: Build APK
+        run: |
+          ./gradlew :app:assembleRelease \
+            -PappVersionName="${{ steps.ver.outputs.version }}" \
+            -PappVersionCode=${{ steps.ver.outputs.code }} \
+            -PpluginIndexUrl="https://raw.githubusercontent.com/kajimi16/hita-community-plugins/master/registry/index.json" \
+            -PusageBaseUrl="https://hita.kajimi.cc"
+
+      - name: Rename APK
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk \
+             "oh-my-hita-${{ steps.ver.outputs.version }}.apk"
+
+      - name: Compose release notes
+        run: |
+          TAG="v${{ steps.ver.outputs.version }}"
+          PREV="${{ steps.ver.outputs.prev }}"
+          {
+            # 每个版本可维护一份固定说明（预览状态、安装须知等）
+            if [ -f release-header.md ]; then
+              cat release-header.md
+              echo
+            fi
+            echo "## 本版变更"
+            echo
+            if [ -n "$PREV" ]; then
+              git log "${PREV}..HEAD" --no-merges --pretty='- %s'
+              echo
+              echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV}...${TAG}"
+            else
+              git log -20 --no-merges --pretty='- %s'
+            fi
+            echo
+            echo "## 安装说明"
+            echo
+            echo "- 包名 \`io.github.kajimi16.ohmyhita\`，可与原版 HITA（\`com.stupidtree.hitax\`）共存"
+            echo "- 同包名的后续版本可直接覆盖升级（签名保持同一把 key）"
+            echo "- minSdk 23"
+          } > release-notes.md
+          cat release-notes.md
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.ver.outputs.version }}"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "oh-my-hita-${{ steps.ver.outputs.version }}.apk" --clobber
+            gh release edit "$TAG" --notes-file release-notes.md
+          else
+            gh release create "$TAG" "oh-my-hita-${{ steps.ver.outputs.version }}.apk" \
+              --title "OH-MY-HITA ${{ steps.ver.outputs.version }}" \
+              --notes-file release-notes.md
+          fi

@@ -1,0 +1,7 @@
+# Add inside the ani2-ext.kajimi.cc site, before reverse_proxy.
+handle /api/usage* {
+	reverse_proxy 127.0.0.1:8791
+}
+handle /api/market/stats* {
+	reverse_proxy 127.0.0.1:8791
+}

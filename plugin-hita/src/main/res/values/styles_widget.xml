@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="button_ripple_accent_large">
+        <item name="android:colorControlHighlight">?attr/colorPrimary</item>
+        <item name="android:radius">32dp</item>
+    </style>
+</resources>

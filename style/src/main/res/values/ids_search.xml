@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 搜索结果列表项的通用 id，具体布局由各插件提供 -->
+    <item name="title" type="id" />
+    <item name="subtitle" type="id" />
+    <item name="picture" type="id" />
+    <item name="tag" type="id" />
+    <item name="card" type="id" />
+</resources>

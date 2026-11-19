@@ -1,0 +1,33 @@
+*.iml
+.gradle
+/local.properties
+/.idea/*
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+build/
+/release
+/app/release
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+/.idea/
+.worktrees
+
+# 发布密钥（防误提交）
+*.jks
+*.keystore
+*.p12
+
+# 课表数据（严禁入库）
+*.ics
+hita*.db
+hita*.db-wal
+hita*.db-shm
+hita*.db-journal

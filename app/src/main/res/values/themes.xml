@@ -1,0 +1,275 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/cruel_summer_primary</item>
+        <item name="colorPrimaryVariant">@color/cruel_summer_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorFade">#736dfe</item>
+        <item name="colorPrimaryDisabled">@color/cruel_summer_primary_disabled</item>
+        <item name="colorSecondary">@color/cruel_summer_primary</item>
+        <item name="colorSecondaryVariant">@color/cruel_summer_primary</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="backgroundColorBar">#70e7e7f2</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">#00000000</item>
+        <item name="android:navigationBarColor">?attr/backgroundColorBottom</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+        <!-- Customize your theme here. -->
+        <!--        fafbff-->
+        <item name="backgroundColorBottom">#F6F7Fa</item>
+        <item name="backgroundColorBottomAsTint">#CFFFFFFF</item>
+        <item name="backgroundColorSecond">#FFFFFF</item>
+        <item name="backgroundColorSecondAsTint">#CFFAFAFA</item>
+        <item name="textColorPrimary">#FF000000</item>
+        <item name="textColorSecondary">#FF808080</item>
+        <item name="colorControlDisabled">#FFE0E0E0</item>
+        <item name="backgroundIconColorBottom">#11304ffe</item>
+
+        <!--透明状态栏-->
+        <item name="android:windowLightStatusBar">true</item>
+    
+        <item name="designCornerRadius">16dp</item>
+    
+        <item name="designSpacing">16dp</item>
+    </style>
+
+
+    <!-- 欢迎页的风格 -->
+    <style name="SplashTheme" parent="AppTheme">
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="android:windowFullscreen">true</item>
+        <!-- <item name="android:windowIsTranslucent">true</item> -->
+        <!-- 透明背景不要了 -->
+    </style>
+
+
+    <!--    圆角透明背景的BottomSheetDialog主题-->
+    <style name="TransparentBottomSheetDialogTheme" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
+    </style>
+
+    <style name="TransparentBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="behavior_peekHeight">400dp</item>
+    </style>
+
+    <style name="ToolBarTheme_Light" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorButtonNormal">#FFFFFF</item>
+        <item name="colorControlNormal">#FFFFFF</item>
+        <item name="actionMenuTextColor">#FFFFFF</item>
+        <item name="android:titleTextAppearance">@style/Toolbar_Light_TitleStyle</item>
+    </style>
+
+    <style name="Toolbar_Light_TitleStyle" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textColor">#ffffff</item>
+    </style>
+
+    <style name="tab_text_appearance">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">?attr/textColorPrimary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!--水波纹风格-->
+    <style name="button_ripple_white">
+        <item name="android:colorControlHighlight">@color/white</item>
+        <item name="android:radius">24dp</item>
+    </style>
+
+    <style name="button_ripple_control">
+        <item name="android:colorControlHighlight">?attr/colorControlNormal</item>
+        <item name="android:radius">24dp</item>
+    </style>
+
+    <style name="button_ripple_control_large">
+        <item name="android:colorControlHighlight">?attr/colorControlNormal</item>
+        <item name="android:radius">32dp</item>
+    </style>
+
+
+    <style name="unbound_ripple_white_light">
+        <item name="android:colorControlHighlight">#44FFFFFF</item>
+    </style>
+
+    <style name="button_ripple_accent_little">
+        <item name="android:colorControlHighlight">?attr/colorPrimary</item>
+        <item name="android:radius">16dp</item>
+    </style>
+
+    <style name="button_ripple_accent">
+        <item name="android:colorControlHighlight">?attr/colorPrimary</item>
+        <item name="android:radius">24dp</item>
+    </style>
+
+    <style name="button_ripple_accent_large">
+        <item name="android:colorControlHighlight">?attr/colorPrimary</item>
+        <item name="android:radius">32dp</item>
+    </style>
+
+
+    <style name="text_style_18sp_bold_white">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+    </style>
+
+    <style name="text_style_28sp_bold_white">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+    </style>
+
+    <style name="text_style_18sp_bold_primary">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">?attr/textColorPrimary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="text_style_30sp_bold_primary">
+        <item name="android:textSize">30sp</item>
+        <item name="android:textColor">?attr/textColorPrimary</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+<!-- 插件主题配色预设：只覆盖主色/强调色，保留日夜背景资源 -->
+    <style name="AppTheme.Fresh" parent="AppTheme">
+        <item name="colorPrimary">#2E7D6F</item>
+        <item name="colorPrimaryVariant">#2E7D6F</item>
+        <item name="colorSecondary">#2E7D6F</item>
+        <item name="colorAccent">#2E7D6F</item>
+    
+        <item name="designCornerRadius">16dp</item>
+    
+        <item name="designSpacing">16dp</item>
+    </style>
+
+    <style name="AppTheme.Focus" parent="AppTheme">
+        <item name="colorPrimary">#B45309</item>
+        <item name="colorPrimaryVariant">#B45309</item>
+        <item name="colorSecondary">#B45309</item>
+        <item name="colorAccent">#B45309</item>
+    
+        <item name="designCornerRadius">16dp</item>
+    
+        <item name="designSpacing">16dp</item>
+    </style>
+
+    <style name="AppTheme.HighContrast" parent="AppTheme">
+        <item name="colorPrimary">#000000</item>
+        <item name="colorPrimaryVariant">#000000</item>
+        <item name="colorSecondary">#000000</item>
+        <item name="colorAccent">#000000</item>
+    
+        <item name="designCornerRadius">16dp</item>
+    
+        <item name="designSpacing">16dp</item>
+    </style>
+
+    <style name="AppTheme.AppleGlass" parent="AppTheme">
+        <item name="colorPrimary">#007AFF</item>
+        <item name="colorPrimaryVariant">#007AFF</item>
+        <item name="colorSecondary">#00A89D</item>
+        <item name="colorSecondaryVariant">#00A89D</item>
+        <item name="colorAccent">#AF52DE</item>
+        <item name="backgroundColorBottom">#CCF4F8FC</item>
+        <item name="backgroundColorSecond">#B3FFFFFF</item>
+        <item name="textColorPrimary">#101318</item>
+        <item name="textColorSecondary">#505761</item>
+        <item name="android:fontFamily">@font/inter</item>
+    
+        <item name="designCornerRadius">24dp</item>
+    
+        <item name="designSpacing">20dp</item>
+    </style>
+    <style name="AppTheme.Cyber" parent="AppTheme">
+        <item name="colorPrimary">#0891B2</item>
+        <item name="colorPrimaryVariant">#0891B2</item>
+        <item name="colorSecondary">#7C5CD6</item>
+        <item name="colorSecondaryVariant">#7C5CD6</item>
+        <item name="colorAccent">#DB2777</item>
+        <item name="backgroundColorBottom">#F3F6FC</item>
+        <item name="backgroundColorSecond">#FFFFFF</item>
+        <item name="textColorPrimary">#10182B</item>
+        <item name="textColorSecondary">#4A5570</item>
+        <item name="android:fontFamily">@font/orbitron</item>
+    
+        <item name="designCornerRadius">8dp</item>
+    
+        <item name="designSpacing">12dp</item>
+    </style>
+    <style name="AppTheme.SoraCloud" parent="AppTheme">
+        <item name="colorPrimary">#C94B38</item>
+        <item name="colorPrimaryVariant">#C94B38</item>
+        <item name="colorSecondary">#315D6D</item>
+        <item name="colorSecondaryVariant">#315D6D</item>
+        <item name="colorAccent">#D2A23C</item>
+        <item name="backgroundColorBottom">#F3EBD9</item>
+        <item name="backgroundColorSecond">#FFF8E8</item>
+        <item name="textColorPrimary">#25221F</item>
+        <item name="textColorSecondary">#625B50</item>
+        <item name="android:fontFamily">serif</item>
+    
+        <item name="designCornerRadius">20dp</item>
+    
+        <item name="designSpacing">16dp</item>
+    </style>
+    <style name="AppTheme.P5" parent="AppTheme">
+        <item name="colorPrimary">#E60012</item>
+        <item name="colorPrimaryVariant">#E60012</item>
+        <item name="colorSecondary">#101010</item>
+        <item name="colorSecondaryVariant">#101010</item>
+        <item name="colorAccent">#FFC400</item>
+        <item name="backgroundColorBottom">#F4F4F4</item>
+        <item name="backgroundColorSecond">#FFFFFF</item>
+        <item name="textColorPrimary">#101010</item>
+        <item name="textColorSecondary">#4A4A4A</item>
+        <item name="android:fontFamily">@font/p5_title</item>
+    
+        <item name="designCornerRadius">4dp</item>
+    
+        <item name="designSpacing">8dp</item>
+    </style>
+    <style name="AppTheme.DeepSpace" parent="AppTheme">
+        <item name="colorPrimary">#8A6D1F</item>
+        <item name="colorPrimaryVariant">#8A6D1F</item>
+        <item name="colorSecondary">#6E6394</item>
+        <item name="colorSecondaryVariant">#6E6394</item>
+        <item name="colorAccent">#9C5E72</item>
+        <item name="backgroundColorBottom">#F1EEE7</item>
+        <item name="backgroundColorSecond">#FDFBF4</item>
+        <item name="textColorPrimary">#1D2129</item>
+        <item name="textColorSecondary">#565E6E</item>
+        <item name="android:fontFamily">@font/space_grotesk</item>
+    
+        <item name="designCornerRadius">18dp</item>
+    
+        <item name="designSpacing">16dp</item>
+    </style>
+    <style name="AppTheme.Sumi" parent="AppTheme">
+        <item name="colorPrimary">#33322F</item>
+        <item name="colorPrimaryVariant">#33322F</item>
+        <item name="colorSecondary">#A63B2A</item>
+        <item name="colorSecondaryVariant">#A63B2A</item>
+        <item name="colorAccent">#5E6B5A</item>
+        <item name="backgroundColorBottom">#F4EEE1</item>
+        <item name="backgroundColorSecond">#FBF7EC</item>
+        <item name="textColorPrimary">#262521</item>
+        <item name="textColorSecondary">#6B655A</item>
+        <item name="android:fontFamily">@font/sumi_title</item>
+    
+        <item name="designCornerRadius">10dp</item>
+    
+        <item name="designSpacing">14dp</item>
+    </style>
+</resources>

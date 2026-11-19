@@ -1,0 +1,22 @@
+include ':app',':user','component','style'
+rootProject.name = "OH-MY-HITA"
+include ':sync'
+include ':theta'
+include ':api'
+include ':kernel'
+include ':model'
+include ':plugin-hita'
+include ':sample-plugin'
+include ':plugin-eas',':plugin-resource',':plugin-user'
+include ':plugin-apk-sample',':plugin-ui-sample',':plugin-ui-resource',':plugin-ui-reminder',':plugin-ui-links',':plugin-ui-appearance',':plugin-ui-news',':plugin-ui-ai',':plugin-ui-credit',':plugin-ui-share',':plugin-ui-score',':plugin-ui-training',':plugin-ui-compare',':plugin-ui-group',':plugin-ui-live',':plugin-ui-update',':plugin-ui-notice',':plugin-ui-homework',':plugin-ui-announcement',':plugin-ui-community'
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        maven { url = uri("https://maven.aliyun.com/repository/google") }
+        maven { url = uri("https://maven.aliyun.com/repository/central") }
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
+        maven { url = uri("https://mirrors.tencent.com/nexus/repository/maven-public/") }
+        maven { url = uri("https://www.jitpack.io" ) }
+        maven { url = uri("https://repo.grails.org/grails/core") }
+    }
+}
