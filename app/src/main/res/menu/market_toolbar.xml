@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_refresh"
+        android:icon="@drawable/ic_market_refresh_24"
+        android:title="@string/market_refresh"
+        app:iconTint="?attr/textColorPrimary"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_sources"
+        android:title="@string/market_sources"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_guide"
+        android:title="@string/market_guide"
+        app:showAsAction="never" />
+</menu>

@@ -41,6 +41,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
     val items = MutableLiveData<List<Item>>(emptyList())
     val message = MutableLiveData<String?>(null)
     val status = MutableLiveData<String?>(null)
+    val loading = MutableLiveData(true)
+    val loadError = MutableLiveData<String?>(null)
     val apkPlugins = MutableLiveData<List<ApkPlugin>>(emptyList())
 
     private val builtin = BuiltinPluginManager(application)
@@ -117,6 +119,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     /** 索引可能在远端，读取放到后台线程。 */
     fun refresh() {
+        loading.postValue(true)
+        loadError.postValue(null)
         status.postValue("正在读取插件索引…")
         presetsLoaded.postValue(false)
         executor.execute {
@@ -154,13 +158,16 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                     presetsLoaded.postValue(true)
                     status.postValue(if (offline) "网络不可用，正在显示缓存索引" else null)
                     pendingUpdates.postValue(countUpdatesOutsideActive())
+                    loading.postValue(false)
                 }
                 .onFailure {
                     items.postValue(emptyList())
                     availableUiPlugins.postValue(emptyList())
                     presets.postValue(emptyList())
                     presetsLoaded.postValue(true)
+                    loadError.postValue(it.message ?: "未知错误")
                     status.postValue("读取索引失败：${it.message}")
+                    loading.postValue(false)
                 }
         }
     }

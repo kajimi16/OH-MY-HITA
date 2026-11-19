@@ -1,631 +1,610 @@
 package com.stupidtree.hitax.market
 
+import android.content.Intent
+import android.net.Uri
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.LayoutInflater
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import android.widget.EditText
+import android.widget.FrameLayout
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.databinding.FragmentPluginMarketBinding
-import com.stupidtree.hitax.databinding.ItemMarketPluginCardBinding
 import com.stupidtree.hitax.plugin.BuiltinPluginManager
 import com.stupidtree.hitax.plugin.PluginPrefs
 import com.stupidtree.hitax.uiplugin.InstalledUiPlugin
+import com.stupidtree.hitax.uiplugin.PluginUiActivity
 import com.stupidtree.style.base.BaseFragment
 
 /**
- * 插件市场：分为「查询并下载」与「我的插件」两栏。
+ * 插件市场主页面。
  *
- * - 查询并下载：按当前插件源列出索引里的插件，可搜索、安装/更新。
- * - 我的插件：内置插件 + 已安装的界面/逻辑/APK 插件，可启用、停用、卸载、更新。
+ * 视图只消费 [PluginMarketViewModel] 的 LiveData：
+ * tab/筛选/搜索 -> [MarketListBuilder] -> [MarketAdapter]。
+ * 安装、启停、卸载仍由 ViewModel 执行；详情和筛选面板不持有业务状态。
  */
-class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginMarketBinding>() {
+class FragmentPluginMarket :
+    BaseFragment<PluginMarketViewModel, FragmentPluginMarketBinding>(),
+    MarketAdapter.Listener {
+
+    private lateinit var adapter: MarketAdapter
+    private lateinit var bindingRef: FragmentPluginMarketBinding
+    private var selectedTab = MarketTab.EXPLORE
+    private var filters = MarketFilters()
+    private var query = ""
+    private var loading = true
+    private var loadError: String? = null
+    private var status: String? = null
+    private var latestBuiltin: List<BuiltinPluginManager.Row> = emptyList()
+    private var latestDex: List<PluginMarketViewModel.Item> = emptyList()
+    private var latestUiInstalled: List<InstalledUiPlugin> = emptyList()
+    private var latestUiAvailable: List<UiMarketPlugin> = emptyList()
+    private var latestPresets: List<MarketPreset> = emptyList()
+    private var latestApk: List<ApkPlugin> = emptyList()
+    private var latestStats: Map<String, MarketStat> = emptyMap()
+    private var latestPendingUpdates = 0
+    private var latestActivePresetId: String? = null
 
     override fun getViewModelClass(): Class<PluginMarketViewModel> = PluginMarketViewModel::class.java
 
     override fun initViewBinding(): FragmentPluginMarketBinding =
         FragmentPluginMarketBinding.inflate(layoutInflater)
 
-    private var latestBuiltin: List<BuiltinPluginManager.Row> = emptyList()
-    private var latestDex: List<PluginMarketViewModel.Item> = emptyList()
-    private var latestUiInstalled: List<InstalledUiPlugin> = emptyList()
-    private var latestUiAvailable: List<UiMarketPlugin> = emptyList()
-    private var latestPresets: List<MarketPreset> = emptyList()
-    private var latestStats: Map<String, MarketStat> = emptyMap()
-    private var latestApk: List<ApkPlugin> = emptyList()
-    private var latestPendingUpdates = 0
-    private var query: String = ""
-    private var selectedTab = 0
-    private var switchDialog: AlertDialog? = null
-    private var switchProgressBar: android.widget.ProgressBar? = null
-    private var switchDialogContent: android.view.View? = null
-    private var switchMessageView: android.widget.TextView? = null
-    private fun uiPrefs() =
-        requireContext().getSharedPreferences("market_ui", android.content.Context.MODE_PRIVATE)
-
     override fun initViews(view: View) {
-        selectedTab = uiPrefs().getInt(
-            KEY_TAB,
-            if (uiPrefs().getBoolean(KEY_MINE, false)) TAB_MINE else TAB_DISCOVER,
-        )
-        query = uiPrefs().getString(KEY_QUERY, "").orEmpty()
-        viewModel.builtinPlugins.observe(this) { latestBuiltin = it; renderAll() }
-        viewModel.items.observe(this) { latestDex = it; renderAll() }
-        viewModel.uiPlugins.observe(this) { latestUiInstalled = it; renderAll() }
-        viewModel.availableUiPlugins.observe(this) {
-            latestUiAvailable = it
-            renderAll()
-            viewModel.refreshPluginStats(it.map { plugin -> plugin.id })
+        bindingRef = binding ?: return
+        val prefs = requireContext().getSharedPreferences(UI_PREFS, android.content.Context.MODE_PRIVATE)
+        selectedTab = when (prefs.getInt(KEY_TAB_V2, 0)) {
+            1 -> MarketTab.INSTALLED
+            2 -> MarketTab.UPDATES
+            else -> MarketTab.EXPLORE
         }
-        viewModel.pluginStats.observe(this) { latestStats = it; renderDiscover() }
-        viewModel.presets.observe(this) { latestPresets = it; renderDiscover() }
-        viewModel.activePresetId.observe(this) { renderDiscover() }
-        viewModel.apkPlugins.observe(this) { latestApk = it; renderAll() }
-        viewModel.sources.observe(this) { renderAll() }
-        viewModel.pendingUpdates.observe(this) { latestPendingUpdates = it; renderAll() }
+        query = prefs.getString(KEY_QUERY, "").orEmpty()
 
-        binding?.tabDiscover?.setOnClickListener { showTab(TAB_DISCOVER) }
-        binding?.tabMine?.setOnClickListener { showTab(TAB_MINE) }
-        binding?.tabGuide?.setOnClickListener { showTab(TAB_GUIDE) }
-        binding?.guideTemplate?.setOnClickListener {
-            openUrl("https://github.com/kajimi16/hita-plugin-template")
-        }
-        binding?.guideCommunity?.setOnClickListener {
-            openUrl("https://github.com/kajimi16/hita-community-plugins")
-        }
-        binding?.marketSource?.setOnClickListener { showSourceDialog() }
-        binding?.updateAll?.setOnClickListener { viewModel.updateAll() }
-        binding?.discoverSearch?.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                query = s?.toString().orEmpty()
-                uiPrefs().edit().putString(KEY_QUERY, query).apply()
-                renderDiscover()
+        adapter = MarketAdapter(this)
+        bindingRef.list.layoutManager = LinearLayoutManager(requireContext())
+        bindingRef.list.adapter = adapter
+
+        bindingRef.toolbar.setNavigationIcon(R.drawable.ic_market_back_24)
+        bindingRef.toolbar.navigationIcon?.setTint(textColor(R.attr.textColorPrimary))
+        bindingRef.toolbar.setNavigationOnClickListener { requireActivity().finish() }
+        bindingRef.toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_refresh -> {
+                    viewModel.refresh()
+                    true
+                }
+                R.id.action_sources -> {
+                    showSources()
+                    true
+                }
+                R.id.action_guide -> {
+                    MarketGuideSheet(requireContext()).show()
+                    true
+                }
+                else -> false
             }
-            override fun afterTextChanged(s: Editable?) {}
-        })
+        }
 
+        setupTabs()
+        bindingRef.searchEdit.setText(query)
+        bindingRef.searchEdit.setSelection(bindingRef.searchEdit.text?.length ?: 0)
+        bindingRef.searchEdit.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                query = s?.toString().orEmpty()
+                prefs.edit().putString(KEY_QUERY, query).apply()
+                render()
+            }
+        })
+        bindingRef.filterButton.setOnClickListener {
+            clearSearchFocus()
+            showFilters()
+        }
+        bindingRef.swipeRefresh.setOnRefreshListener { viewModel.refresh() }
+        bindingRef.swipeRefresh.setColorSchemeColors(textColor(R.attr.colorPrimary))
+        bindingRef.stateAction.setOnClickListener { }
+        bindingRef.list.setHasFixedSize(false)
+
+        observe()
+        render()
+    }
+
+    private fun setupTabs() {
+        val b = bindingRef
+        listOf(
+            R.string.market_tab_explore,
+            R.string.market_tab_installed,
+            R.string.market_tab_updates,
+        ).forEach { b.tabs.addTab(b.tabs.newTab().setText(it)) }
+        val position = when (selectedTab) {
+            MarketTab.EXPLORE -> 0
+            MarketTab.INSTALLED -> 1
+            MarketTab.UPDATES -> 2
+        }
+        b.tabs.getTabAt(position)?.select()
+        b.tabs.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab) {
+                selectedTab = when (tab.position) {
+                    1 -> MarketTab.INSTALLED
+                    2 -> MarketTab.UPDATES
+                    else -> MarketTab.EXPLORE
+                }
+                filters = filters.normalized(selectedTab)
+                clearSearchFocus()
+                requireContext().getSharedPreferences(UI_PREFS, android.content.Context.MODE_PRIVATE)
+                    .edit().putInt(KEY_TAB_V2, tab.position).apply()
+                render()
+            }
+
+            override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
+            override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab) {}
+        })
+    }
+
+    private fun observe() {
+        viewModel.builtinPlugins.observe(this) { latestBuiltin = it; render() }
+        viewModel.items.observe(this) { latestDex = it; render() }
+        viewModel.uiPlugins.observe(this) { latestUiInstalled = it; render() }
+        viewModel.availableUiPlugins.observe(this) { plugins ->
+            latestUiAvailable = plugins
+            render()
+            viewModel.refreshPluginStats(plugins.map { it.id })
+        }
+        viewModel.pluginStats.observe(this) { latestStats = it; render() }
+        viewModel.presets.observe(this) { latestPresets = it; render() }
+        viewModel.activePresetId.observe(this) { latestActivePresetId = it; render() }
+        viewModel.apkPlugins.observe(this) { latestApk = it; render() }
+        viewModel.pendingUpdates.observe(this) { latestPendingUpdates = it; render() }
+        viewModel.loading.observe(this) { loading = it; render() }
+        viewModel.loadError.observe(this) { loadError = it; render() }
+        viewModel.status.observe(this) { status = it }
+        viewModel.applyProgress.observe(this) { renderProgress(it) }
         viewModel.reloadUi.observe(this) { reload ->
             if (reload) {
                 viewModel.consumeReloadUi()
                 requireActivity().recreate()
             }
         }
-        viewModel.applyProgress.observe(this) { progress ->
-            if (progress == null) {
-                dismissSwitchProgress()
-            } else {
-                showSwitchProgress(progress)
-            }
-        }
         viewModel.presetSwitch.observe(this) { target ->
             target ?: return@observe
             viewModel.consumePresetSwitch()
-            switchDialog?.dismiss()
-            switchDialog = null
             val context = requireContext()
             val intent = if (!target.shell.isNullOrBlank()) {
-                android.content.Intent(context, com.stupidtree.hitax.shell.PresetShellActivity::class.java)
+                Intent(context, com.stupidtree.hitax.shell.PresetShellActivity::class.java)
                     .putExtra(com.stupidtree.hitax.shell.PresetShellActivity.EXTRA_SHELL_ID, target.shell)
             } else {
-                android.content.Intent(context, com.stupidtree.hitax.ui.main.MainActivity::class.java)
+                Intent(context, com.stupidtree.hitax.ui.main.MainActivity::class.java)
             }
-            intent.addFlags(
-                android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP,
-            )
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             startActivity(intent)
             requireActivity().finish()
         }
-        viewModel.status.observe(this) { text ->
-            binding?.status?.text = text
-            binding?.status?.visibility = if (text == null) View.GONE else View.VISIBLE
-        }
         viewModel.message.observe(this) { text ->
             text ?: return@observe
-            Toast.makeText(requireContext(), text, Toast.LENGTH_SHORT).show()
+            Snackbar.make(bindingRef.root, text, Snackbar.LENGTH_SHORT).show()
             viewModel.consumeMessage()
         }
-        binding?.discoverSearch?.setText(query)
-        showTab(selectedTab)
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.syncActivePreset()
-        viewModel.refresh()
-    }
+    private fun render() {
+        val b = binding ?: return
+        if (!::adapter.isInitialized) return
+        filters = filters.normalized(selectedTab)
+        val apkDisabled = latestApk.mapNotNull { plugin ->
+            if (PluginPrefs.isDisabled(requireContext(), "apk:${plugin.packageName}")) {
+                plugin.packageName
+            } else {
+                null
+            }
+        }.toSet()
+        val state = MarketState(
+            presets = latestPresets,
+            activePresetId = latestActivePresetId,
+            availableUi = latestUiAvailable,
+            installedUi = latestUiInstalled,
+            dex = latestDex,
+            builtins = latestBuiltin,
+            apk = latestApk,
+            apkDisabled = apkDisabled,
+            pendingUpdates = latestPendingUpdates,
+        )
+        val items = MarketListBuilder.build(selectedTab, filters, query, state)
+        adapter.indexBase = viewModel.indexBase()
+        adapter.submitList(items)
 
-    private fun showSwitchProgress(progress: PluginMarketViewModel.SwitchProgress) {
-        if (switchDialog == null) {
-            val density = resources.displayMetrics.density
-            val container = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding((24 * density).toInt(), (8 * density).toInt(), (24 * density).toInt(), 0)
-            }
-            val bar = android.widget.ProgressBar(
-                requireContext(), null, android.R.attr.progressBarStyleHorizontal,
-            ).apply {
-                max = 100
-                isIndeterminate = false
-            }
-            val label = android.widget.TextView(requireContext()).apply {
-                setPadding(0, (8 * density).toInt(), 0, 0)
-            }
-            container.addView(bar, LinearLayout.LayoutParams.MATCH_PARENT, (8 * density).toInt())
-            container.addView(label)
-            switchProgressBar = bar
-            switchMessageView = label
-            switchDialogContent = container
-            switchDialog = AlertDialog.Builder(requireContext())
-                .setTitle("切换整合包")
-                .setView(container)
-                .setCancelable(false)
-                .create()
-                .also { dialog ->
-                    dialog.setOnShowListener {
-                        val tokens = (requireContext().applicationContext as? com.stupidtree.hitax.HApplication)
-                            ?.pluginHost
-                            ?.service(com.stupidtree.hita.api.MotionController.KEY)
-                            ?.tokens()
-                        val duration = if (tokens?.enabled == true) tokens.durationShortMs.toLong() else 0L
-                        container.alpha = 0f
-                        container.scaleX = 0.96f
-                        container.scaleY = 0.96f
-                        container.animate()
-                            .alpha(1f)
-                            .scaleX(1f)
-                            .scaleY(1f)
-                            .setDuration(duration)
-                            .setInterpolator(android.view.animation.DecelerateInterpolator())
-                            .start()
+        val hasContent = items.any { it !is MarketItem.Section }
+        b.filterButton.isVisible = selectedTab != MarketTab.UPDATES
+        val filterActive = filters.activeCount() > 0 || query.isNotBlank()
+        val contentCount = items.count { it !is MarketItem.Section }
+        b.resultCount.isVisible = filterActive && !loading
+        if (b.resultCount.isVisible) {
+            b.resultCount.text = getString(R.string.market_result_count, contentCount)
+        }
+        b.skeleton.isVisible = loading && !hasContent
+        b.swipeRefresh.isRefreshing = loading && hasContent
+        b.stateView.isVisible = !loading && !hasContent
+        if (b.stateView.isVisible) {
+            val error = loadError
+            if (error != null) {
+                b.stateTitle.setText(R.string.market_error_title)
+                b.stateMessage.text = getString(R.string.market_error_message, error)
+                b.stateAction.isVisible = true
+                b.stateAction.setText(R.string.market_retry)
+                b.stateAction.setOnClickListener { viewModel.refresh() }
+            } else {
+                when {
+                    filterActive -> {
+                        b.stateTitle.setText(R.string.market_empty_title)
+                        b.stateMessage.setText(R.string.market_empty_message)
                     }
-                    dialog.show()
+                    selectedTab == MarketTab.UPDATES -> {
+                        b.stateTitle.setText(R.string.market_updates_empty_title)
+                        b.stateMessage.setText(R.string.market_updates_empty_message)
+                    }
+                    selectedTab == MarketTab.INSTALLED -> {
+                        b.stateTitle.setText(R.string.market_installed_empty_title)
+                        b.stateMessage.setText(R.string.market_installed_empty_message)
+                    }
+                    else -> {
+                        b.stateTitle.setText(R.string.market_explore_empty_title)
+                        b.stateMessage.setText(R.string.market_explore_empty_message)
+                    }
                 }
-        }
-        switchProgressBar?.progress = progress.percent
-        switchMessageView?.text = progress.message
-    }
-
-    private fun dismissSwitchProgress() {
-        val dialog = switchDialog ?: return
-        switchDialog = null
-        val content = switchDialogContent
-        switchDialogContent = null
-        switchProgressBar = null
-        switchMessageView = null
-        if (content == null) {
-            dialog.dismiss()
-            return
-        }
-        val tokens = (requireContext().applicationContext as? com.stupidtree.hitax.HApplication)
-            ?.pluginHost
-            ?.service(com.stupidtree.hita.api.MotionController.KEY)
-            ?.tokens()
-        val duration = if (tokens?.enabled == true) tokens.durationShortMs.toLong() else 0L
-        if (duration == 0L) {
-            dialog.dismiss()
-            return
-        }
-        content.animate()
-            .alpha(0f)
-            .scaleX(0.96f)
-            .scaleY(0.96f)
-            .setDuration(duration)
-            .setInterpolator(android.view.animation.DecelerateInterpolator())
-            .withEndAction { runCatching { dialog.dismiss() } }
-            .start()
-    }
-
-    override fun onDestroyView() {
-        switchDialog?.dismiss()
-        switchDialog = null
-        switchDialogContent = null
-        switchProgressBar = null
-        switchMessageView = null
-        super.onDestroyView()
-    }
-
-    private fun showTab(tab: Int) {
-        selectedTab = tab
-        uiPrefs().edit().putInt(KEY_TAB, tab).apply()
-        val tabs = listOf(binding?.tabDiscover, binding?.tabMine, binding?.tabGuide)
-        val scrolls = listOf(binding?.discoverScroll, binding?.mineScroll, binding?.guideScroll)
-        tabs.forEachIndexed { index, view ->
-            view?.alpha = if (index == tab) 1f else 0.5f
-            view?.setTypeface(
-                null,
-                if (index == tab) android.graphics.Typeface.BOLD
-                else android.graphics.Typeface.NORMAL,
-            )
-        }
-        scrolls.forEachIndexed { index, view ->
-            view?.visibility = if (index == tab) View.VISIBLE else View.GONE
-        }
-    }
-
-    private fun openUrl(url: String) {
-        runCatching {
-            startActivity(
-                android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
-            )
-        }
-    }
-
-    // ---- 渲染 ----
-
-    private fun renderAll() {
-        renderBuiltin()
-        renderDiscover()
-        renderMine()
-    }
-
-    private fun renderBuiltin() {
-        renderGrid(binding?.builtinContainer, latestBuiltin) { card, row ->
-            card.name.text = row.name
-            card.meta.text = if (row.installed) "内置插件 · 已启用" else "内置插件 · 已停用"
-            card.toggle.visibility = View.GONE
-            card.action.visibility = View.VISIBLE
-            card.action.text = if (row.installed) "停用" else "启用"
-            card.action.setOnClickListener {
-                viewModel.setBuiltinEnabled(row, !row.installed)
+                b.stateAction.isVisible = filterActive
+                if (filterActive) {
+                    b.stateAction.setText(R.string.market_clear_filters)
+                    b.stateAction.setOnClickListener { clearFilters() }
+                }
             }
         }
+        b.filterButton.text = if (filters.activeCount() > 0) {
+            getString(R.string.market_filter_active, filters.activeCount())
+        } else {
+            getString(R.string.market_filter)
+        }
+        updateBadge()
     }
 
-    private sealed class DiscoverEntry {
-        data class Preset(val preset: MarketPreset) : DiscoverEntry()
-        data class Ui(val plugin: UiMarketPlugin, val installedVersion: String?) : DiscoverEntry()
-        data class Dex(val item: PluginMarketViewModel.Item) : DiscoverEntry()
+    private fun renderProgress(progress: PluginMarketViewModel.SwitchProgress?) {
+        val b = binding ?: return
+        b.progressCard.isVisible = progress != null
+        if (progress != null) {
+            b.progressMessage.text = progress.message
+            b.progressPercent.text = "${progress.percent}%"
+            b.progressBar.progress = progress.percent
+        }
     }
 
-    private fun renderDiscover() {
+    private fun updateBadge() {
+        val b = binding ?: return
         val installedUi = latestUiInstalled.associateBy { it.id }
-        val presets = latestPresets
-            .filter { matches(query, it.name, it.description, it.source, it.tags?.joinToString(" ")) }
-            .map { DiscoverEntry.Preset(it) }
-        val plugins = buildList {
-            latestUiAvailable
-                .filter { matches(query, it.name, it.description, it.tags?.joinToString(" ")) }
-                .forEach { add(DiscoverEntry.Ui(it, installedUi[it.id]?.version)) }
-            latestDex
-                .filter { matches(query, it.entry.name, it.entry.description, it.entry.tags?.joinToString(" ")) }
-                .forEach { add(DiscoverEntry.Dex(it)) }
+        val uiUpdates = latestUiAvailable.count { plugin ->
+            val installed = installedUi[plugin.id]
+            installed != null && PluginVersion.isNewer(plugin.version, installed.version)
         }
+        val count = uiUpdates + latestDex.count { it.update } + latestPendingUpdates
+        val tab = b.tabs.getTabAt(2) ?: return
+        if (count <= 0) {
+            tab.removeBadge()
+            return
+        }
+        val badge = tab.orCreateBadge
+        badge.text = count.toString()
+        badge.isVisible = true
+    }
 
-        binding?.presetSectionTitle?.visibility = if (presets.isEmpty()) View.GONE else View.VISIBLE
-        binding?.pluginSectionTitle?.visibility = if (plugins.isEmpty()) View.GONE else View.VISIBLE
-        binding?.discoverEmpty?.visibility = if (presets.isEmpty() && plugins.isEmpty()) View.VISIBLE else View.GONE
-        binding?.marketSource?.text = viewModel.activeSource().name
-        renderGrid(binding?.presetContainer, presets) { card, entry ->
-            if (entry is DiscoverEntry.Preset) bindDiscoverPreset(card, entry.preset)
-        }
-        renderGrid(binding?.discoverContainer, plugins) { card, entry ->
-            when (entry) {
-                is DiscoverEntry.Ui -> bindDiscoverUi(card, entry.plugin, entry.installedVersion)
-                is DiscoverEntry.Dex -> bindDiscoverDex(card, entry.item)
-                is DiscoverEntry.Preset -> Unit
-            }
+    private fun clearSearchFocus() {
+        val b = binding ?: return
+        val imm = requireContext().getSystemService(android.view.inputmethod.InputMethodManager::class.java)
+        imm?.hideSoftInputFromWindow(b.searchEdit.windowToken, 0)
+        b.searchEdit.clearFocus()
+    }
+
+    private fun clearFilters() {
+        filters = MarketFilters()
+        query = ""
+        binding?.searchEdit?.setText("")
+        render()
+    }
+
+    private fun showFilters() {
+        MarketFilterSheet(requireContext(), selectedTab, filters) {
+            filters = it
+            render()
+        }.show()
+    }
+
+    // ---- Adapter callbacks ----
+
+    override fun onOpen(item: MarketItem) {
+        when (item) {
+            is MarketItem.Preset -> showPresetDetail(item)
+            is MarketItem.Ui -> showUiDetail(item)
+            is MarketItem.Dex -> showDexDetail(item)
+            is MarketItem.Builtin -> showBuiltinDetail(item)
+            is MarketItem.Apk -> showApkDetail(item)
+            is MarketItem.Section -> Unit
         }
     }
 
-    private fun bindDiscoverPreset(card: ItemMarketPluginCardBinding, preset: MarketPreset) {
-        val activeId = viewModel.activePresetId.value
-        val isActive = activeId == preset.id
-        card.name.text = preset.name
-        card.meta.text = buildString {
-            append("整合包")
-            preset.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
-            append(" · ").append(preset.refs().size).append(" 个插件")
-            if (isActive) append(" · 使用中")
+    override fun onAction(item: MarketItem) {
+        when (item) {
+            is MarketItem.Preset -> Unit
+            is MarketItem.Ui -> if (item.installed == null || item.update) installUi(item.plugin)
+            is MarketItem.Dex -> if (!item.item.installed || item.item.update) installDex(item.item.entry)
+            else -> Unit
         }
-        card.toggle.visibility = View.GONE
-        card.action.visibility = View.VISIBLE
-        card.action.text = when {
-            isActive -> "使用中"
-            activeId != null -> "切换"
-            else -> "应用"
-        }
-        card.action.isEnabled = !isActive
-        card.action.setOnClickListener { confirmApplyPreset(preset) }
-        card.root.setOnClickListener { showPresetPreview(preset) }
     }
 
-    private fun confirmApplyPreset(preset: MarketPreset) {
-        val previous = viewModel.activePresetId.value
-            ?.let { id -> latestPresets.firstOrNull { it.id == id } }
-            ?.takeIf { it.id != preset.id }
-        AlertDialog.Builder(requireContext())
-            .setTitle(preset.name)
-            .setMessage(
-                buildString {
-                    if (previous != null) {
-                        append("从「${previous.name}」切换到「${preset.name}」。\n\n")
-                    }
-                    append("将安装/启用 ${preset.refs().size} 个插件。")
-                    if (previous != null) {
-                        append("\n切换成功后会停用旧整合包中不属于新组合的插件；文件保留。")
-                    }
-                    append("\n\n未受信任的在线插件会被跳过；可先点卡片查看完整清单。")
+    override fun onToggle(item: MarketItem, checked: Boolean) {
+        when (item) {
+            is MarketItem.Ui -> item.installed?.let { viewModel.setUiPluginEnabled(it, checked) }
+            is MarketItem.Dex -> viewModel.setMarketEnabled(item.item.entry, checked)
+            is MarketItem.Builtin -> viewModel.setBuiltinEnabled(item.row, checked)
+            is MarketItem.Apk -> viewModel.setApkEnabled(item.plugin.packageName, checked)
+            else -> Unit
+        }
+    }
+
+    override fun onSectionAction(action: SectionAction) {
+        when (action) {
+            SectionAction.UPDATE_ALL -> viewModel.updateAll()
+            SectionAction.CLEAR_FILTERS -> clearFilters()
+        }
+    }
+
+    // ---- 详情 ----
+
+    private fun showUiDetail(item: MarketItem.Ui) {
+        val plugin = item.plugin
+        val installed = item.installed
+        val update = item.update
+        val verified = viewModel.isVerified(plugin.id)
+        val secondary = buildList {
+            if (installed != null) {
+                add(MarketDetailAction(getString(R.string.market_action_uninstall)) { confirmUninstallUi(installed) })
+                if (installed.enabled && update) {
+                    add(MarketDetailAction(getString(R.string.market_action_open)) { openUiPlugin(installed) })
+                } else if (!installed.enabled) {
+                    add(MarketDetailAction(getString(R.string.market_status_enabled)) {
+                        viewModel.setUiPluginEnabled(installed, true)
+                    })
                 }
-            )
-            .setPositiveButton(if (previous != null) "切换" else "应用") { _, _ ->
-                viewModel.applyPreset(preset)
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+        }
+        val primary = when {
+            installed == null -> MarketDetailAction(getString(R.string.market_action_install)) { installUi(plugin) }
+            update -> MarketDetailAction(getString(R.string.market_action_update)) { installUi(plugin) }
+            installed.enabled -> MarketDetailAction(getString(R.string.market_action_open)) { openUiPlugin(installed) }
+            else -> null
+        }
+        val meta = buildList {
+            plugin.size.takeIf { it > 0 }?.let { add(getString(R.string.market_detail_size, formatSize(it))) }
+            plugin.minHostApi?.let { add(getString(R.string.market_detail_api, it)) }
+            plugin.author?.takeIf { it.isNotBlank() }?.let { add(getString(R.string.market_detail_author, it)) }
+            plugin.updatedAt?.takeIf { it.isNotBlank() }?.let { add(getString(R.string.market_detail_updated, it)) }
+            if (installed != null) {
+                add("已安装 v${installed.version}")
+            }
+        }
+        MarketDetailSheet(
+            requireContext(),
+            MarketDetailModel(
+                title = plugin.name,
+                version = plugin.version,
+                kind = getString(R.string.market_kind_ui) + if (update) " · 可更新" else "",
+                description = plugin.description,
+                changelog = plugin.changelog,
+                meta = meta,
+                tags = plugin.tags.orEmpty(),
+                trustLabel = if (verified) {
+                    getString(R.string.market_detail_trust_verified)
+                } else {
+                    getString(R.string.market_detail_trust_unverified)
+                },
+                trustVerified = verified,
+                repo = plugin.repo,
+                logo = plugin.logo,
+                indexBase = viewModel.indexBase(),
+                primaryLabel = primary?.label,
+                primary = primary?.onClick,
+                secondary = secondary,
+            ),
+        ).show()
     }
 
-    private fun showPresetPreview(preset: MarketPreset) {
+    private fun showDexDetail(item: MarketItem.Dex) {
+        val entry = item.item.entry
+        val verified = viewModel.isVerified(entry.id)
+        val secondary = buildList {
+            if (item.item.installed) {
+                add(MarketDetailAction(getString(R.string.market_action_uninstall)) { confirmUninstallDex(entry) })
+            }
+        }
+        val primary = when {
+            !item.item.installed -> MarketDetailAction(getString(R.string.market_action_install)) {
+                installDex(entry)
+            }
+            item.item.update -> MarketDetailAction(getString(R.string.market_action_update)) {
+                installDex(entry)
+            }
+            else -> null
+        }
+        val meta = buildList {
+            add("API ${entry.apiVersion}")
+            entry.size.takeIf { it > 0 }?.let { add(getString(R.string.market_detail_size, formatSize(it))) }
+            entry.minHostApi?.let { add(getString(R.string.market_detail_api, it)) }
+            entry.author?.takeIf { it.isNotBlank() }?.let { add(getString(R.string.market_detail_author, it)) }
+            entry.updatedAt?.takeIf { it.isNotBlank() }?.let { add(getString(R.string.market_detail_updated, it)) }
+        }
+        MarketDetailSheet(
+            requireContext(),
+            MarketDetailModel(
+                title = entry.name,
+                version = entry.version,
+                kind = getString(R.string.market_kind_dex) + if (item.item.update) " · 可更新" else "",
+                description = entry.description,
+                changelog = entry.changelog,
+                meta = meta,
+                tags = entry.tags.orEmpty(),
+                trustLabel = if (verified) {
+                    getString(R.string.market_detail_trust_verified)
+                } else {
+                    getString(R.string.market_detail_trust_unverified)
+                },
+                trustVerified = verified,
+                repo = entry.repo,
+                logo = entry.logo,
+                indexBase = viewModel.indexBase(),
+                primaryLabel = primary?.label,
+                primary = primary?.onClick,
+                secondary = secondary,
+            ),
+        ).show()
+    }
+
+    private fun showPresetDetail(item: MarketItem.Preset) {
+        val preset = item.preset
         val builtin = latestBuiltin.associateBy { it.id }
         val uiInstalled = latestUiInstalled.associateBy { it.id }
-        val dexInstalled = latestDex.associateBy { it.entry.id }
         val uiAvailable = latestUiAvailable.associateBy { it.id }
+        val dexInstalled = latestDex.associateBy { it.entry.id }
         val dexAvailable = latestDex.associateBy { it.entry.id }
-
-        val lines = preset.refs().map { ref ->
+        val states = preset.refs().map { ref ->
             val (label, state) = when (ref.normalizedKind()) {
-                "builtin" -> ref.id to when {
-                    builtin[ref.id] == null -> "内置缺失"
-                    builtin.getValue(ref.id).installed -> "已启用"
-                    else -> "未启用"
+                "builtin" -> {
+                    val row = builtin[ref.id]
+                    (row?.name ?: ref.id) to when {
+                        row == null -> "内置缺失"
+                        row.installed -> "已启用"
+                        else -> "未启用"
+                    }
                 }
-                "ui" -> ref.id to when {
-                    ref.id in uiInstalled -> "已安装"
-                    ref.id in uiAvailable -> "未安装"
-                    else -> "索引缺失"
+                "ui" -> {
+                    val installed = uiInstalled[ref.id]
+                    val available = uiAvailable[ref.id]
+                    (available?.name ?: installed?.name ?: ref.id) to when {
+                        installed != null -> "已安装 v${installed.version}"
+                        available != null -> "未安装"
+                        else -> "索引缺失"
+                    }
                 }
-                "dex" -> ref.id to when {
-                    ref.id in dexInstalled -> "已安装"
-                    ref.id in dexAvailable -> "未安装"
-                    else -> "索引缺失"
+                "dex" -> {
+                    val installed = dexInstalled[ref.id]
+                    val available = dexAvailable[ref.id]
+                    (available?.entry?.name ?: installed?.entry?.name ?: ref.id) to when {
+                        installed?.installed == true -> "已安装 v${installed.entry.version}"
+                        available != null -> "未安装"
+                        else -> "索引缺失"
+                    }
                 }
                 else -> ref.id to "未知类型"
             }
-            "· $label  $state"
-        }.joinToString("\n")
-
-        val supportsIcs = preset.migration.orEmpty().contains("timetable.ics")
-        val parts = mutableListOf<String>()
-        preset.description?.takeIf { it.isNotBlank() }?.let { parts += it }
-        preset.repo?.takeIf { it.isNotBlank() }?.let { parts += "原仓库：$it" }
-        parts += "包含 ${preset.refs().size} 个插件：\n$lines"
-        preset.minHostApi?.let { parts += "需要宿主 API $it" }
-        parts += "应用时会安装缺失插件；未受信任的在线插件需要手动安装。"
-        if (supportsIcs) {
-            parts += "旧版课表可在 HITA_Android 中导出 ICS 后导入，不读取其私有数据库。"
+            "· $label — $state"
         }
-
-        val dialog = AlertDialog.Builder(requireContext())
-            .setTitle(preset.name)
-            .setMessage(parts.joinToString("\n\n"))
-            .setPositiveButton("应用") { _, _ -> viewModel.applyPreset(preset) }
-            .setNegativeButton(android.R.string.cancel, null)
-        if (supportsIcs) {
-            dialog.setNeutralButton("导入课表") { _, _ ->
-                startActivity(
-                    android.content.Intent(
-                        requireContext(),
-                        PresetMigrationActivity::class.java,
-                    )
-                )
-            }
+        val meta = buildList {
+            preset.source?.takeIf { it.isNotBlank() }?.let { add("来源 $it") }
+            add("包含 ${preset.refs().size} 个插件")
+            preset.minHostApi?.let { add(getString(R.string.market_detail_api, it)) }
+            if (item.active) add(getString(R.string.market_status_active))
         }
-        dialog.show()
+        val secondary = emptyList<MarketDetailAction>()
+        val primary = if (item.active) {
+            null
+        } else {
+            MarketDetailAction(
+                getString(
+                    if (latestActivePresetId == null) R.string.market_action_apply
+                    else R.string.market_action_switch,
+                ),
+            ) { viewModel.applyPreset(preset) }
+        }
+        MarketDetailSheet(
+            requireContext(),
+            MarketDetailModel(
+                title = preset.name,
+                version = preset.version,
+                kind = getString(R.string.market_kind_preset) + if (item.active) " · 使用中" else "",
+                description = preset.description,
+                changelog = null,
+                meta = meta,
+                tags = preset.tags.orEmpty(),
+                presetPlugins = states,
+                repo = preset.repo,
+                indexBase = viewModel.indexBase(),
+                primaryLabel = primary?.label,
+                primary = primary?.onClick,
+                secondary = secondary,
+            ),
+        ).show()
     }
 
-    private fun bindDiscoverUi(
-        card: ItemMarketPluginCardBinding,
-        plugin: UiMarketPlugin,
-        installedVersion: String?,
-    ) {
-        val update = installedVersion != null && PluginVersion.isNewer(plugin.version, installedVersion)
-        card.name.text = plugin.name
-        card.meta.text = buildString {
-            append("界面插件 · v").append(plugin.version)
-            if (update) append(" · 可更新")
-            val stat = latestStats[plugin.id]
-            val downloads = stat?.downloads ?: plugin.downloads
-            val active = stat?.activeUsers ?: plugin.activeUsers
-            if (downloads != null || active != null) {
-                append(" · ")
-                if (downloads != null) append("下载 ").append(downloads)
-                if (downloads != null && active != null) append(" · ")
-                if (active != null) append("活跃 ").append(active)
-            }
-        }
-        card.toggle.visibility = View.GONE
-        card.action.visibility = View.VISIBLE
-        card.action.text = when {
-            installedVersion == null -> getString(R.string.plugin_ui_install_action)
-            update -> getString(R.string.plugin_ui_update)
-            else -> "已安装"
-        }
-        card.action.isEnabled = installedVersion == null || update
-        card.action.setOnClickListener { installUi(plugin) }
-        card.root.setOnClickListener {
-            showDetails(
-                name = plugin.name,
-                version = plugin.version,
-                description = plugin.description,
-                changelog = plugin.changelog,
-                size = plugin.size,
-                minHostApi = plugin.minHostApi ?: 1,
-                author = plugin.author,
-                tags = plugin.tags,
-                repo = plugin.repo,
-                updatedAt = plugin.updatedAt,
-                actionLabel = card.action.text?.toString(),
-                action = if (card.action.isEnabled) ({ installUi(plugin) }) else null,
-            )
-        }
+    private fun showBuiltinDetail(item: MarketItem.Builtin) {
+        val row = item.row
+        val primary = MarketDetailAction(
+            getString(if (row.installed) R.string.market_action_disable else R.string.market_action_enable),
+        ) { viewModel.setBuiltinEnabled(row, !row.installed) }
+        MarketDetailSheet(
+            requireContext(),
+            MarketDetailModel(
+                title = row.name,
+                version = null,
+                kind = getString(R.string.market_kind_builtin),
+                description = null,
+                changelog = null,
+                meta = listOf(
+                    if (row.installed) getString(R.string.market_section_enabled)
+                    else getString(R.string.market_status_disabled),
+                ),
+                primaryLabel = primary.label,
+                primary = primary.onClick,
+            ),
+        ).show()
     }
 
-    private fun bindDiscoverDex(card: ItemMarketPluginCardBinding, item: PluginMarketViewModel.Item) {
-        card.name.text = item.entry.name
-        card.meta.text = "在线插件 · v${item.entry.version} · api ${item.entry.apiVersion}" +
-            if (item.update) " · 可更新" else ""
-        card.toggle.visibility = View.GONE
-        card.action.visibility = View.VISIBLE
-        card.action.text = when {
-            !item.installed -> getString(R.string.plugin_ui_install_action)
-            item.update -> getString(R.string.plugin_ui_update)
-            else -> "已安装"
+    private fun showApkDetail(item: MarketItem.Apk) {
+        val plugin = item.plugin
+        val verified = viewModel.isVerified(plugin.id)
+        val primary = MarketDetailAction(
+            getString(
+                if (item.enabled) R.string.market_action_open else R.string.market_status_enabled,
+            ),
+        ) {
+            if (item.enabled) openApk(plugin) else viewModel.setApkEnabled(plugin.packageName, true)
         }
-        card.action.isEnabled = !item.installed || item.update
-        card.action.setOnClickListener { installDex(item.entry) }
-        card.root.setOnClickListener {
-            showDetails(
-                name = item.entry.name,
-                version = item.entry.version,
-                description = item.entry.description,
-                changelog = item.entry.changelog,
-                size = item.entry.size,
-                minHostApi = item.entry.minHostApi ?: 1,
-                author = item.entry.author,
-                tags = item.entry.tags,
-                repo = item.entry.repo,
-                updatedAt = item.entry.updatedAt,
-                actionLabel = card.action.text?.toString(),
-                action = if (card.action.isEnabled) ({ installDex(item.entry) }) else null,
-            )
+        val secondary = buildList {
+            add(MarketDetailAction(getString(R.string.market_action_uninstall)) { uninstallApk(plugin) })
         }
+        MarketDetailSheet(
+            requireContext(),
+            MarketDetailModel(
+                title = plugin.name,
+                version = plugin.versionName,
+                kind = getString(R.string.market_kind_apk),
+                description = null,
+                changelog = null,
+                meta = listOf("API ${plugin.apiVersion}", plugin.packageName),
+                trustLabel = if (verified) {
+                    getString(R.string.market_detail_trust_verified)
+                } else {
+                    getString(R.string.market_detail_trust_unverified)
+                },
+                trustVerified = verified,
+                primaryLabel = primary.label,
+                primary = primary.onClick,
+                secondary = secondary,
+            ),
+        ).show()
     }
 
-    private sealed class MineEntry {
-        data class Ui(val plugin: InstalledUiPlugin, val update: Boolean) : MineEntry()
-        data class Dex(val item: PluginMarketViewModel.Item) : MineEntry()
-        data class Apk(val plugin: ApkPlugin) : MineEntry()
-    }
-
-    private fun renderMine() {
-        val availableUi = latestUiAvailable.associateBy { it.id }
-        val installedDex = latestDex.filter { it.installed }
-        val entries = mutableListOf<MineEntry>()
-        latestUiInstalled.forEach { plugin ->
-            val available = availableUi[plugin.id]
-            entries += MineEntry.Ui(
-                plugin,
-                available != null && PluginVersion.isNewer(available.version, plugin.version),
-            )
-        }
-        installedDex.forEach { entries += MineEntry.Dex(it) }
-        latestApk.forEach { entries += MineEntry.Apk(it) }
-
-        binding?.marketEmpty?.visibility = if (entries.isEmpty()) View.VISIBLE else View.GONE
-        val hasUpdates = entries.any {
-            (it is MineEntry.Ui && it.update) || (it is MineEntry.Dex && it.item.update)
-        } || latestPendingUpdates > 0
-        binding?.updateAll?.visibility = if (hasUpdates) View.VISIBLE else View.GONE
-
-        renderGrid(binding?.marketContainer, entries) { card, entry ->
-            when (entry) {
-                is MineEntry.Ui -> bindUiInstalled(card, entry.plugin, entry.update)
-                is MineEntry.Dex -> bindDexInstalled(card, entry.item)
-                is MineEntry.Apk -> bindApk(card, entry.plugin)
-            }
-        }
-    }
-
-    private fun bindUiInstalled(
-        card: ItemMarketPluginCardBinding,
-        plugin: InstalledUiPlugin,
-        update: Boolean,
-    ) {
-        card.name.text = plugin.name
-        card.meta.text = "界面插件 · v${plugin.version}" + if (update) " · 可更新" else ""
-        card.action.visibility = View.VISIBLE
-        card.action.text = getString(R.string.plugin_builtin_uninstall)
-        card.action.setOnClickListener {
-            AlertDialog.Builder(requireContext())
-                .setTitle(R.string.plugin_builtin_uninstall)
-                .setMessage(plugin.name)
-                .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.uninstallUiPlugin(plugin) }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-        }
-        card.toggle.visibility = View.VISIBLE
-        bindToggle(card, plugin.enabled) { enabled ->
-            viewModel.setUiPluginEnabled(plugin, enabled)
-        }
-        card.root.setOnClickListener {
-            if (!plugin.enabled) {
-                Toast.makeText(requireContext(), "插件已停用", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            startActivity(
-                android.content.Intent(
-                    requireContext(),
-                    com.stupidtree.hitax.uiplugin.PluginUiActivity::class.java,
-                ).putExtra(
-                    com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_PLUGIN_ID,
-                    plugin.id,
-                )
-            )
-        }
-    }
-
-    private fun bindDexInstalled(card: ItemMarketPluginCardBinding, item: PluginMarketViewModel.Item) {
-        card.name.text = item.entry.name
-        card.meta.text = "在线插件 · v${item.entry.version} · api ${item.entry.apiVersion}" +
-            if (item.update) " · 可更新" else ""
-        card.action.visibility = View.VISIBLE
-        card.action.text = "卸载"
-        card.action.setOnClickListener { viewModel.uninstall(item.entry) }
-        card.toggle.visibility = View.VISIBLE
-        bindToggle(card, item.enabled) { enabled ->
-            viewModel.setMarketEnabled(item.entry, enabled)
-        }
-    }
-
-    private fun bindApk(card: ItemMarketPluginCardBinding, plugin: ApkPlugin) {
-        val disabledKey = "apk:${plugin.packageName}"
-        card.name.text = plugin.name
-        card.meta.text = "独立 APK · v${plugin.versionName}"
-        card.action.visibility = View.VISIBLE
-        card.action.text = getString(R.string.plugin_builtin_uninstall)
-        card.action.setOnClickListener {
-            runCatching {
-                startActivity(
-                    android.content.Intent(
-                        android.content.Intent.ACTION_DELETE,
-                        android.net.Uri.parse("package:${plugin.packageName}"),
-                    )
-                )
-            }
-        }
-        card.toggle.visibility = View.VISIBLE
-        bindToggle(card, !PluginPrefs.isDisabled(requireContext(), disabledKey)) { enabled ->
-            viewModel.setApkEnabled(plugin.packageName, enabled)
-        }
-        card.root.setOnClickListener {
-            if (PluginPrefs.isDisabled(requireContext(), disabledKey)) {
-                Toast.makeText(requireContext(), "插件已停用", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val launch: () -> Unit = {
-                val intent = android.content.Intent()
-                    .setComponent(plugin.entry)
-                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                runCatching { requireContext().startActivity(intent) }
-                Unit
-            }
-            if (viewModel.isVerified(plugin.id)) launch() else confirmUntrusted(plugin.name, launch)
-        }
-    }
-
-    // ---- 通用 ----
-
-    private fun matches(query: String, vararg fields: String?): Boolean {
-        val q = query.trim()
-        if (q.isEmpty()) return true
-        return fields.any { it?.contains(q, ignoreCase = true) == true }
-    }
+    // ---- 动作 ----
 
     private fun installUi(plugin: UiMarketPlugin) {
-        AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setMessage(R.string.plugin_ui_warning)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 viewModel.installUiPluginFromUrl(plugin, viewModel.indexBase())
@@ -652,148 +631,132 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             .show(parentFragmentManager, "plugin_untrusted")
     }
 
-    private fun showDetails(
-        name: String,
-        version: String,
-        description: String?,
-        changelog: String?,
-        size: Long,
-        minHostApi: Int,
-        author: String? = null,
-        tags: List<String>? = null,
-        repo: String? = null,
-        updatedAt: String? = null,
-        actionLabel: String? = null,
-        action: (() -> Unit)? = null,
-    ) {
-        val parts = mutableListOf<String>()
-        parts += description?.takeIf { it.isNotBlank() }
-            ?: getString(R.string.plugin_details_no_description)
-        if (!changelog.isNullOrBlank()) {
-            parts += getString(R.string.plugin_details_changelog, changelog)
+    private fun openUiPlugin(plugin: InstalledUiPlugin) {
+        if (!plugin.enabled) {
+            Snackbar.make(bindingRef.root, "插件已停用", Snackbar.LENGTH_SHORT).show()
+            return
         }
-        if (size > 0) {
-            parts += getString(R.string.plugin_details_size, (size / 1024).toInt())
-        }
-        parts += getString(R.string.plugin_details_min_api, minHostApi)
-        if (!author.isNullOrBlank()) parts += getString(R.string.plugin_details_author, author)
-        if (!tags.isNullOrEmpty()) {
-            parts += getString(R.string.plugin_details_tags, tags.joinToString(" · "))
-        }
-        if (!updatedAt.isNullOrBlank()) {
-            parts += getString(R.string.plugin_details_updated, updatedAt)
-        }
-        val dialog = AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.plugin_details_title, name, version))
-            .setMessage(parts.joinToString("\n\n"))
-        if (action != null) {
-            if (actionLabel != null) {
-                dialog.setPositiveButton(actionLabel) { _, _ -> action() }
-            } else {
-                dialog.setPositiveButton(android.R.string.ok) { _, _ -> action() }
-            }
-            dialog.setNegativeButton(android.R.string.cancel, null)
-        } else {
-            dialog.setPositiveButton(android.R.string.ok) { _, _ -> }
-        }
-        if (!repo.isNullOrBlank()) {
-            dialog.setNeutralButton(R.string.plugin_details_repo) { _, _ ->
-                runCatching {
-                    startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(repo)))
-                }
-            }
-        }
-        dialog.show()
+        startActivity(
+            Intent(requireContext(), PluginUiActivity::class.java)
+                .putExtra(PluginUiActivity.EXTRA_PLUGIN_ID, plugin.id),
+        )
     }
 
-    private fun showSourceDialog() {
-        val sources = viewModel.sources.value.orEmpty()
-        val active = viewModel.activeSource()
-        val labels = sources.map {
-            it.name + if (it.url == active.url && it.name == active.name) "（当前）" else ""
-        }.toMutableList()
-        labels += getString(R.string.plugin_market_source_add)
-        val canRemove = sources.indexOfFirst { it.url == active.url && it.name == active.name } > 0
-        if (canRemove) labels += getString(R.string.plugin_market_source_remove)
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.plugin_market_source)
-            .setItems(labels.toTypedArray()) { _, which ->
-                when {
-                    which < sources.size -> viewModel.selectSource(sources[which])
-                    which == sources.size -> showAddSourceDialog()
-                    else -> viewModel.removeSource(active)
-                }
-            }
+    private fun openApk(plugin: ApkPlugin) {
+        val launch: () -> Unit = {
+            val intent = Intent()
+                .setComponent(plugin.entry)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            runCatching { requireContext().startActivity(intent) }
+            Unit
+        }
+        if (viewModel.isVerified(plugin.id)) launch() else confirmUntrusted(plugin.name, launch)
+    }
+
+    private fun confirmUninstallUi(plugin: InstalledUiPlugin) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.plugin_builtin_uninstall)
+            .setMessage(plugin.name)
+            .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.uninstallUiPlugin(plugin) }
+            .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
-    private fun showAddSourceDialog() {
-        val input = android.widget.EditText(requireContext()).apply {
-            hint = getString(R.string.plugin_market_source_hint)
-            setSingleLine(true)
-            setPadding(48, 32, 48, 32)
+    private fun confirmUninstallDex(entry: MarketPlugin) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.market_action_uninstall)
+            .setMessage(entry.name)
+            .setPositiveButton(android.R.string.ok) { _, _ -> viewModel.uninstall(entry) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun uninstallApk(plugin: ApkPlugin) {
+        runCatching {
+            startActivity(
+                Intent(Intent.ACTION_DELETE, Uri.parse("package:${plugin.packageName}")),
+            )
         }
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.plugin_market_source_add)
-            .setView(input)
+    }
+
+    private fun showSources() {
+        val sources = viewModel.sources.value.orEmpty()
+        if (sources.isEmpty()) return
+        MarketSourcesSheet(
+            requireContext(),
+            sources,
+            viewModel.activeSource(),
+            status,
+            object : MarketSourcesSheet.Listener {
+                override fun onSelect(source: MarketSource) {
+                    viewModel.selectSource(source)
+                }
+
+                override fun onRemove(source: MarketSource) {
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.market_source_remove_title)
+                        .setMessage(getString(R.string.market_source_remove_message, source.name))
+                        .setPositiveButton(R.string.market_source_remove) { _, _ ->
+                            viewModel.removeSource(source)
+                        }
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show()
+                }
+
+                override fun onAdd() = showAddSource()
+            },
+        ).show()
+    }
+
+    private fun showAddSource() {
+        val input = EditText(requireContext()).apply {
+            hint = getString(R.string.market_source_hint)
+            setSingleLine(true)
+            setPadding(dp(20), dp(8), dp(20), dp(8))
+        }
+        val container = FrameLayout(requireContext()).apply {
+            setPadding(dp(8), dp(4), dp(8), 0)
+            addView(input)
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.market_source_add)
+            .setView(container)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val error = viewModel.addSource("", input.text?.toString().orEmpty())
                 if (error != null) {
-                    Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+                    Snackbar.make(bindingRef.root, error, Snackbar.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
-    private fun <T> renderGrid(
-        container: LinearLayout?,
-        items: List<T>,
-        binder: (ItemMarketPluginCardBinding, T) -> Unit,
-    ) {
-        container ?: return
-        container.removeAllViews()
-        val inflater = LayoutInflater.from(requireContext())
-        items.chunked(2).forEach { pair ->
-            val row = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.HORIZONTAL
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                )
-            }
-            pair.forEach { item ->
-                val card = ItemMarketPluginCardBinding.inflate(inflater, row, false)
-                binder(card, item)
-                row.addView(
-                    card.root,
-                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
-                )
-            }
-            if (pair.size == 1) {
-                row.addView(View(requireContext()), LinearLayout.LayoutParams(0, 1, 1f))
-            }
-            container.addView(row)
+    private fun openUrl(url: String) {
+        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+    }
+
+    private fun formatSize(bytes: Long): String =
+        if (bytes >= 1024 * 1024) {
+            String.format(java.util.Locale.CHINA, "%.1f MB", bytes / 1024f / 1024f)
+        } else {
+            "${(bytes / 1024).coerceAtLeast(1)} KB"
         }
+
+    private fun textColor(attr: Int): Int =
+        com.google.android.material.color.MaterialColors.getColor(bindingRef.root, attr)
+
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density).toInt()
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.syncActivePreset()
+        viewModel.refresh()
     }
 
     companion object {
-        private const val KEY_MINE = "mine"
-        private const val KEY_TAB = "tab"
+        private const val UI_PREFS = "market_ui"
+        private const val KEY_TAB_V2 = "tab_v2"
         private const val KEY_QUERY = "query"
-
-        private const val TAB_DISCOVER = 0
-        private const val TAB_MINE = 1
-        private const val TAB_GUIDE = 2
-    }
-
-    private fun bindToggle(
-        card: ItemMarketPluginCardBinding,
-        checked: Boolean,
-        onChange: (Boolean) -> Unit,
-    ) {
-        card.toggle.setOnCheckedChangeListener(null)
-        card.toggle.isChecked = checked
-        card.toggle.setOnCheckedChangeListener { _, value -> onChange(value) }
     }
 }
