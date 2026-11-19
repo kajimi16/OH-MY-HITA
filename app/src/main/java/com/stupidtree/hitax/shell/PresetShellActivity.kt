@@ -16,6 +16,16 @@ import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -292,6 +302,7 @@ private fun HitaAndroidShell(
     }
     val selected = tabs.indexOfFirst { it.id == selectedId }.takeIf { it >= 0 } ?: 0
     var drawerOpen by remember { mutableStateOf(false) }
+    var tabEditorOpen by remember { mutableStateOf(false) }
     val hostApplication = shellContext.applicationContext as? HApplication
     val motion = remember(hostApplication) {
         hostApplication?.pluginHost?.service(MotionController.KEY)
@@ -358,6 +369,15 @@ private fun HitaAndroidShell(
             )
         }
     }
+    if (tabEditorOpen) {
+        ShellTabEditor(
+            onDismiss = { tabEditorOpen = false },
+            onSaved = {
+                tabEditorOpen = false
+                (shellContext as? android.app.Activity)?.recreate()
+            },
+        )
+    }
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
     Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize()) {
@@ -379,7 +399,11 @@ private fun HitaAndroidShell(
                         },
                     )
                     ShellTarget.NEWS -> ShellNewsPage()
-                    ShellTarget.MORE -> MorePage(service) { drawerOpen = true }
+                    ShellTarget.MORE -> MorePage(
+                        service,
+                        onOpenDrawer = { drawerOpen = true },
+                        onEditTabs = { tabEditorOpen = true },
+                    )
                     ShellTarget.UNAVAILABLE -> UnavailableShellPage(tab.title)
                     null -> Unit
                 }
@@ -1125,7 +1149,11 @@ private fun dayOfWeek(time: Long): Int {
 }
 
 @Composable
-private fun MorePage(service: TimetableService?, onOpenDrawer: () -> Unit) {
+private fun MorePage(
+    service: TimetableService?,
+    onOpenDrawer: () -> Unit,
+    onEditTabs: () -> Unit,
+) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { context.getSharedPreferences("local_eas_token", android.content.Context.MODE_PRIVATE) }
     val userName = remember {
@@ -1333,6 +1361,9 @@ private fun MorePage(service: TimetableService?, onOpenDrawer: () -> Unit) {
         }
         Spacer(Modifier.height(14.dp))
         MoreGroup("设置") {
+            MoreRow("编辑底栏", "拖拽排序、改名、换图标与隐藏", Icons.Default.Settings) {
+                onEditTabs()
+            }
             MoreToggleRow(
                 "课程提醒",
                 "上课前15分钟提醒",

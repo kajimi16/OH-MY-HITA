@@ -39,7 +39,7 @@
 
 - HITA-Android Shell 现在读取 `PresetLayoutStore.tabs`，不再固定 6 项；
   已支持排序、标题、隐藏与内置图标。
-- 仍缺：用户编辑 UI、未知 UI 插件 tab 的内容嵌入。
+- 用户编辑 UI 已实现拖拽/改名/内置图标/隐藏；仍缺未知 UI 插件 tab 的内容嵌入。
 
 ### 3.2 建议数据模型
 
@@ -325,7 +325,7 @@ satisfied / waiting / optional-missing / cycle / version-conflict / preset-unver
 
 | 阶段 | 内容 | 验收 |
 |---|---|---|
-| A | HITA-Android 消费 `tabs`；统一 HITA-L/Android layout | 已完成：6 tab 顺序/隐藏/改名设备验证通过；HITA-L 不回归；编辑 UI 待补 |
+| A | HITA-Android 消费 `tabs`；统一 HITA-L/Android layout | 已完成：6 tab 顺序/隐藏/改名与编辑 UI 设备验证通过；HITA-L 不回归 |
 | B | UI 插件 `requires`/`uiContract` + diagnostics | 缺失/循环/未验证有状态；不自动卸载 |
 | C | Motion 全角色 + ThemeOverride + Feedback 设置 UI | 系统缩放 0 时动画归零；静音不可绕过 |
 | D | 插件 chrome actions、通知设置入口 | 动作/标题/返回可验证；渠道设置跳转 |
