@@ -8,6 +8,7 @@
 | 文档 | 内容 |
 |---|---|
 | `../README.md` | 项目简介、下载、安装、当前版本与已知限制 |
+| `../API清单.md` | 教务接口调研记录（部分为历史手工验证，不是稳定契约） |
 | `porting-status.md` | 当前移植状态与历史验收摘要 |
 | `api/plugin-api.md` | 插件 API 契约 |
 | `api/timetable-appearance.md` | 课表外观 API |

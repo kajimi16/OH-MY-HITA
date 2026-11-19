@@ -1268,7 +1268,7 @@ Accept: */*
 
 ## Python 验证脚本
 
-- 脚本: [validate_login.py](validate_login.py)
+- 验证脚本未随仓库分发（避免携带真实登录态）；以下为当时手工验证记录。
 - 当前已验证内容
 - route 的来源
 - JSESSIONID 的来源与刷新
