@@ -239,8 +239,9 @@ private fun defaultShellTabs(): List<ShellTab> = listOf(
 private fun loadShellTabs(context: android.content.Context): List<ShellTab> {
     val stored = com.stupidtree.hitax.market.PresetLayoutStore.tabs(context)
     if (stored.isEmpty()) return defaultShellTabs()
-    val effective = stored.filter { it.visible != false || it.required == true }
-        .ifEmpty { stored }
+    val effective = stored.filter {
+        it.visible != false || it.required == true || it.id == "hita.more"
+    }.ifEmpty { stored }
     if (effective.isEmpty()) return defaultShellTabs()
     return effective.sortedBy { it.order }.map { spec ->
         val target = when (spec.id) {
@@ -279,9 +280,10 @@ private fun HitaAndroidShell(
 ) {
     val shellContext = androidx.compose.ui.platform.LocalContext.current
     val tabs = remember(shellContext) { loadShellTabs(shellContext) }
-    var selected by remember(tabs) {
-        mutableIntStateOf(tabs.indexOfFirst { it.id == "hita.timeline" }.takeIf { it >= 0 } ?: 0)
+    var selectedId by remember(tabs) {
+        mutableStateOf(tabs.firstOrNull { it.id == "hita.timeline" }?.id ?: tabs.firstOrNull()?.id)
     }
+    val selected = tabs.indexOfFirst { it.id == selectedId }.takeIf { it >= 0 } ?: 0
     var drawerOpen by remember { mutableStateOf(false) }
     val hostApplication = shellContext.applicationContext as? HApplication
     val motion = remember(hostApplication) {
@@ -413,7 +415,7 @@ private fun HitaAndroidShell(
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(22.dp))
                                     .clickable {
-                                        selected = index
+                                        selectedId = tab.id
                                         feedback?.play(FeedbackEvent.TAB)
                                     }
                                     .padding(horizontal = 8.dp, vertical = 4.dp),
