@@ -158,9 +158,10 @@ interface ThemeController {
 
 ## 5. 动效
 
-### 5.1 现状
+### 5.1 现状（2026-11-20 更新）
 
-API 9 有 `MotionController`，但只接入了 Shell tab 切换；抽屉、今日卡、时间表切周、市场进度仍硬编码。
+API 9 的 `MotionController` 已接入 tab 切换、抽屉、今日卡、时间表切周；
+市场进度窗口仍是局部实现。
 
 ### 5.2 建议角色化
 

@@ -62,6 +62,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -72,10 +73,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn as animFadeIn
-import androidx.compose.animation.fadeOut as animFadeOut
-import androidx.compose.animation.slideInHorizontally as animSlideIn
-import androidx.compose.animation.slideOutHorizontally as animSlideOut
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -83,6 +80,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -106,6 +104,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
@@ -119,6 +119,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.text.style.TextOverflow
 import com.stupidtree.hita.api.FeedbackEvent
 import com.stupidtree.hita.api.FeedbackService
+import com.stupidtree.hita.api.FeedbackSettings
 import com.stupidtree.hita.api.MotionController
 import com.stupidtree.hita.api.MotionEasing
 import com.stupidtree.hita.api.MotionTokens
@@ -209,6 +210,12 @@ private fun shellSecondary(): Color =
 private fun shellTertiary(): Color =
     if (isSystemInDarkTheme()) Color(0xFFAEB6C2) else Color(0xFF9CA3AF)
 
+private fun MotionEasing.toComposeEasing(): Easing = when (this) {
+    MotionEasing.EMPHASIZED -> LinearOutSlowInEasing
+    MotionEasing.LINEAR -> LinearEasing
+    else -> FastOutSlowInEasing
+}
+
 private enum class ShellTarget {
     TODO,
     TODAY,
@@ -296,11 +303,7 @@ private fun HitaAndroidShell(
     val feedback = remember(hostApplication) {
         hostApplication?.pluginHost?.service(FeedbackService.KEY)
     }
-    val tabEasing = when (motionTokens.easing) {
-        MotionEasing.EMPHASIZED -> LinearOutSlowInEasing
-        MotionEasing.LINEAR -> LinearEasing
-        else -> FastOutSlowInEasing
-    }
+    val tabEasing = motionTokens.easing.toComposeEasing()
     val tabSpec = tween<Float>(
         durationMillis = if (motionTokens.enabled) motionTokens.durationShortMs else 0,
         easing = tabEasing,
@@ -367,8 +370,8 @@ private fun HitaAndroidShell(
                 val tab = tabs.getOrNull(index)
                 when (tab?.target) {
                     ShellTarget.TODO -> HomeworkScreen(homeworkViewModel)
-                    ShellTarget.TODAY -> TodayPage(service)
-                    ShellTarget.TIMETABLE -> TimetablePage(service)
+                    ShellTarget.TODAY -> TodayPage(service, motionTokens)
+                    ShellTarget.TIMETABLE -> TimetablePage(service, motionTokens)
                     ShellTarget.ASSISTANT -> AgentChatScreen(
                         agentViewModel,
                         remember(service) {
@@ -441,12 +444,12 @@ private fun HitaAndroidShell(
             }
         }
     }
-    ShellDrawerOverlay(drawerOpen) { drawerOpen = false }
+    ShellDrawerOverlay(drawerOpen, motionTokens) { drawerOpen = false }
     }
 }
 
 @Composable
-private fun ShellDrawerOverlay(open: Boolean, onClose: () -> Unit) {
+private fun ShellDrawerOverlay(open: Boolean, motionTokens: MotionTokens, onClose: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val eas = remember {
         (context.applicationContext as? HApplication)?.pluginHost?.service(
@@ -478,11 +481,17 @@ private fun ShellDrawerOverlay(open: Boolean, onClose: () -> Unit) {
         }
         onClose()
     }
+    val drawerDuration = if (motionTokens.enabled) motionTokens.durationMediumMs else 0
+    val drawerEasing = motionTokens.easing.toComposeEasing()
     AnimatedVisibility(
         visible = open,
         modifier = Modifier.fillMaxSize(),
-        enter = animSlideIn { it } + animFadeIn(),
-        exit = animSlideOut { it } + animFadeOut(),
+        enter = slideInHorizontally(
+            animationSpec = tween<IntOffset>(durationMillis = drawerDuration, easing = drawerEasing),
+        ) { it } + fadeIn(tween<Float>(durationMillis = drawerDuration, easing = drawerEasing)),
+        exit = slideOutHorizontally(
+            animationSpec = tween<IntOffset>(durationMillis = drawerDuration, easing = drawerEasing),
+        ) { it } + fadeOut(tween<Float>(durationMillis = drawerDuration, easing = drawerEasing)),
     ) {
         Box(Modifier.fillMaxSize()) {
             Box(
@@ -666,7 +675,7 @@ private fun UnavailableShellPage(title: String) {
 }
 
 @Composable
-private fun TodayPage(service: TimetableService?) {
+private fun TodayPage(service: TimetableService?, motionTokens: MotionTokens) {
     val dateText = remember { SimpleDateFormat("M月d日 EEE", Locale.CHINA).format(Date()) }
     var events by remember(service) {
         mutableStateOf<List<com.stupidtree.hitax.data.model.timetable.EventItem>>(emptyList())
@@ -688,7 +697,14 @@ private fun TodayPage(service: TimetableService?) {
             else -> "${minutes}分钟后进行"
         }
     }
-    val arrowRotation by animateFloatAsState(if (expanded) 180f else 0f, label = "todayArrow")
+    val arrowRotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = tween<Float>(
+            durationMillis = if (motionTokens.enabled) motionTokens.durationShortMs else 0,
+            easing = motionTokens.easing.toComposeEasing(),
+        ),
+        label = "todayArrow",
+    )
     Column(Modifier.fillMaxSize().padding(start = 16.dp, end = 16.dp, top = 20.4.dp)) {
         Text(
             dateText,
@@ -760,10 +776,16 @@ private fun TodayPage(service: TimetableService?) {
                     modifier = Modifier.align(Alignment.End).padding(end = 16.dp).size(44.dp)
                         .rotate(arrowRotation),
                 )
+                val panelDuration = if (motionTokens.enabled) motionTokens.durationMediumMs else 0
+                val panelEasing = motionTokens.easing.toComposeEasing()
                 AnimatedVisibility(
                     visible = expanded,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut(),
+                    enter = expandVertically(
+                        animationSpec = tween<IntSize>(durationMillis = panelDuration, easing = panelEasing),
+                    ) + fadeIn(tween<Float>(durationMillis = panelDuration, easing = panelEasing)),
+                    exit = shrinkVertically(
+                        animationSpec = tween<IntSize>(durationMillis = panelDuration, easing = panelEasing),
+                    ) + fadeOut(tween<Float>(durationMillis = panelDuration, easing = panelEasing)),
                 ) {
                     Row(
                         Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
@@ -865,7 +887,7 @@ private fun TodayEventRow(event: EventItem, onClick: () -> Unit) {
 }
 
 @Composable
-private fun TimetablePage(service: TimetableService?) {
+private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens) {
     val timetableLive = remember(service) {
         service?.getRecentTimetable()
             ?: androidx.lifecycle.MutableLiveData<com.stupidtree.hitax.data.model.timetable.Timetable?>(null)
@@ -990,8 +1012,18 @@ private fun TimetablePage(service: TimetableService?) {
                 targetState = week,
                 transitionSpec = {
                     val forward = targetState > initialState
-                    (slideInHorizontally { if (forward) it / 5 else -it / 5 } + fadeIn()) togetherWith
-                        (slideOutHorizontally { if (forward) -it / 5 else it / 5 } + fadeOut())
+                    val duration = if (motionTokens.enabled) motionTokens.durationMediumMs else 0
+                    val easing = motionTokens.easing.toComposeEasing()
+                    (slideInHorizontally(
+                        animationSpec = tween<IntOffset>(durationMillis = duration, easing = easing),
+                    ) { if (forward) it / 5 else -it / 5 } + fadeIn(
+                        tween<Float>(durationMillis = duration, easing = easing),
+                    )) togetherWith
+                        (slideOutHorizontally(
+                            animationSpec = tween<IntOffset>(durationMillis = duration, easing = easing),
+                        ) { if (forward) -it / 5 else it / 5 } + fadeOut(
+                            tween<Float>(durationMillis = duration, easing = easing),
+                        ))
                 },
                 label = "timetable_week",
             ) { animatedWeek ->
@@ -1138,6 +1170,12 @@ private fun MorePage(service: TimetableService?, onOpenDrawer: () -> Unit) {
     }
     var usageEnabled by remember {
         mutableStateOf(com.stupidtree.hitax.data.source.preference.UsageStatsStore.isEnabled(context))
+    }
+    val feedback = remember {
+        (context.applicationContext as? HApplication)?.pluginHost?.service(FeedbackService.KEY)
+    }
+    var feedbackSettings by remember {
+        mutableStateOf(feedback?.settings() ?: FeedbackSettings())
     }
     val notificationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -1314,6 +1352,42 @@ private fun MorePage(service: TimetableService?, onOpenDrawer: () -> Unit) {
                     if (enabled) "实时课程已开启" else "实时课程已关闭",
                     android.widget.Toast.LENGTH_SHORT,
                 ).show()
+            }
+            MoreToggleRow(
+                "界面音效",
+                "点击与切换的反馈音",
+                Icons.Default.Notifications,
+                feedbackSettings.soundEnabled,
+            ) { enabled ->
+                val next = feedbackSettings.copy(soundEnabled = enabled)
+                feedback?.updateSettings(next)
+                feedbackSettings = next
+                if (enabled) feedback?.play(FeedbackEvent.CLICK)
+            }
+            MoreToggleRow(
+                "触感反馈",
+                "轻触与操作振动",
+                Icons.Default.PlayArrow,
+                feedbackSettings.hapticEnabled,
+            ) { enabled ->
+                val next = feedbackSettings.copy(hapticEnabled = enabled)
+                feedback?.updateSettings(next)
+                feedbackSettings = next
+                if (enabled) feedback?.haptic(com.stupidtree.hita.api.HapticType.LIGHT)
+            }
+            if (feedbackSettings.soundEnabled) {
+                Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 18.dp, top = 2.dp, bottom = 8.dp)) {
+                    Text("界面音量 ${(feedbackSettings.volume * 100).toInt()}%", fontSize = 13.sp, color = shellSecondary())
+                    Slider(
+                        value = feedbackSettings.volume,
+                        onValueChange = { value ->
+                            val next = feedbackSettings.copy(volume = value)
+                            feedbackSettings = next
+                            feedback?.updateSettings(next)
+                        },
+                        valueRange = 0f..1f,
+                    )
+                }
             }
             MoreToggleRow(
                 "使用统计",
