@@ -40,6 +40,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
     private var selectedTab = 0
     private var switchDialog: AlertDialog? = null
     private var switchProgressBar: android.widget.ProgressBar? = null
+    private var switchDialogContent: android.view.View? = null
     private var switchMessageView: android.widget.TextView? = null
     private fun uiPrefs() =
         requireContext().getSharedPreferences("market_ui", android.content.Context.MODE_PRIVATE)
@@ -94,8 +95,7 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
         }
         viewModel.applyProgress.observe(this) { progress ->
             if (progress == null) {
-                switchDialog?.dismiss()
-                switchDialog = null
+                dismissSwitchProgress()
             } else {
                 showSwitchProgress(progress)
             }
@@ -158,20 +158,73 @@ class FragmentPluginMarket : BaseFragment<PluginMarketViewModel, FragmentPluginM
             container.addView(label)
             switchProgressBar = bar
             switchMessageView = label
+            switchDialogContent = container
             switchDialog = AlertDialog.Builder(requireContext())
                 .setTitle("切换整合包")
                 .setView(container)
                 .setCancelable(false)
                 .create()
-                .also { it.show() }
+                .also { dialog ->
+                    dialog.setOnShowListener {
+                        val tokens = (requireContext().applicationContext as? com.stupidtree.hitax.HApplication)
+                            ?.pluginHost
+                            ?.service(com.stupidtree.hita.api.MotionController.KEY)
+                            ?.tokens()
+                        val duration = if (tokens?.enabled == true) tokens.durationShortMs.toLong() else 0L
+                        container.alpha = 0f
+                        container.scaleX = 0.96f
+                        container.scaleY = 0.96f
+                        container.animate()
+                            .alpha(1f)
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(duration)
+                            .setInterpolator(android.view.animation.DecelerateInterpolator())
+                            .start()
+                    }
+                    dialog.show()
+                }
         }
         switchProgressBar?.progress = progress.percent
         switchMessageView?.text = progress.message
     }
 
+    private fun dismissSwitchProgress() {
+        val dialog = switchDialog ?: return
+        switchDialog = null
+        val content = switchDialogContent
+        switchDialogContent = null
+        switchProgressBar = null
+        switchMessageView = null
+        if (content == null) {
+            dialog.dismiss()
+            return
+        }
+        val tokens = (requireContext().applicationContext as? com.stupidtree.hitax.HApplication)
+            ?.pluginHost
+            ?.service(com.stupidtree.hita.api.MotionController.KEY)
+            ?.tokens()
+        val duration = if (tokens?.enabled == true) tokens.durationShortMs.toLong() else 0L
+        if (duration == 0L) {
+            dialog.dismiss()
+            return
+        }
+        content.animate()
+            .alpha(0f)
+            .scaleX(0.96f)
+            .scaleY(0.96f)
+            .setDuration(duration)
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
+            .withEndAction { runCatching { dialog.dismiss() } }
+            .start()
+    }
+
     override fun onDestroyView() {
         switchDialog?.dismiss()
         switchDialog = null
+        switchDialogContent = null
+        switchProgressBar = null
+        switchMessageView = null
         super.onDestroyView()
     }
 
