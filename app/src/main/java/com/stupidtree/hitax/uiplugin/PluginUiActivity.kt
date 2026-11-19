@@ -40,6 +40,15 @@ class PluginUiActivity : AppCompatActivity() {
             Toast.makeText(this, "插件已停用", Toast.LENGTH_SHORT).show()
             finish(); return
         }
+        val compatibility = UiPluginManager(this).compatibility(record)
+        if (!compatibility.satisfied) {
+            Toast.makeText(
+                this,
+                "插件依赖未满足：${compatibility.reasons.joinToString("；")}",
+                Toast.LENGTH_LONG,
+            ).show()
+            finish(); return
+        }
         try {
             val instance = UiPluginManager(this).instantiate(record)
             plugin = instance

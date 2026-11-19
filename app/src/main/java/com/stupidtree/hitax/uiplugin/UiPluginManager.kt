@@ -41,6 +41,7 @@ class UiPluginManager(private val context: Context) {
 
     /** 所有启用插件贡献的主界面 tab，按 order 排序。 */
     fun mainTabs(): List<InstalledMainTab> = enabled()
+        .filter { compatibility(it).satisfied }
         .flatMap { plugin ->
             val tabs = plugin.mainTabs ?: if (
                 com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB in plugin.capabilities
@@ -86,8 +87,66 @@ class UiPluginManager(private val context: Context) {
      * 损坏的插件直接停用并返回 null，让调用方回退内置页面，而不是等
      * [com.stupidtree.hitax.uiplugin.PluginUiActivity] 打开后才失败。
      */
+    /**
+     * 校验 UI 插件的服务/插件/preset 依赖。缺 required 依赖时不参与路由；
+     * optional 缺失或 preset 未验证时仍可运行，但标记 degraded。
+     */
+    fun compatibility(record: InstalledUiPlugin): UiCompatibility {
+        val app = context.applicationContext as? com.stupidtree.hitax.HApplication
+        val installedById = installed().associateBy { it.id }
+        val reasons = mutableListOf<String>()
+        var optionalMissing = false
+
+        record.requiresServices.orEmpty().sorted().forEach { service ->
+            if (app?.pluginHost?.hasService(service) != true) {
+                reasons += "缺少服务 $service"
+            }
+        }
+        record.requiresPlugins.orEmpty().forEach { requirement ->
+            val dep = installedById[requirement.id]
+            val present = dep != null && dep.enabled
+            val versionOk = present && (requirement.minVersion == null ||
+                com.stupidtree.hitax.market.PluginVersion.compare(
+                    dep?.version.orEmpty(), requirement.minVersion,
+                ) >= 0)
+            if (!present || !versionOk) {
+                if (requirement.optional) {
+                    optionalMissing = true
+                    reasons += "可选依赖未满足：${requirement.id}"
+                } else {
+                    reasons += "缺少依赖：${requirement.id}"
+                }
+            }
+        }
+
+        val activePreset = com.stupidtree.hitax.market.PresetStateStore.activeId(context)
+        val target = (record.uiContract ?: UiPluginContract()).targetPreset
+        val supported = (record.uiContract ?: UiPluginContract()).supportedPresets
+        val presetVerified = target == null || target == activePreset ||
+            (supported.isNotEmpty() && activePreset in supported)
+        if (!presetVerified) reasons += "未验证的整合包：$activePreset"
+
+        val requiredMissing = record.requiresServices.orEmpty().any { service ->
+            app?.pluginHost?.hasService(service) != true
+        } || record.requiresPlugins.orEmpty().any { requirement ->
+            if (requirement.optional) false else {
+                val dep = installedById[requirement.id]
+                dep == null || !dep.enabled || (requirement.minVersion != null &&
+                    com.stupidtree.hitax.market.PluginVersion.compare(
+                        dep.version, requirement.minVersion,
+                    ) < 0)
+            }
+        }
+        return UiCompatibility(
+            satisfied = !requiredMissing,
+            degraded = optionalMissing || !presetVerified,
+            presetVerified = presetVerified,
+            reasons = reasons,
+        )
+    }
+
     fun resolveForCapability(capability: String): InstalledUiPlugin? =
-        enabled().firstOrNull { capability in it.capabilities }
+        enabled().firstOrNull { capability in it.capabilities && compatibility(it).satisfied }
 
     fun isUsable(record: InstalledUiPlugin): Boolean = runCatching {
         val apk = File(record.apkPath)
@@ -117,6 +176,16 @@ class UiPluginManager(private val context: Context) {
         val minHostApi: Int? = null,
         val maxHostApi: Int? = null,
         val apiAbi: String? = null,
+        val requiresServices: Set<String> = emptySet(),
+        val requiresPlugins: List<UiPluginRequirement> = emptyList(),
+        val uiContract: UiPluginContract = UiPluginContract(),
+    )
+
+    data class UiCompatibility(
+        val satisfied: Boolean,
+        val degraded: Boolean,
+        val presetVerified: Boolean,
+        val reasons: List<String> = emptyList(),
     )
 
     private fun requireValidId(id: String) {
@@ -210,6 +279,9 @@ class UiPluginManager(private val context: Context) {
                 apkPath = apk.absolutePath,
                 sha256 = actual,
                 capabilities = meta.capabilities,
+                requiresServices = meta.requiresServices,
+                requiresPlugins = meta.requiresPlugins,
+                uiContract = meta.uiContract,
                 mainTabs = meta.mainTabs.ifEmpty {
                     if (com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB in meta.capabilities) {
                         listOf(
@@ -294,6 +366,29 @@ class UiPluginManager(private val context: Context) {
                 minHostApi = obj.get("minHostApi")?.asInt,
                 maxHostApi = obj.get("maxHostApi")?.asInt,
                 apiAbi = obj.get("apiAbi")?.asString,
+                requiresServices = obj.getAsJsonObject("requires")
+                    ?.getAsJsonArray("services")
+                    ?.mapNotNull { it.asString }?.toSet() ?: emptySet(),
+                requiresPlugins = obj.getAsJsonObject("requires")
+                    ?.getAsJsonArray("plugins")
+                    ?.mapNotNull { element ->
+                        runCatching {
+                            val item = element.asJsonObject
+                            UiPluginRequirement(
+                                id = item.get("id")?.asString ?: return@runCatching null,
+                                minVersion = item.get("minVersion")?.asString,
+                                optional = item.get("optional")?.asBoolean ?: false,
+                            )
+                        }.getOrNull()
+                    }.orEmpty(),
+                uiContract = obj.getAsJsonObject("uiContract")?.let { contract ->
+                    UiPluginContract(
+                        targetPreset = contract.get("targetPreset")?.asString,
+                        supportedPresets = contract.getAsJsonArray("supportedPresets")
+                            ?.mapNotNull { it.asString } ?: emptyList(),
+                        layoutVersion = contract.get("layoutVersion")?.asInt,
+                    )
+                } ?: UiPluginContract(),
                 mainTabs = obj.getAsJsonArray("mainTabs")
                     ?.mapNotNull { element ->
                         runCatching {

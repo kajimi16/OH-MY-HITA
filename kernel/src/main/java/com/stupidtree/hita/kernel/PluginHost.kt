@@ -234,6 +234,9 @@ class PluginHost(
 
     fun isInstalled(pluginId: String): Boolean = installedPlugins.containsKey(pluginId)
 
+    /** 按 ServiceKey.name 查询当前可用服务，供运行时元数据依赖校验。 */
+    fun hasService(name: String): Boolean = name in availableServices
+
     /** 插件已提交但仍在等待 requires 中的服务。 */
     fun isWaiting(pluginId: String): Boolean = pendingPlugins.containsKey(pluginId)
 

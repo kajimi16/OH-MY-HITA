@@ -272,6 +272,27 @@ interface ComposeUiPlugin {
 }
 ```
 
+- 可选依赖与界面契约：
+
+  ```json
+  {
+    "requires": {
+      "services": ["hita.eas"],
+      "plugins": [
+        {"id": "com.example.base", "minVersion": "0.2.0", "optional": false}
+      ]
+    },
+    "uiContract": {
+      "targetPreset": "hita-android-3.1.2",
+      "supportedPresets": ["hita-android-3.1.2"],
+      "layoutVersion": 1
+    }
+  }
+  ```
+
+  `requires.services` 缺失会让插件不参与路由；required 插件依赖缺失同样阻止路由；
+  optional 依赖或未验证 preset 只标记 degraded，不自动卸载。宿主通过
+  `UiPluginManager.compatibility()` 返回原因，并在直接打开时拒绝不满足的插件。
 - 宿主按 `capabilities` 路由：声明了对应能力的插件启用时优先接管，返回 `false` 或插件损坏时回退内置页面。
 - `mainTabs` 可选，支持多个主界面 tab：
   ```json

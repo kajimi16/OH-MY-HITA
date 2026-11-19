@@ -123,11 +123,10 @@
 
 ### 不可自定义
 
-- UI 插件没有 `requires`；缺服务只能拿到 `null`。
-- 没有插件 id 依赖、版本范围、可选依赖、循环检测。
-- 没有 `requiresPreset` / `supportedPresets` / `layoutVersion` / `targetShell`。
-- 插件不能声明“基于 HITA-Android 3.1.2 界面开发”，宿主不能提示“未验证”。
-- 切换整合包不会对已安装 UI 插件做 UI 合约检查。
+- UI 插件已支持可选的 `requires.services` / `requires.plugins` 和
+  `uiContract.targetPreset/supportedPresets/layoutVersion`。
+- required 依赖不满足时不参与路由；optional 缺失或 preset 未验证标记 degraded。
+- 仍缺：UI 插件依赖图的可视化诊断、用户可见的“未验证”提示、自动重试激活。
 
 证据：
 

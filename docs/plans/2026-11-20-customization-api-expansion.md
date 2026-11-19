@@ -325,7 +325,7 @@ satisfied / waiting / optional-missing / cycle / version-conflict / preset-unver
 | 阶段 | 内容 | 验收 |
 |---|---|---|
 | A | HITA-Android 消费 `tabs`；统一 HITA-L/Android layout | 已完成：6 tab 顺序/隐藏/改名与编辑 UI 设备验证通过；HITA-L 不回归 |
-| B | UI 插件 `requires`/`uiContract` + diagnostics | 缺失/循环/未验证有状态；不自动卸载 |
+| B | UI 插件 `requires`/`uiContract` + diagnostics | 已实现服务/插件依赖与 preset 软校验；依赖图 UI/自动重试待补 |
 | C | Motion 全角色 + ThemeOverride + Feedback 设置 UI | 系统缩放 0 时动画归零；静音不可绕过 |
 | D | 插件 chrome actions、通知设置入口 | 动作/标题/返回可验证；渠道设置跳转 |
 
