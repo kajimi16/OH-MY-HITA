@@ -15,6 +15,7 @@
 | `api/usage.md` | 使用统计与市场人数接口 |
 | `plugin-roadmap.md` | 微内核/插件体系设计路线图（部分已完成） |
 | `plans/2026-11-20-0.8.0-motion-sound-dependencies.md` | 0.8.0 动效/音效/插件依赖调研 |
+| `plans/2026-11-20-customization-gaps.md` | 当前不可自定义能力与优先级 |
 
 ## 历史计划
 
