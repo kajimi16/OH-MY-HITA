@@ -149,7 +149,7 @@
 ## 8. 建议优先级
 
 1. **P0 布局契约**：HITA-Android Shell 已消费 `PresetLayoutStore.tabs`；
-   下一步补编辑 UI、未知 UI 插件 tab 的内容嵌入。
+   编辑 UI 已实现；下一步补自定义图片图标、未知 UI 插件 tab 的内容嵌入。
 2. **P1 UI 依赖/整合包绑定**：`requires.plugins`、`uiContract.targetPreset`；
    软兼容提示，不自动卸载。
 3. **P1 Motion 剩余项**：市场进度、自定义 profile/曲线、逐页覆盖。
