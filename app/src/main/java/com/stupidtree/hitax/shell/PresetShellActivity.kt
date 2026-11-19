@@ -233,6 +233,7 @@ private enum class ShellTarget {
     ASSISTANT,
     NEWS,
     MORE,
+    PLUGIN,
     UNAVAILABLE,
 }
 
@@ -241,6 +242,7 @@ private data class ShellTab(
     val title: String,
     val iconRes: Int,
     val target: ShellTarget,
+    val pluginTab: com.stupidtree.hita.api.MainTabSpec? = null,
 )
 
 private fun defaultShellTabs(): List<ShellTab> = listOf(
@@ -260,7 +262,13 @@ private fun loadShellTabs(context: android.content.Context): List<ShellTab> {
         it.visible != false || it.required == true || it.id == "hita.more"
     }.ifEmpty { stored }
     if (effective.isEmpty()) return defaultShellTabs()
+    val pluginTabs = runCatching {
+        com.stupidtree.hitax.uiplugin.UiPluginManager(context).mainTabs()
+    }.getOrDefault(emptyList())
     return effective.sortedBy { it.order }.map { spec ->
+        val pluginTab = pluginTabs.firstOrNull {
+            it.plugin.id == spec.id || it.spec.id == spec.id
+        }
         val target = when (spec.id) {
             "com.stupidtree.hita.ui.homework" -> ShellTarget.TODO
             "hita.timeline" -> ShellTarget.TODAY
@@ -268,7 +276,7 @@ private fun loadShellTabs(context: android.content.Context): List<ShellTab> {
             "com.stupidtree.hita.ui.ai" -> ShellTarget.ASSISTANT
             "com.stupidtree.hita.ui.news" -> ShellTarget.NEWS
             "hita.more" -> ShellTarget.MORE
-            else -> ShellTarget.UNAVAILABLE
+            else -> if (pluginTab != null) ShellTarget.PLUGIN else ShellTarget.UNAVAILABLE
         }
         val fallbackIcon = when (target) {
             ShellTarget.TODO -> R.drawable.ic_baseline_check_24
@@ -277,6 +285,7 @@ private fun loadShellTabs(context: android.content.Context): List<ShellTab> {
             ShellTarget.ASSISTANT -> R.drawable.ic_baseline_toys_24
             ShellTarget.NEWS -> R.drawable.ic_nav_blog
             ShellTarget.MORE -> R.drawable.ic_nav_navigation
+            ShellTarget.PLUGIN -> R.drawable.ic_nav_plugin
             ShellTarget.UNAVAILABLE -> R.drawable.ic_nav_plugin
         }
         ShellTab(
@@ -285,6 +294,7 @@ private fun loadShellTabs(context: android.content.Context): List<ShellTab> {
             iconRes = com.stupidtree.hitax.market.BuiltinTabIcons.resolve(spec.iconAsset)
                 ?: fallbackIcon,
             target = target,
+            pluginTab = pluginTab?.spec,
         )
     }
 }
@@ -404,6 +414,9 @@ private fun HitaAndroidShell(
                         onOpenDrawer = { drawerOpen = true },
                         onEditTabs = { tabEditorOpen = true },
                     )
+                    ShellTarget.PLUGIN -> tab.pluginTab?.let {
+                        RuntimeUiTabPage(tab.id, it, tab.title)
+                    } ?: UnavailableShellPage(tab.title)
                     ShellTarget.UNAVAILABLE -> UnavailableShellPage(tab.title)
                     null -> Unit
                 }

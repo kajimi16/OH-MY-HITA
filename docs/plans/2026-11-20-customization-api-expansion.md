@@ -39,7 +39,7 @@
 
 - HITA-Android Shell 现在读取 `PresetLayoutStore.tabs`，不再固定 6 项；
   已支持排序、标题、隐藏与内置图标。
-- 用户编辑 UI 已实现拖拽/改名/内置图标/隐藏；仍缺未知 UI 插件 tab 的内容嵌入。
+- 用户编辑 UI 已实现拖拽/改名/内置图标/隐藏；未知 UI 插件 tab 已通过 PluginUiHost 内嵌。
 
 ### 3.2 建议数据模型
 
