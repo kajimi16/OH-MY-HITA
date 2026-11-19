@@ -72,7 +72,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -129,7 +128,6 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.text.style.TextOverflow
 import com.stupidtree.hita.api.FeedbackEvent
 import com.stupidtree.hita.api.FeedbackService
-import com.stupidtree.hita.api.FeedbackSettings
 import com.stupidtree.hita.api.MotionController
 import com.stupidtree.hita.api.MotionEasing
 import com.stupidtree.hita.api.MotionTokens
@@ -312,7 +310,6 @@ private fun HitaAndroidShell(
     }
     val selected = tabs.indexOfFirst { it.id == selectedId }.takeIf { it >= 0 } ?: 0
     var drawerOpen by remember { mutableStateOf(false) }
-    var tabEditorOpen by remember { mutableStateOf(false) }
     val hostApplication = shellContext.applicationContext as? HApplication
     val motion = remember(hostApplication) {
         hostApplication?.pluginHost?.service(MotionController.KEY)
@@ -379,15 +376,6 @@ private fun HitaAndroidShell(
             )
         }
     }
-    if (tabEditorOpen) {
-        ShellTabEditor(
-            onDismiss = { tabEditorOpen = false },
-            onSaved = {
-                tabEditorOpen = false
-                (shellContext as? android.app.Activity)?.recreate()
-            },
-        )
-    }
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
     Box(Modifier.fillMaxSize()) {
     Column(Modifier.fillMaxSize()) {
@@ -412,7 +400,6 @@ private fun HitaAndroidShell(
                     ShellTarget.MORE -> MorePage(
                         service,
                         onOpenDrawer = { drawerOpen = true },
-                        onEditTabs = { tabEditorOpen = true },
                     )
                     ShellTarget.PLUGIN -> tab.pluginTab?.let {
                         RuntimeUiTabPage(tab.id, it, tab.title)
@@ -1165,7 +1152,6 @@ private fun dayOfWeek(time: Long): Int {
 private fun MorePage(
     service: TimetableService?,
     onOpenDrawer: () -> Unit,
-    onEditTabs: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { context.getSharedPreferences("local_eas_token", android.content.Context.MODE_PRIVATE) }
@@ -1211,12 +1197,6 @@ private fun MorePage(
     }
     var usageEnabled by remember {
         mutableStateOf(com.stupidtree.hitax.data.source.preference.UsageStatsStore.isEnabled(context))
-    }
-    val feedback = remember {
-        (context.applicationContext as? HApplication)?.pluginHost?.service(FeedbackService.KEY)
-    }
-    var feedbackSettings by remember {
-        mutableStateOf(feedback?.settings() ?: FeedbackSettings())
     }
     val notificationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -1374,9 +1354,6 @@ private fun MorePage(
         }
         Spacer(Modifier.height(14.dp))
         MoreGroup("设置") {
-            MoreRow("编辑底栏", "拖拽排序、改名、换图标与隐藏", Icons.Default.Settings) {
-                onEditTabs()
-            }
             MoreToggleRow(
                 "课程提醒",
                 "上课前15分钟提醒",
@@ -1396,42 +1373,6 @@ private fun MorePage(
                     if (enabled) "实时课程已开启" else "实时课程已关闭",
                     android.widget.Toast.LENGTH_SHORT,
                 ).show()
-            }
-            MoreToggleRow(
-                "界面音效",
-                "点击与切换的反馈音",
-                Icons.Default.Notifications,
-                feedbackSettings.soundEnabled,
-            ) { enabled ->
-                val next = feedbackSettings.copy(soundEnabled = enabled)
-                feedback?.updateSettings(next)
-                feedbackSettings = next
-                if (enabled) feedback?.play(FeedbackEvent.CLICK)
-            }
-            MoreToggleRow(
-                "触感反馈",
-                "轻触与操作振动",
-                Icons.Default.PlayArrow,
-                feedbackSettings.hapticEnabled,
-            ) { enabled ->
-                val next = feedbackSettings.copy(hapticEnabled = enabled)
-                feedback?.updateSettings(next)
-                feedbackSettings = next
-                if (enabled) feedback?.haptic(com.stupidtree.hita.api.HapticType.LIGHT)
-            }
-            if (feedbackSettings.soundEnabled) {
-                Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 18.dp, top = 2.dp, bottom = 8.dp)) {
-                    Text("界面音量 ${(feedbackSettings.volume * 100).toInt()}%", fontSize = 13.sp, color = shellSecondary())
-                    Slider(
-                        value = feedbackSettings.volume,
-                        onValueChange = { value ->
-                            val next = feedbackSettings.copy(volume = value)
-                            feedbackSettings = next
-                            feedback?.updateSettings(next)
-                        },
-                        valueRange = 0f..1f,
-                    )
-                }
             }
             MoreToggleRow(
                 "使用统计",
