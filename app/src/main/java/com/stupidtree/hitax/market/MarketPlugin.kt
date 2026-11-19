@@ -96,6 +96,9 @@ data class PresetTab(
      * 解析失败（名字未知或资源缺失）时宿主回退到插件自带图标/通用图标。
      */
     val iconAsset: String? = null,
+    /** 仅影响底栏可见性；required 为 true 时不可被隐藏。 */
+    val visible: Boolean? = null,
+    val required: Boolean? = null,
 )
 
 /** 一站式预设：引用一组市场插件，不打包插件源码。 */

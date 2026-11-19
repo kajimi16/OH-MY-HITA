@@ -209,7 +209,67 @@ private fun shellSecondary(): Color =
 private fun shellTertiary(): Color =
     if (isSystemInDarkTheme()) Color(0xFFAEB6C2) else Color(0xFF9CA3AF)
 
-private data class ShellTab(val title: String, val iconRes: Int)
+private enum class ShellTarget {
+    TODO,
+    TODAY,
+    TIMETABLE,
+    ASSISTANT,
+    NEWS,
+    MORE,
+    UNAVAILABLE,
+}
+
+private data class ShellTab(
+    val id: String,
+    val title: String,
+    val iconRes: Int,
+    val target: ShellTarget,
+)
+
+private fun defaultShellTabs(): List<ShellTab> = listOf(
+    ShellTab("com.stupidtree.hita.ui.homework", "待办", R.drawable.ic_baseline_check_24, ShellTarget.TODO),
+    ShellTab("hita.timeline", "今日", R.drawable.ic_nav_today, ShellTarget.TODAY),
+    ShellTab("hita.timetable", "时间表", R.drawable.ic_nav_timetable, ShellTarget.TIMETABLE),
+    ShellTab("com.stupidtree.hita.ui.ai", "助手", R.drawable.ic_baseline_toys_24, ShellTarget.ASSISTANT),
+    ShellTab("com.stupidtree.hita.ui.news", "资讯", R.drawable.ic_nav_blog, ShellTarget.NEWS),
+    ShellTab("hita.more", "更多", R.drawable.ic_nav_navigation, ShellTarget.MORE),
+)
+
+/** 读取当前整合包/本地布局；无数据时回退到 0.7.3 的固定六页。 */
+private fun loadShellTabs(context: android.content.Context): List<ShellTab> {
+    val stored = com.stupidtree.hitax.market.PresetLayoutStore.tabs(context)
+    if (stored.isEmpty()) return defaultShellTabs()
+    val effective = stored.filter { it.visible != false || it.required == true }
+        .ifEmpty { stored }
+    if (effective.isEmpty()) return defaultShellTabs()
+    return effective.sortedBy { it.order }.map { spec ->
+        val target = when (spec.id) {
+            "com.stupidtree.hita.ui.homework" -> ShellTarget.TODO
+            "hita.timeline" -> ShellTarget.TODAY
+            "hita.timetable" -> ShellTarget.TIMETABLE
+            "com.stupidtree.hita.ui.ai" -> ShellTarget.ASSISTANT
+            "com.stupidtree.hita.ui.news" -> ShellTarget.NEWS
+            "hita.more" -> ShellTarget.MORE
+            else -> ShellTarget.UNAVAILABLE
+        }
+        val fallbackIcon = when (target) {
+            ShellTarget.TODO -> R.drawable.ic_baseline_check_24
+            ShellTarget.TODAY -> R.drawable.ic_nav_today
+            ShellTarget.TIMETABLE -> R.drawable.ic_nav_timetable
+            ShellTarget.ASSISTANT -> R.drawable.ic_baseline_toys_24
+            ShellTarget.NEWS -> R.drawable.ic_nav_blog
+            ShellTarget.MORE -> R.drawable.ic_nav_navigation
+            ShellTarget.UNAVAILABLE -> R.drawable.ic_nav_plugin
+        }
+        ShellTab(
+            id = spec.id,
+            title = spec.title?.takeIf { it.isNotBlank() } ?: spec.id,
+            iconRes = com.stupidtree.hitax.market.BuiltinTabIcons.resolve(spec.iconAsset)
+                ?: fallbackIcon,
+            target = target,
+        )
+    }
+}
 
 @Composable
 private fun HitaAndroidShell(
@@ -217,17 +277,12 @@ private fun HitaAndroidShell(
     homeworkViewModel: HomeworkViewModel,
     agentViewModel: AgentChatViewModel,
 ) {
-    val tabs = remember { listOf(
-        ShellTab("待办", R.drawable.ic_baseline_check_24),
-        ShellTab("今日", R.drawable.ic_nav_today),
-        ShellTab("时间表", R.drawable.ic_nav_timetable),
-        ShellTab("助手", R.drawable.ic_baseline_toys_24),
-        ShellTab("资讯", R.drawable.ic_nav_blog),
-        ShellTab("更多", R.drawable.ic_nav_navigation),
-    ) }
-    var selected by remember { mutableIntStateOf(1) }
-    var drawerOpen by remember { mutableStateOf(false) }
     val shellContext = androidx.compose.ui.platform.LocalContext.current
+    val tabs = remember(shellContext) { loadShellTabs(shellContext) }
+    var selected by remember(tabs) {
+        mutableIntStateOf(tabs.indexOfFirst { it.id == "hita.timeline" }.takeIf { it >= 0 } ?: 0)
+    }
+    var drawerOpen by remember { mutableStateOf(false) }
     val hostApplication = shellContext.applicationContext as? HApplication
     val motion = remember(hostApplication) {
         hostApplication?.pluginHost?.service(MotionController.KEY)
@@ -281,13 +336,22 @@ private fun HitaAndroidShell(
             },
         )
     }
-    val screenNames = listOf("todo", "today", "timetable", "assistant", "news", "more")
-    LaunchedEffect(selected) {
-        com.stupidtree.hitax.analytics.UsageAnalytics.record(
-            shellContext,
-            com.stupidtree.hitax.analytics.UsageEventAllowlist.SCREEN_VIEW,
-            screen = screenNames.getOrNull(selected),
-        )
+    val screenNames = mapOf(
+        ShellTarget.TODO to "todo",
+        ShellTarget.TODAY to "today",
+        ShellTarget.TIMETABLE to "timetable",
+        ShellTarget.ASSISTANT to "assistant",
+        ShellTarget.NEWS to "news",
+        ShellTarget.MORE to "more",
+    )
+    LaunchedEffect(selected, tabs) {
+        screenNames[tabs.getOrNull(selected)?.target]?.let { screen ->
+            com.stupidtree.hitax.analytics.UsageAnalytics.record(
+                shellContext,
+                com.stupidtree.hitax.analytics.UsageEventAllowlist.SCREEN_VIEW,
+                screen = screen,
+            )
+        }
     }
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
     Box(Modifier.fillMaxSize()) {
@@ -297,15 +361,22 @@ private fun HitaAndroidShell(
                 targetState = selected,
                 transitionSpec = { fadeIn(tabSpec) togetherWith fadeOut(tabSpec) },
                 label = "shell_tab",
-            ) { tab ->
-                when (tab) {
-                    0 -> HomeworkScreen(homeworkViewModel)
-                    1 -> TodayPage(service)
-                    2 -> TimetablePage(service)
-                    3 -> AgentChatScreen(agentViewModel, remember(service) { runCatching { service?.getRecentTimetable()?.value?.id }.getOrNull() })
-                    4 -> ShellNewsPage()
-                    5 -> MorePage(service) { drawerOpen = true }
-                    else -> Unit
+            ) { index ->
+                val tab = tabs.getOrNull(index)
+                when (tab?.target) {
+                    ShellTarget.TODO -> HomeworkScreen(homeworkViewModel)
+                    ShellTarget.TODAY -> TodayPage(service)
+                    ShellTarget.TIMETABLE -> TimetablePage(service)
+                    ShellTarget.ASSISTANT -> AgentChatScreen(
+                        agentViewModel,
+                        remember(service) {
+                            runCatching { service?.getRecentTimetable()?.value?.id }.getOrNull()
+                        },
+                    )
+                    ShellTarget.NEWS -> ShellNewsPage()
+                    ShellTarget.MORE -> MorePage(service) { drawerOpen = true }
+                    ShellTarget.UNAVAILABLE -> UnavailableShellPage(tab.title)
+                    null -> Unit
                 }
             }
         }
@@ -577,6 +648,17 @@ private fun DrawerRow(
             modifier = Modifier.padding(start = 13.dp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun UnavailableShellPage(title: String) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            "$title 页面不可用",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 16.sp,
         )
     }
 }

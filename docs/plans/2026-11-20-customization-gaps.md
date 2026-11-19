@@ -87,12 +87,14 @@
 - 整合包索引有 `tabs`、`shell`、`plugins`。
 - HITA-L 会读取 `PresetLayoutStore.tabs`。
 - 运行时插件可声明 `mainTabs`。
+- **2026-11-20 已实现**：HITA-Android Shell 也读取 `PresetLayoutStore.tabs`；
+  支持排序、标题、隐藏、内置图标；`visible=false` 可隐藏（`required=true` 除外）；
+  未知 tab 显示占位页而不是静默删除。
 
-### 不可自定义/结构缺口
+### 仍不可自定义
 
-- **HITA-Android Shell 的 6 个 tab 是硬编码列表**；不读取整合包 `tabs`，
-  也不能排序、改名、换图标、增删。
-- `PresetLayoutCodec`/`PresetLayoutSync` 写入了 tabs，但 Shell 没有消费。
+- 还没有底栏编辑 UI（拖拽排序/改名/换图标）。
+- 未知 UI 插件 tab 目前是占位页，没有嵌入插件内容。
 - tab 宽度、胶囊高度、指示器、抽屉宽度等尺寸固定。
 - 更多页分组、入口顺序、图标固定；插件不能贡献更多页行。
 - 插件容器 `PluginUiActivity` 固定 56dp Toolbar，标题取插件名；
@@ -139,8 +141,8 @@
 
 ## 8. 建议优先级
 
-1. **P0 布局契约**：HITA-Android Shell 消费 `PresetLayoutStore.tabs`；支持排序/标题/图标；
-   先让整合包数据真正生效。
+1. **P0 布局契约**：HITA-Android Shell 已消费 `PresetLayoutStore.tabs`；
+   下一步补编辑 UI、未知 UI 插件 tab 的内容嵌入。
 2. **P1 UI 依赖/整合包绑定**：`requires.plugins`、`uiContract.targetPreset`；
    软兼容提示，不自动卸载。
 3. **P1 Motion 全覆盖**：抽屉、今日卡、时间表切周、市场进度使用同一 token。

@@ -720,7 +720,9 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         val host = (application as HApplication).pluginHost
         val uiManager = com.stupidtree.hitax.uiplugin.UiPluginManager(this)
         val uiTabs = uiManager.mainTabs().associateBy { it.plugin.id }
-        return tabs.sortedBy { it.order }.mapIndexedNotNull { index, tab ->
+        val effective = tabs.filter { it.visible != false || it.required == true }
+            .ifEmpty { tabs }
+        return effective.sortedBy { it.order }.mapIndexedNotNull { index, tab ->
             val title = tab.title?.takeIf { it.isNotBlank() } ?: tab.id
             when {
                 tab.id == "hita.timeline" -> Page(
