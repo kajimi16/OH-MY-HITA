@@ -1,5 +1,8 @@
 # 插件体系路线图：从“可注册”到“可计算、可拒绝、可诊断”
 
+> 时效性：本文是设计与路线图记录，部分条目已完成；当前发布/移植状态以
+> `docs/porting-status.md` 和根 `README.md` 为准。
+
 > 调研对象：`deepseek-harness`（下称 dsh）的 Cordis 运行时、能力 seam、profile/bundle 组合、工具流水线与启动诊断。
 > 对照对象：本仓库 `:api` / `:kernel` / `:app` 的微内核、插件市场、整合包、运行时 UI 插件与宿主 ReAct agent。
 > 本文只给方案，不改代码；所有“现状”均来自当前仓库，所有“目标设计”都标明与 dsh 的差异和 Android 侧适配理由。

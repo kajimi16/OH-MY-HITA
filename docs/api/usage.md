@@ -19,7 +19,7 @@ https://hita.kajimi.cc/api/market/stats
       "event": "screen_view",
       "screen": "more",
       "plugin_id": null,
-      "app_version": "0.7.2",
+      "app_version": "0.7.3",
       "sdk": 35,
       "timestamp": 1795057000000
     }

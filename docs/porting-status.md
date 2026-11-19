@@ -1,11 +1,20 @@
 # HITA 整合包一比一移植状态
 
-> 压缩上下文用的权威状态文件。后续会话先读此文件，不依赖聊天记忆。
+> 当前状态优先读本文件顶部；下面的逐页数据是旧仓库时期的验收快照，
+> 保留用于追溯，不代表 0.7.3 独立仓库全部复测。
 
-## 分支
+## 当前仓库
 
-- 分支：`feat/hita-android-shell`
-- 基线：已合并 `origin/master` / `v0.6.9`；已发布 `0.7.0`、`0.7.1`、`0.7.2`
+- 新独立仓库：`kajimi16/OH-MY-HITA`，默认分支 `master`
+- 当前发布：`0.7.3`，tag `v0.7.3`
+- 旧仓库：`kajimi16/OH-MY-HITA-legacy`，已归档；保留 0.7.2 及更早 Release
+- 当前构建入口：README + `.github/workflows/release.yml`
+- 迁移后不再携带旧 fork 历史；历史计划/证据见 `docs/README.md`
+
+## 历史分支基线
+
+- 旧分支：`feat/hita-android-shell`
+- 旧基线：已合并 `origin/master` / `v0.6.9`；曾发布 `0.7.0`、`0.7.1`、`0.7.2`
 - HITA_Android Shell 已由预设映射激活，固定 6 tab；视觉仍是预览版
 
 ## HITA-L 1.5.3
