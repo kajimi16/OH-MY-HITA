@@ -17,6 +17,7 @@
 | `plans/2026-11-20-0.8.0-motion-sound-dependencies.md` | 0.8.0 动效/音效/插件依赖调研 |
 | `plans/2026-11-20-customization-gaps.md` | 当前不可自定义能力与优先级 |
 | `plans/2026-11-20-customization-api-expansion.md` | 自定义能力 API 扩展方案 |
+| `plans/2026-11-20-plugin-market-redesign.md` | 0.8.0 插件市场信息架构与 UI/UX 改版设计 |
 
 ## 历史计划
 

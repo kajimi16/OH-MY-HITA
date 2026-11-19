@@ -9,11 +9,11 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 [旧版本（0.7.2 及更早，已归档）](https://github.com/kajimi16/OH-MY-HITA-legacy/releases) ·
 [文档索引](docs/README.md)
 
-当前发布：`0.7.3`（API 8）。`0.8.0` 开发中：API 9 新增动效与音效/触感能力。
+当前发布：`0.8.0`（API 9）。
 包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
 0.7.2 及更早版本保留在已归档的旧仓库，仅供下载与追溯。
 
-### API 9 开发中能力
+### API 9 能力
 
 - `MotionController`：宿主/插件共用的动效时长、缓动、系统动画缩放。
 - `FeedbackService`：语义化 UI 音效与触感，宿主统一静音与辅助功能策略。
