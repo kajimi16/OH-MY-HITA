@@ -256,7 +256,7 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 
 ## License
 
-[MIT](LICENSE) © Stupid Tree
+[MIT](LICENSE) © Stupid Tree, Kajimi
 
 ### 下载镜像
 
