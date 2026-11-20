@@ -40,44 +40,4 @@ dependencies {
 }
 dependencies { testImplementation 'junit:junit:4.13.2' }
 
-// 运行时插件产物：仅打包插件自身类，宿主提供 API/Compose/AndroidX 等依赖。
-// 不能使用 assembleRelease AAR：运行时不携带资源，登录等 UI 必须放宿主 T3。
-def sdkDirForDex = {
-    def props = new Properties()
-    def f = rootProject.file('local.properties')
-    if (f.exists()) f.withInputStream { props.load(it) }
-    props.getProperty('sdk.dir') ?: System.getenv('ANDROID_HOME') ?: System.getenv('ANDROID_SDK_ROOT')
-}
-
-tasks.register('pluginClassesJar', Jar) {
-    dependsOn 'compileDebugKotlin'
-    from layout.buildDirectory.dir('tmp/kotlin-classes/debug')
-    archiveFileName = 'plugin-classes.jar'
-    destinationDirectory = layout.buildDirectory.dir('runtime-dex')
-}
-
-tasks.register('buildRuntimeDex') {
-    dependsOn 'pluginClassesJar'
-    doLast {
-        def sdk = sdkDirForDex()
-        if (!sdk) throw new GradleException('找不到 Android SDK')
-        def outDir = layout.buildDirectory.dir('runtime-dex').get().asFile
-        def d8 = new File(sdk, 'build-tools/35.0.0/d8')
-        def androidJar = new File(sdk, 'platforms/android-35/android.jar')
-        def rJar = layout.buildDirectory.file(
-            'intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar'
-        ).get().asFile
-        def classesJar = new File(outDir, 'plugin-classes.jar')
-        def dexDir = new File(outDir, 'classes')
-        dexDir.deleteDir()
-        dexDir.mkdirs()
-        exec {
-            commandLine d8, '--lib', androidJar, '--min-api', '23',
-                '--output', dexDir, classesJar, rJar
-        }
-        def dex = new File(dexDir, 'classes.dex')
-        if (!dex.exists()) throw new GradleException('plugin dex 未生成')
-        new File(outDir, 'plugin.dex').bytes = dex.bytes
-        println "plugin dex: ${new File(outDir, 'plugin.dex').absolutePath}"
-    }
-}
+apply from: rootProject.file('gradle/runtime-plugin-dex.gradle')

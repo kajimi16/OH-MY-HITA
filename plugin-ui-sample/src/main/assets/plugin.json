@@ -4,7 +4,7 @@
   "version": "0.3.1",
   "entryClass": "com.example.hitaui.sample.SampleUiPlugin",
   "apiVersion": 3,
-  "composeVersion": "1.6.8",
+  "composeVersion": "1.9.4",
   "capabilities": [
     "hita.ui.resourceSearch"
   ]

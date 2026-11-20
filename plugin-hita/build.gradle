@@ -65,3 +65,5 @@ dependencies {
 
     testImplementation 'junit:junit:4.13.2'
 }
+
+apply from: rootProject.file('gradle/runtime-plugin-dex.gradle')

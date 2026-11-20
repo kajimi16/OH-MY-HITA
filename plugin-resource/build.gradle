@@ -53,3 +53,5 @@ dependencies {
     implementation 'ru.noties:jlatexmath-android:0.2.0'
     testImplementation 'junit:junit:4.13.2'
 }
+
+apply from: rootProject.file('gradle/runtime-plugin-dex.gradle')

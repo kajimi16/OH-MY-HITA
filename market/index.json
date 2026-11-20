@@ -61,7 +61,7 @@
       "apiVersion": 11,
       "url": "https://github.com/oh-my-hita/theta-core/releases/download/v0.1.1/theta-core.dex",
       "sha256": "a4cfbd1a8d07e2673f5ce003ff79987ca6db82abe56539ff640ef42d3cefea25",
-      "entryClass": "com.stupidtree.hitax.plugin.ThetaCorePlugin",
+      "entryClass": "com.stupidtree.hita.theta.ThetaPlugin",
       "minHostApi": 11,
       "description": "T1 社区话题数据核心 preview",
       "author": "OH-MY-HITA",

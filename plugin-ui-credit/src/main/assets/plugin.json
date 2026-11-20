@@ -4,6 +4,6 @@
   "version": "0.1.0",
   "entryClass": "com.stupidtree.hita.ui.credit.CreditUiPlugin",
   "apiVersion": 7,
-  "composeVersion": "1.6.8",
+  "composeVersion": "1.9.4",
   "capabilities": ["hita.ui.credit"]
 }
