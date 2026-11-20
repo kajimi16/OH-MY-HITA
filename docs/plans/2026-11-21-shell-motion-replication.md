@@ -4,8 +4,9 @@
 
 - 设备参考：`cn.limpu.hita` 3.1.2，versionCode `2026103101`。
 - 源码基线：`HIT-A/HITA_Android` tag `v3.1.2`，commit `ac15007`。
-- 不以 master/3.3.0 作为验收基线；`TabSwipe.kt` 只在 3.3.0 出现，3.1.2 没有左右滑动切页，因此不列入 3.1.2 验收。
-- Dock 弹簧、抽屉时长、Haze/Backdrop 参数在 3.1.2 与 3.3.0 相同；本文只引用 3.1.2 源码。
+- 3.1.2 验收只引用 3.1.2 源码；`TabSwipe.kt` 只在 3.3.0 出现，3.1.2 没有左右滑动切页。
+- 3.3.0 TabSwipe 作为独立扩展实现，源码 `HIT-A/HITA_Android` tag `v3.3.0`（commit `81fe258`）。
+- Dock 弹簧、抽屉时长、Haze/Backdrop 参数在 3.1.2 与 3.3.0 相同。
 
 ## 2. 范围
 
@@ -14,7 +15,8 @@
 - 抽屉：进度、内容缩放/位移、玻璃/非玻璃两套时间曲线。
 - Dock：press/drag/release 状态机、lens 浮点索引、触感、四弹簧。
 - 主题切换：风格选择后的整页重建；颜色过渡只在明确的组件上做。
-- 不在本次范围：3.3.0 的 TabSwipe、Fragment pager 手势、未在 3.1.2 出现的动效。
+- 3.3.0 TabSwipe：左右滑动切页，作为独立扩展，不混入 3.1.2 验收。
+- 不在本次范围：Fragment pager 手势、未在 3.1.2 或 3.3.0 出现的动效。
 
 ## 3. 模块与契约
 
@@ -78,6 +80,25 @@ PRESSED --release(no drag)--> SETTLING
 - 风格选择后写 `ThemeTools.STYLE`，重建 shell；不做跨页面共享元素。
 - 颜色动画只用于明确的 `animateColorAsState` 组件，避免整树重组。
 
+### 3.4 TabSwipe（3.3.0）
+
+输入：当前索引、页数、水平位移、速度、屏宽。
+
+纯函数：
+
+- `commitDirection`：位移越过 `0.22 * width` 或速度越过 `560dp/s` 时提交；速度优先。
+- `rubberBand`：首/尾页位移按 `0.30` 缩量，上限 `0.08 * width`。
+- `exitTarget` / `enterSource`：提交后当前页继续推出，新页从对侧进入。
+- `alpha`：位移到整屏宽时归零。
+
+契约：
+
+- 目标页不存在时一律回弹，不回绕。
+- 时间表页禁用，避免与切周次手势冲突。
+- 子级先消费水平手势时取消切页。
+- 收尾单段 `150ms`；换页发生在当前页完全离屏的帧。
+- `ShellTabSwipeTest` 覆盖提交方向、速度优先、边界、阻尼、端点与透明度。
+
 ## 4. 数据流
 
 ```mermaid
@@ -88,6 +109,8 @@ flowchart LR
   DrawerState[open/close] --> Progress[animateFloatAsState]
   Progress --> Content[scale/translation]
   Progress --> Overlay[drawer translation/scrim]
+  PageGesture[page horizontal drag] --> TabMath[TabSwipe math]
+  TabMath --> PageLayer[page offset/alpha]
 ```
 
 - 手势层只产生事件与目标值；纯函数负责判定；`Animatable` 负责帧。
@@ -123,11 +146,11 @@ flowchart LR
 
 ## 6. 实现顺序
 
-1. `ShellMotion.kt` 纯函数与单元测试。
-2. 抽屉改为 `progress` 驱动，接 `contentScale/contentOffset`。
-3. Dock 状态机与四弹簧。
-4. 录屏脚本基线采样，按帧校准。
-5. 3.3.0 TabSwipe 单独评估，不混入 3.1.2 验收。
+1. `ShellMotion.kt` 纯函数与单元测试。已实现。
+2. 抽屉改为 `progress` 驱动，接 `contentScale/contentOffset`。已实现。
+3. Dock 状态机与四弹簧。已实现，`ShellDock.kt`。
+4. 录屏脚本基线采样，按帧校准。已采样，结果见 `docs/baselines/2026-11-21-shell-motion.md`。
+5. 3.3.0 TabSwipe 独立实现，不混入 3.1.2 验收。已实现，`ShellTabSwipe.kt`。
 
 ## 7. 被否决方案
 
