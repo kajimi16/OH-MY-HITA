@@ -59,6 +59,7 @@
         <activity
             android:name=".shell.ShellEasWebLoginActivity"
             android:exported="false"
+            android:screenOrientation="landscape"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".ui.main.MainActivity"
