@@ -13,6 +13,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -1538,7 +1539,7 @@ private fun MorePage(
                 .service(com.stupidtree.hita.api.ThemeController.KEY)
             IconButton(onClick = { theme?.setNightMode(!isNight) }) {
                 Icon(
-                    Icons.Default.DarkMode,
+                    painter = painterResource(R.drawable.ic_moon_auto),
                     contentDescription = "切换深浅色",
                     tint = shellSecondary(),
                 )
@@ -1555,31 +1556,34 @@ private fun MorePage(
                 open("com.stupidtree.hitax.ui.eas.login.ShenzhenWebLoginActivity")
             },
         ) {
-            Row(Modifier.fillMaxWidth().padding(start = 10.5.dp, end = 18.dp, top = 18.dp, bottom = 18.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier.width(44.dp).height(44.dp).background(Color(0xFF2563EB), RoundedCornerShape(22.dp)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    androidx.compose.material3.Icon(
-                        androidx.compose.material.icons.Icons.Default.Person,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp),
+            Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.place_holder_avatar),
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp).clip(CircleShape),
+                )
+                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                    Text(
+                        userName ?: "未登录教务",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
-                }
-                Column(Modifier.weight(1f).padding(start = 14.dp)) {
-                    Text(userName ?: "未登录教务", fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
                     Text(
                         if (userName == null) "点击进行教务登录" else "已连接教务",
                         color = shellSecondary(),
                         fontSize = 12.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 2.dp),
                     )
                 }
-                androidx.compose.material3.Icon(
-                    androidx.compose.material.icons.Icons.Default.ChevronRight,
+                Icon(
+                    painter = painterResource(R.drawable.ic_baseline_keyboard_arrow_right_24),
                     contentDescription = null,
                     tint = shellTertiary(),
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(24.dp),
                 )
             }
         }
@@ -1587,59 +1591,56 @@ private fun MorePage(
         Card(
             shape = RoundedCornerShape(22.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            modifier = Modifier.fillMaxWidth().clickable {
+            modifier = Modifier.fillMaxWidth().height(80.dp).clickable {
                 com.stupidtree.hitax.utils.ActivityUtils.startTimetableManager(context)
             },
         ) {
-            Row(Modifier.fillMaxWidth().padding(start = 10.5.dp, end = 18.dp, top = 18.dp, bottom = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxSize().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     Modifier.size(40.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    androidx.compose.material3.Icon(
-                        androidx.compose.material.icons.Icons.Default.CalendarToday,
+                    Icon(
+                        painter = painterResource(R.drawable.ic_list),
                         contentDescription = null,
                         tint = Color(0xFF3390EC),
-                        modifier = Modifier.size(21.dp),
+                        modifier = Modifier.size(22.dp),
                     )
                 }
-                Column(Modifier.weight(1f).padding(start = 14.dp)) {
-                    Text("课表管理", color = shellSecondary(), fontSize = 12.sp)
-                    Spacer(Modifier.height(4.dp))
-                    Text(if ((timetableCount ?: 0) == 0) "无课表" else "共${timetableCount}个课表", fontWeight = FontWeight.SemiBold, fontSize = 17.sp)
+                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                    Text("课表管理", color = shellSecondary(), fontSize = 12.sp, maxLines = 1)
+                    Text(
+                        if ((timetableCount ?: 0) == 0) "无课表" else "共${timetableCount}个课表",
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
                 }
-                androidx.compose.material3.Icon(
-                    androidx.compose.material.icons.Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    tint = shellTertiary(),
-                    modifier = Modifier.size(20.dp),
-                )
             }
         }
-        Spacer(Modifier.height(19.5.dp))
+        Spacer(Modifier.height(8.dp))
         MoreGroup("教务功能") {
-            Spacer(Modifier.height(4.dp))
-            MoreRow("考试", icon = Icons.Default.CalendarToday, rowHeight = 62.dp) { open("com.stupidtree.hitax.ui.eas.exam.ExamActivity") }
-            MoreRow("成绩管理", icon = Icons.Default.Assessment, rowHeight = 42.dp) {
+            MoreRow("考试", icon = R.drawable.ic_baseline_today_24) { open("com.stupidtree.hitax.ui.eas.exam.ExamActivity") }
+            MoreRow("成绩管理", icon = R.drawable.ic_baseline_format_list_bulleted_24) {
                 open("com.stupidtree.hitax.ui.eas.score.ScoreInquiryActivity")
             }
-            MoreRow("个人成绩明细", "成绩状态 · 分项得分 · 权重折算", Icons.Default.Assessment, rowHeight = 70.dp) {
+            MoreRow("个人成绩明细", "成绩状态 · 分项得分 · 权重折算", R.drawable.ic_baseline_format_list_bulleted_24) {
                 openPlugin("com.stupidtree.hita.ui.score")
             }
-            MoreRow("空教室", icon = Icons.Default.MeetingRoom, rowHeight = 48.dp) { open("com.stupidtree.hitax.ui.eas.classroom.EmptyClassroomActivity") }
-            MoreRow("培养方案", "完成度 · 学分类别 · 培养课组", Icons.Default.School, rowHeight = 56.dp) {
+            MoreRow("空教室", icon = R.drawable.ic_baseline_location_city_24) { open("com.stupidtree.hitax.ui.eas.classroom.EmptyClassroomActivity") }
+            MoreRow("培养方案", "完成度 · 学分类别 · 培养课组", R.drawable.ic_baseline_format_list_bulleted_24) {
                 openPlugin("com.stupidtree.hita.ui.training")
             }
-            MoreRow("深圳课程浏览", "教务选课池 · 全校课表（需 Web 登录）", Icons.Default.Search, rowHeight = 67.dp) {
+            MoreRow("深圳课程浏览", "教务选课池 · 全校课表（需 Web 登录）", R.drawable.ic_baseline_search_24) {
                 openPlugin("com.stupidtree.hita.ui.community")
             }
         }
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(8.dp))
         MoreGroup("课程资源") {
-            MoreRow("查询资源", "查询三个校区的课程资料", Icons.Default.Search) {
+            MoreRow("查询资源", "查询三个校区的课程资料", R.drawable.ic_baseline_search_24) {
                 open("com.stupidtree.hitax.ui.search.SearchActivity")
             }
-            MoreRow("提交课程资料 PR", "欢迎关注 HITCS 和 HOA，谢谢喵", Icons.Default.Edit) {
+            MoreRow("提交课程资料 PR", "欢迎关注 HITCS 和 HOA，谢谢喵", R.drawable.ic_baseline_edit_24) {
                 val service = com.stupidtree.hitax.HitaServices.resourceUi(context)
                 if (service == null) {
                     android.widget.Toast.makeText(context, "课程资源插件未安装", android.widget.Toast.LENGTH_SHORT).show()
@@ -1647,22 +1648,22 @@ private fun MorePage(
                     service.openSearch(context, null, submit = true)
                 }
             }
-            MoreRow("实用网址", "常用校内网站，点按打开", Icons.Default.Link) {
+            MoreRow("实用网址", "常用校内网站，点按打开", R.drawable.ic_baseline_link_24) {
                 openPlugin("com.stupidtree.hita.ui.links")
             }
         }
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(8.dp))
         MoreGroup("设置") {
             MoreToggleRow(
                 "课程提醒",
                 "上课前15分钟提醒",
-                Icons.Default.CalendarToday,
+                R.drawable.ic_baseline_access_alarm_24,
                 reminderEnabled,
             ) { setReminder(it) }
             MoreToggleRow(
                 "实时课程",
                 "上课前10分钟显示课程状态",
-                Icons.Default.PlayArrow,
+                R.drawable.ic_baseline_access_time_24,
                 liveEnabled,
             ) { enabled ->
                 com.stupidtree.hitax.livecourse.LiveCourseSettings.setEnabled(context, enabled)
@@ -1676,20 +1677,20 @@ private fun MorePage(
             MoreToggleRow(
                 "使用统计",
                 "匿名统计功能使用情况，帮助改进应用",
-                Icons.Default.Info,
+                R.drawable.ic_info,
                 usageEnabled,
             ) { enabled ->
                 com.stupidtree.hitax.data.source.preference.UsageStatsStore.setEnabled(context, enabled)
                 usageEnabled = enabled
             }
-            MoreRow("清除使用统计", "删除本机事件队列与匿名安装 ID", Icons.Default.Delete) {
+            MoreRow("清除使用统计", "删除本机事件队列与匿名安装 ID", R.drawable.ic_baseline_delete_24) {
                 com.stupidtree.hitax.analytics.UsageAnalytics.clear(context)
                 android.widget.Toast.makeText(context, "使用统计已清除", android.widget.Toast.LENGTH_SHORT).show()
             }
-            MoreRow("公告", "版本更新 · 服务与故障通知", Icons.Default.Notifications) {
+            MoreRow("公告", "版本更新 · 服务与故障通知", R.drawable.ic_menu_settings) {
                 openPlugin("com.stupidtree.hita.ui.announcement")
             }
-            MoreRow("插件市场", "切换整合包、安装或停用插件", Icons.Default.Settings) {
+            MoreRow("插件市场", "切换整合包、安装或停用插件", R.drawable.ic_menu_settings) {
                 context.startActivity(
                     android.content.Intent(
                         context,
@@ -1697,7 +1698,7 @@ private fun MorePage(
                     )
                 )
             }
-            MoreRow("应用设置", "外观、字体与界面", Icons.Default.Settings) {
+            MoreRow("应用设置", "外观、字体与界面", R.drawable.ic_menu_settings) {
                 openPlugin("com.stupidtree.hita.ui.appearance")
             }
         }
@@ -1711,8 +1712,8 @@ private fun MoreGroup(title: String, content: @Composable () -> Unit) {
             title,
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 8.dp),
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
         )
         Card(
             shape = RoundedCornerShape(22.dp),
@@ -1730,30 +1731,38 @@ private fun MoreGroup(title: String, content: @Composable () -> Unit) {
 private fun MoreRow(
     title: String,
     subtitle: String? = null,
-    icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Default.ChevronRight,
-    rowHeight: androidx.compose.ui.unit.Dp? = null,
+    icon: Int,
     onClick: () -> Unit,
 ) {
     Row(
-        Modifier.then(
-            if (rowHeight != null) Modifier.heightIn(min = rowHeight) else Modifier
-        ).fillMaxWidth().clickable(onClick = onClick)
-            .padding(start = 20.dp, end = 18.dp, top = 4.dp, bottom = 4.dp),
+        Modifier.fillMaxWidth().height(56.dp).clickable(onClick = onClick)
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            Modifier.size(34.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+            Modifier.size(40.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, null, tint = Color(0xFF3390EC), modifier = Modifier.size(20.dp))
+            Icon(painterResource(icon), null, tint = Color(0xFF3390EC), modifier = Modifier.size(22.dp))
         }
-        Column(Modifier.weight(1f).padding(start = 14.dp)) {
-            Text(title, fontWeight = FontWeight.Medium, fontSize = 16.sp)
+        Column(Modifier.weight(1f).padding(start = 12.dp)) {
+            Text(title, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (!subtitle.isNullOrBlank()) {
-                Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                Text(
+                    subtitle,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
             }
         }
-        Icon(Icons.Default.ChevronRight, null, tint = shellTertiary(), modifier = Modifier.size(20.dp))
+        Icon(
+            painter = painterResource(R.drawable.ic_baseline_keyboard_arrow_right_24),
+            contentDescription = null,
+            tint = shellTertiary(),
+        )
     }
 }
 
@@ -1761,24 +1770,31 @@ private fun MoreRow(
 private fun MoreToggleRow(
     title: String,
     subtitle: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: Int,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
     Row(
-        Modifier.fillMaxWidth().clickable { onCheckedChange(!checked) }
-            .padding(start = 20.dp, end = 18.dp, top = 4.dp, bottom = 4.dp),
+        Modifier.fillMaxWidth().height(56.dp).clickable { onCheckedChange(!checked) }
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            Modifier.size(34.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+            Modifier.size(40.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, null, tint = Color(0xFF3390EC), modifier = Modifier.size(20.dp))
+            Icon(painterResource(icon), null, tint = Color(0xFF3390EC), modifier = Modifier.size(22.dp))
         }
-        Column(Modifier.weight(1f).padding(start = 14.dp)) {
-            Text(title, fontWeight = FontWeight.Medium, fontSize = 16.sp)
-            Text(subtitle, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+        Column(Modifier.weight(1f).padding(start = 12.dp)) {
+            Text(title, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                subtitle,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 2.dp),
+            )
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
