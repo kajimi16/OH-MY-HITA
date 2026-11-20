@@ -589,6 +589,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                         CompositionKind.BUILTIN -> error("内置插件不需要 artifact")
                     }
                 }.onSuccess { artifacts[CompositionTarget(kind, id)] = it }
+                    .onFailure { android.util.Log.e("PluginApply", "prepare failed ${kind.name}:$id", it) }
 
                 override fun cleanup() {
                     runCatching { installer.cleanupStaging() }
@@ -619,7 +620,7 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
                             builtin.setEnabled(id, true).getOrThrow()
                             true
                         }
-                    }
+                    }.onFailure { android.util.Log.e("PluginApply", "install failed ${kind.name}:$id", it) }
                 }
 
                 override fun enable(kind: CompositionKind, id: String): Result<Boolean> = when (kind) {

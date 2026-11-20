@@ -249,8 +249,8 @@ class PluginInstaller(
 
     private fun MarketPlugin.descriptor(): PluginDescriptor = PluginDescriptor(
         id = id,
-        requires = requires,
-        provides = provides,
+        requires = requires.orEmpty(),
+        provides = provides.orEmpty(),
         origin = PluginOrigin.DEX,
         version = version,
     )
