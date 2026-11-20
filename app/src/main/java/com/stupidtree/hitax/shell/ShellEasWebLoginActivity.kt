@@ -48,7 +48,7 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
                 submit(cookies)
                 return
             }
-            if (lastUrl != url) {
+            if (lastUrl != url || attempts % 4 == 0) {
                 lastUrl = url
                 webView.evaluateJavascript(CLICK_SCRIPT, null)
             }
@@ -215,17 +215,25 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
               function n(v){return String(v||'').replace(/\s+/g,'');}
               function visible(e){if(!e||typeof e.click!=='function')return false;var s=getComputedStyle?getComputedStyle(e):null;if(s&&(s.display==='none'||s.visibility==='hidden'))return false;var r=e.getBoundingClientRect?e.getBoundingClientRect():null;return !r||(r.width>0&&r.height>0);}
               function label(e){return n(e.innerText||e.textContent||e.value||e.getAttribute('aria-label')||e.getAttribute('title')||'');}
-              var items=Array.prototype.slice.call(document.querySelectorAll('button,a,[role="button"],input[type="button"],input[type="submit"],[onclick],[tabindex],div,span,p')).filter(visible);
-              function pick(p){return items.filter(function(e){return p(label(e));}).sort(function(a,b){return label(a).length-label(b).length;})[0]||null;}
-              function clickable(e){var n=e;for(var i=0;i<5&&n;i++){if(n.click&&(n.tagName==='A'||n.tagName==='BUTTON'||n.getAttribute('onclick')||n.getAttribute('role')==='button'))return n;n=n.parentElement;}return e;}
-              var e=pick(function(l){return l.indexOf('统一身份认证')>=0;});
-              if(e){clickable(e).click();return 'unified';}
-              var page=n(document.body&&document.body.innerText);
-              if(page.indexOf('本科')>=0&&page.indexOf('研究生')>=0){
-                var r=pick(function(l){return l.indexOf('本科')>=0&&(l.length<=5||l.indexOf('登录')>=0||l.indexOf('入口')>=0||l.indexOf('教务')>=0);});
-                if(r){r.click();return 'role';}
+              function clickable(e){var n=e;for(var i=0;i<6&&n;i++){if(n.click&&(n.tagName==='A'||n.tagName==='BUTTON'||n.getAttribute('onclick')||n.getAttribute('role')==='button'||n.tagName==='INPUT'))return n;n=n.parentElement;}return e;}
+              function walk(doc){
+                try{
+                  var items=Array.prototype.slice.call(doc.querySelectorAll('button,a,[role="button"],input[type="button"],input[type="submit"],[onclick],[tabindex],div,span,p')).filter(visible);
+                  var e=items.filter(function(x){return label(x).indexOf('统一身份认证')>=0;}).sort(function(a,b){return label(a).length-label(b).length;})[0];
+                  if(e){clickable(e).click();return 'unified';}
+                  var page=n(doc.body&&doc.body.innerText);
+                  if(page.indexOf('本科')>=0&&page.indexOf('研究生')>=0){
+                    var r=items.filter(function(x){var l=label(x);return l.indexOf('本科')>=0&&(l.length<=8||l.indexOf('登录')>=0||l.indexOf('入口')>=0);}).sort(function(a,b){return label(a).length-label(b).length;})[0];
+                    if(r){clickable(r).click();return 'role';}
+                  }
+                  var frames=doc.querySelectorAll('iframe,frame');
+                  for(var i=0;i<frames.length;i++){
+                    try{var out=walk(frames[i].contentDocument||frames[i].contentWindow.document);if(out!=='none')return out;}catch(err){}
+                  }
+                }catch(err){}
+                return 'none';
               }
-              return 'none';
+              return walk(document);
             })();
         """.trimIndent()
     }
