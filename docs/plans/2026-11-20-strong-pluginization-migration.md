@@ -175,7 +175,9 @@ links live news notice reminder score share training update
 - `oh-my-hita/ui-*`：17 个 UI 插件独立仓库，统一依赖 `plugin-sdk:10.1`；全部本地构建通过，已创建 release APK，并带 `v*` 发布 workflow。
 - `oh-my-hita/registry`：17 个 UI 插件的官方索引，APK URL 与 sha256 已验证。
 - `oh-my-hita/official-presets`：三套官方整合包声明。
-- `oh-my-hita/timetable-core`：只依赖 `plugin-sdk:10.1` 的 T1 课表核心；已产出 160KB dex，包含 Room/DAO/仓库/ICS/同步 codec，不含 UI/Widget/Activity。
+- `oh-my-hita/timetable-core`：只依赖 `plugin-sdk` 的 T1 课表核心；已产出 161KB dex，包含 Room/DAO/仓库/ICS/同步 codec，不含 UI/Widget/Activity。
+- API 11 新增 `HostEnvironmentService`，只暴露 applicationContext；T1 插件用无参 `Plugin` 装载。
+- `registry` 已加入 T1 timetable core 条目；UI registry 由定时 workflow 自动刷新。
 
 空壳宿主验证：临时移除 5 个 `runtimeOnly` 后构建、安装、启动成功；官方 registry 可展示 UI 插件。
 
