@@ -17,6 +17,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.OutlinedTextField
@@ -24,6 +26,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.chrisbanes.haze.haze
@@ -114,10 +117,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
+import android.view.HapticFeedbackConstants
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -130,6 +135,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.text.style.TextOverflow
 import com.stupidtree.hita.api.FeedbackEvent
 import com.stupidtree.hita.api.FeedbackService
@@ -394,6 +401,17 @@ private fun HitaAndroidShell(
         }
     }
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
+    val tabSwipe = rememberTabSwipe(
+        enabled = tabs.getOrNull(selected)?.target != ShellTarget.TIMETABLE,
+        currentIndex = selected,
+        pageCount = tabs.size,
+        onSelect = { index ->
+            tabs.getOrNull(index)?.let { tab ->
+                selectedId = tab.id
+                feedback?.play(FeedbackEvent.TAB)
+            }
+        },
+    )
     Box(Modifier.fillMaxSize()) {
     Column(
         Modifier.fillMaxSize().graphicsLayer {
@@ -405,7 +423,12 @@ private fun HitaAndroidShell(
             )
         },
     ) {
-        Box(Modifier.weight(1f)) {
+        Box(
+            Modifier.weight(1f).then(tabSwipe.modifier).graphicsLayer {
+                translationX = tabSwipe.offset.value
+                alpha = tabSwipe.alpha.value
+            },
+        ) {
             AnimatedContent(
                 targetState = selected,
                 transitionSpec = { fadeIn(tabSpec) togetherWith fadeOut(tabSpec) },
@@ -439,15 +462,78 @@ private fun HitaAndroidShell(
             val availableWidth = LocalConfiguration.current.screenWidthDp.dp - 32.dp
             val tabWidth = minOf(60.dp, availableWidth / tabs.size.coerceAtLeast(1))
             val barWidth = tabWidth * tabs.size + 8.dp
-            val indicatorOffset by animateDpAsState(
-                targetValue = tabWidth * selected,
-                label = "shell_tab_indicator",
+            val view = LocalView.current
+            val density = LocalDensity.current
+            val tabWidthPx = with(density) { tabWidth.toPx() }
+            val barWidthPx = with(density) { barWidth.toPx() }
+            val paddingPx = with(density) { 4.dp.toPx() }
+            val dock = rememberShellDockState(
+                selected = selected,
+                onSelect = { index ->
+                    tabs.getOrNull(index)?.let { tab ->
+                        selectedId = tab.id
+                        feedback?.play(FeedbackEvent.TAB)
+                    }
+                },
+                onTick = { view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) },
             )
+            val lensExtra = tabWidth * (dock.stretch.value * 0.5f)
+            val lensHeight = 44.dp * (1f + dock.lift.value * 0.12f)
+            val indicatorOffset = tabWidth * dock.lens.value - lensExtra / 2f
             Surface(
                 shape = RoundedCornerShape(28.dp),
                 color = if (style == "apple_glass") MaterialTheme.colorScheme.surface.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface,
                 shadowElevation = 6.dp,
-                modifier = Modifier.width(barWidth).height(54.dp).then(
+                modifier = Modifier.width(barWidth).height(54.dp)
+                    .graphicsLayer {
+                        val s = ShellMotion.pressScale(
+                            dock.swell.value,
+                            size.maxDimension,
+                            with(density) { 16.dp.toPx() },
+                        )
+                        scaleX = s
+                        scaleY = s
+                    }
+                    .pointerInput(tabs.size, barWidthPx) {
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            dock.press(down.position.x, barWidthPx, tabs.size, paddingPx)
+                            val tracker = VelocityTracker()
+                            tracker.addPosition(down.uptimeMillis, down.position)
+                            var dragged = false
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                if (change.pressed) {
+                                    tracker.addPosition(change.uptimeMillis, change.position)
+                                    if (kotlin.math.abs(change.position.x - down.position.x) > viewConfiguration.touchSlop) {
+                                        dragged = true
+                                    }
+                                    if (dragged) {
+                                        dock.drag(
+                                            change.position.x,
+                                            barWidthPx,
+                                            tabs.size,
+                                            paddingPx,
+                                            viewConfiguration.touchSlop,
+                                            size.height.toFloat(),
+                                        )
+                                    }
+                                    change.consume()
+                                } else {
+                                    dock.release(
+                                        tracker.calculateVelocity().x,
+                                        barWidthPx,
+                                        tabs.size,
+                                        paddingPx,
+                                        selected,
+                                    )
+                                    break
+                                }
+                            }
+                        }
+                    }
+                    .then(
                     if (style == "apple_glass" && hazeState != null) {
                         Modifier.hazeChild(
                             state = hazeState,
@@ -465,9 +551,9 @@ private fun HitaAndroidShell(
                 Box(Modifier.fillMaxSize().padding(4.dp)) {
                     Surface(
                         modifier = Modifier
-                            .offset(x = indicatorOffset)
-                            .width(tabWidth)
-                            .height(44.dp),
+                            .offset(x = indicatorOffset, y = -(lensHeight - 44.dp) / 2f)
+                            .width(tabWidth + lensExtra)
+                            .height(lensHeight),
                         shape = RoundedCornerShape(22.dp),
                         color = Color(0xFF3390EC).copy(alpha = 0.12f),
                     ) {}
@@ -480,10 +566,6 @@ private fun HitaAndroidShell(
                                     .width(tabWidth)
                                     .fillMaxHeight()
                                     .clip(RoundedCornerShape(22.dp))
-                                    .clickable {
-                                        selectedId = tab.id
-                                        feedback?.play(FeedbackEvent.TAB)
-                                    }
                                     .padding(horizontal = 8.dp, vertical = 4.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center,

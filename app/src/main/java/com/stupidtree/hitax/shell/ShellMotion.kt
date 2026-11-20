@@ -27,6 +27,9 @@ internal object ShellMotion {
     const val DOCK_JELLY_STRETCH = 0.25f
     const val DOCK_FLING_PROJECTION_SECONDS = 0.1f
     const val DOCK_PRESS_GROWTH = 1f / 8f
+    const val DOCK_PULL_LIMIT = 7f / 32f
+    const val DOCK_LENS_GROWTH_DP = 14f
+    const val DOCK_MAX_PRESS_GROWTH_DP = 16f
 
     fun drawerScale(style: String, progress: Float): Float {
         val p = progress.coerceIn(0f, 1f)
