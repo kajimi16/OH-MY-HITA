@@ -34,8 +34,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.ui.res.painterResource
+import com.stupidtree.hitax.R
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -189,7 +190,11 @@ fun AgentChatScreen(viewModel: AgentChatViewModel, timetableId: String?) {
                     Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 IconButton(onClick = { showSettings = true }) {
-                    Icon(Icons.Default.MenuBook, "AI 设置", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(
+                        painter = painterResource(R.drawable.ic_menu_settings),
+                        contentDescription = "AI 设置",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
 
