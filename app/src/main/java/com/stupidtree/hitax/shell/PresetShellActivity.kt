@@ -471,12 +471,18 @@ private fun HitaAndroidShell(
             }
         }
     }
-    ShellDrawerOverlay(drawerOpen, motionTokens) { drawerOpen = false }
+    ShellDrawerOverlay(drawerOpen, motionTokens, style, hazeState) { drawerOpen = false }
     }
 }
 
 @Composable
-private fun ShellDrawerOverlay(open: Boolean, motionTokens: MotionTokens, onClose: () -> Unit) {
+private fun ShellDrawerOverlay(
+    open: Boolean,
+    motionTokens: MotionTokens,
+    style: String,
+    hazeState: dev.chrisbanes.haze.HazeState?,
+    onClose: () -> Unit,
+) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val eas = remember {
         (context.applicationContext as? HApplication)?.pluginHost?.service(
@@ -562,8 +568,14 @@ private fun ShellDrawerOverlay(open: Boolean, motionTokens: MotionTokens, onClos
                     .clickable { onClose() },
             )
             Surface(
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().width(260.dp),
-                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().width(260.dp)
+                    .then(
+                        if (style == "apple_glass" && hazeState != null) {
+                            Modifier.hazeChild(state = hazeState, shape = RoundedCornerShape(0.dp))
+                                .border(0.8.dp, Color.White.copy(alpha = 0.42f), RoundedCornerShape(0.dp))
+                        } else Modifier
+                    ),
+                color = if (style == "apple_glass") Color.Transparent else MaterialTheme.colorScheme.surface,
                 shadowElevation = 12.dp,
             ) {
                 Column(
