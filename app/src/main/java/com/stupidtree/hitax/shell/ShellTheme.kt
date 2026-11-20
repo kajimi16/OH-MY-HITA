@@ -1,5 +1,7 @@
 package com.stupidtree.hitax.shell
 
+import androidx.compose.ui.unit.dp
+
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -134,5 +136,53 @@ fun shellStyleTypography(style: String): androidx.compose.material3.Typography {
         labelLarge = base.labelLarge.copy(fontFamily = family),
         labelMedium = base.labelMedium.copy(fontFamily = family),
         labelSmall = base.labelSmall.copy(fontFamily = family),
+    )
+}
+
+/** Style-specific Material3 shapes; Sora uses cut corners, P5/Cyber are sharp. */
+fun shellStyleShapes(style: String): androidx.compose.material3.Shapes {
+    val small = when (style) {
+        "apple_glass" -> 18.dp
+        "cyber" -> 6.dp
+        "sora_cloud" -> 14.dp
+        "p5" -> 3.dp
+        "deep_space" -> 16.dp
+        "sumi" -> 8.dp
+        else -> 8.dp
+    }
+    val medium = when (style) {
+        "apple_glass" -> 26.dp
+        "cyber" -> 10.dp
+        "sora_cloud" -> 18.dp
+        "p5" -> 4.dp
+        "deep_space" -> 22.dp
+        "sumi" -> 12.dp
+        else -> 12.dp
+    }
+    val large = when (style) {
+        "apple_glass" -> 32.dp
+        "cyber" -> 14.dp
+        "sora_cloud" -> 22.dp
+        "p5" -> 6.dp
+        "deep_space" -> 28.dp
+        "sumi" -> 16.dp
+        else -> 16.dp
+    }
+    val shape = { radius: androidx.compose.ui.unit.Dp ->
+        if (style == "sora_cloud") {
+            androidx.compose.foundation.shape.CutCornerShape(
+                topEnd = radius,
+                bottomStart = radius / 3,
+            )
+        } else {
+            androidx.compose.foundation.shape.RoundedCornerShape(radius)
+        }
+    }
+    return androidx.compose.material3.Shapes(
+        extraSmall = shape(small),
+        small = shape(small),
+        medium = shape(medium),
+        large = shape(large),
+        extraLarge = shape(large),
     )
 }
