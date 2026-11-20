@@ -10,6 +10,7 @@ import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -42,6 +43,7 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
             if (finished) return
             val cookies = collectCookies()
             val url = webView.url.orEmpty()
+            android.util.Log.d("ShellEasWeb", "url=$url cookies=${cookies.keys}")
             if (isAuthenticated(url, cookies) && !validating) {
                 submit(cookies)
                 return
@@ -70,8 +72,11 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
         webView = WebView(this).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
-            settings.loadWithOverviewMode = true
-            settings.useWideViewPort = true
+            settings.loadWithOverviewMode = false
+            settings.useWideViewPort = false
+            settings.setSupportZoom(true)
+            settings.builtInZoomControls = true
+            settings.displayZoomControls = false
             settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
             settings.userAgentString = DESKTOP_UA
             setBackgroundColor(android.graphics.Color.WHITE)
@@ -79,6 +84,8 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     status.text = "请在页面完成登录，成功后会自动返回"
                     lastUrl = null
+                    attempts = 0
+                    view?.evaluateJavascript("document.body.style.zoom='0.65';", null)
                     handler.removeCallbacks(poll)
                     handler.postDelayed(poll, 600)
                 }
@@ -89,8 +96,21 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
             setAcceptCookie(true)
             setAcceptThirdPartyCookies(webView, true)
         }
+        val loginButton = Button(this).apply {
+            text = "统一身份认证登录"
+            setOnClickListener {
+                webView.evaluateJavascript(CLICK_SCRIPT, null)
+            }
+        }
         root.addView(
             status,
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            ),
+        )
+        root.addView(
+            loginButton,
             LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -194,8 +214,9 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
               function label(e){return n(e.innerText||e.textContent||e.value||e.getAttribute('aria-label')||e.getAttribute('title')||'');}
               var items=Array.prototype.slice.call(document.querySelectorAll('button,a,[role="button"],input[type="button"],input[type="submit"],[onclick],[tabindex],div,span,p')).filter(visible);
               function pick(p){return items.filter(function(e){return p(label(e));}).sort(function(a,b){return label(a).length-label(b).length;})[0]||null;}
-              var e=pick(function(l){return l==='统一身份认证登录'||l==='统一身份认证';});
-              if(e){e.click();return 'unified';}
+              function clickable(e){var n=e;for(var i=0;i<5&&n;i++){if(n.click&&(n.tagName==='A'||n.tagName==='BUTTON'||n.getAttribute('onclick')||n.getAttribute('role')==='button'))return n;n=n.parentElement;}return e;}
+              var e=pick(function(l){return l.indexOf('统一身份认证')>=0;});
+              if(e){clickable(e).click();return 'unified';}
               var page=n(document.body&&document.body.innerText);
               if(page.indexOf('本科')>=0&&page.indexOf('研究生')>=0){
                 var r=pick(function(l){return l.indexOf('本科')>=0&&(l.length<=5||l.indexOf('登录')>=0||l.indexOf('入口')>=0||l.indexOf('教务')>=0);});
