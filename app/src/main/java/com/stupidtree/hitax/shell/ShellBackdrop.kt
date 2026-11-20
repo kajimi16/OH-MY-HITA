@@ -33,10 +33,22 @@ fun ShellBackdrop(style: String, dark: Boolean) {
         when (style) {
             "apple_glass" -> Canvas(Modifier.fillMaxSize()) {
                 drawRect(
-                    Brush.linearGradient(
-                        listOf(
-                            if (dark) Color(0xFF0B1220) else Color(0xFFE0EFFC),
-                            if (dark) Color(0xFF15243B) else Color(0xFFE4F0FC),
+                    Brush.verticalGradient(
+                        if (dark) listOf(Color(0xFF080B10), Color(0xFF111823), Color(0xFF0C1017))
+                        else listOf(Color(0xFFF5F9FE), Color(0xFFEAF3FC), Color(0xFFE0EFFC))
+                    )
+                )
+                // Matches upstream AppleGlassBackground atmosphere overlay.
+                drawRect(
+                    Brush.verticalGradient(
+                        if (dark) listOf(
+                            Color.White.copy(alpha = 0.42f),
+                            Color.Transparent,
+                            Color(0xFF6FB3F2).copy(alpha = 0.12f),
+                        ) else listOf(
+                            Color.White.copy(alpha = 0.20f),
+                            Color(0xFF3390EC).copy(alpha = 0.045f),
+                            Color(0xFF9CCBFA).copy(alpha = 0.16f),
                         )
                     )
                 )

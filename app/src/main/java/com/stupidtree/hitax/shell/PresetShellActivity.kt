@@ -417,7 +417,7 @@ private fun HitaAndroidShell(
             )
             Surface(
                 shape = RoundedCornerShape(28.dp),
-                color = if (style == "apple_glass") Color.White.copy(alpha = 0.58f) else MaterialTheme.colorScheme.surface,
+                color = if (style == "apple_glass") Color(0xFFEFFFFF).copy(alpha = 0.98f) else MaterialTheme.colorScheme.surface,
                 shadowElevation = 6.dp,
                 modifier = Modifier.width(barWidth).height(54.dp).then(
                     if (style == "apple_glass" && hazeState != null) {
@@ -575,7 +575,7 @@ private fun ShellDrawerOverlay(
                                 .border(0.8.dp, Color.White.copy(alpha = 0.42f), RoundedCornerShape(0.dp))
                         } else Modifier
                     ),
-                color = if (style == "apple_glass") Color.White.copy(alpha = 0.58f) else MaterialTheme.colorScheme.surface,
+                color = if (style == "apple_glass") Color(0xFFEFFFFF).copy(alpha = 0.98f) else MaterialTheme.colorScheme.surface,
                 shadowElevation = 12.dp,
             ) {
                 Column(
@@ -789,7 +789,7 @@ private fun TodayPage(
         val style = (androidx.compose.ui.platform.LocalContext.current.applicationContext as? HApplication)
             ?.pluginHost?.service(com.stupidtree.hita.api.ThemeController.KEY)?.themeStyle() ?: "classic"
         val cardGradient = when (style) {
-            "apple_glass" -> listOf(Color(0xFF3F8CCE), Color(0xFF2F7FBF))
+            "apple_glass" -> listOf(Color(0xFF3F8BCF), Color(0xFF408DCE))
             "cyber" -> listOf(Color(0xFF0C4457), Color(0xFF04050C))
             "sora_cloud" -> listOf(Color(0xFFC94B38), Color(0xFF7C2A20))
             "p5" -> listOf(Color(0xFFE60012), Color(0xFF101010))
@@ -809,7 +809,7 @@ private fun TodayPage(
         ) {
             Column(
                 Modifier.fillMaxWidth().background(
-                    androidx.compose.ui.graphics.Brush.linearGradient(cardGradient),
+                    androidx.compose.ui.graphics.Brush.verticalGradient(cardGradient),
                 ),
             ) {
                 Row(
