@@ -54,7 +54,7 @@ class HitaPlugin(private val application: Application) : Plugin {
     override fun install(ctx: PluginContext) {
         val database = AppDatabase.getDatabase(application)
         com.stupidtree.component.util.ColorTools.applyPalette(
-            com.stupidtree.style.CutePaletteStore.colors(application),
+            com.stupidtree.style.CutePaletteStore.colorsForActivePreset(application),
         )
 
         val service = TimetableServiceImpl(

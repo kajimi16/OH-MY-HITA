@@ -49,4 +49,11 @@ object CutePaletteStore {
         options.firstOrNull { it.id == activeId(context) } ?: options.first()
 
     fun colors(context: Context): List<String> = active(context).colors
+
+    /** 配色只在 HITA_CUTE 预设内生效；其它预设回退到 Material。 */
+    fun colorsForActivePreset(context: Context): List<String> {
+        val preset = context.getSharedPreferences("preset_state", Context.MODE_PRIVATE)
+            .getString("active_preset", null)
+        return if (preset == "hita-cute-1.6.0") colors(context) else options.first().colors
+    }
 }

@@ -164,6 +164,9 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
     /** HITA_CUTE 只把背景应用到抽屉；不清除其它预设自己的背景。 */
     private fun applyCuteBackground() {
+        com.stupidtree.component.util.ColorTools.applyPalette(
+            com.stupidtree.style.CutePaletteStore.colorsForActivePreset(this),
+        )
         if (!isCutePreset()) {
             binding.drawer.background = null
             return
