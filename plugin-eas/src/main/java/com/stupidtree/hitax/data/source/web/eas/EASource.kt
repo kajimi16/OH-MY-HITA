@@ -57,7 +57,7 @@ class EASource internal constructor() : EASService {
         return if (proxySession) jwProxyHostName else jwHostName
     }
     private val basicAuth = "Basic aW5jb246MTIzNDU="
-    private val timeout = 30000
+    private val timeout = 15000
 
     // ---------------------------------------------------------------- 公共头
     private fun baseHeaders(authorization: String, rolecode: String = "06"): Map<String, String> =
