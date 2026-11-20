@@ -5,7 +5,7 @@
 ## 已完成
 
 - 17 个原有 UI 页面拆成 `oh-my-hita/ui-*` 仓库，统一依赖 `plugin-sdk`，有 `v*` 发布 workflow。
-- 新增 `oh-my-hita/ui-timetable`：T2 课表界面，只调用 `TimetableService`，不访问 Room/DAO/ICS。
+- 新增 `oh-my-hita/ui-timetable`：T2 课表 **preview**，只调用 `TimetableService`，不访问 Room/DAO/ICS；当前只渲染当前周事件列表，不能计入完整 T2 UI 验收。
 - 新增 `oh-my-hita/timetable-core`：T1 课表核心，Room/DAO/仓库/ICS/同步 codec；发布 v0.1.0 dex。
 - 新增 API 11 的 `HostEnvironmentService`，只暴露 `applicationContext`；T1 插件用无参 `Plugin` 装载。
 - 修复 `:api:generateApiAbi` 误取过期 release jar 的问题；ABI 现在覆盖 78 个类。
@@ -18,7 +18,7 @@
 | 项目 | 当前状态 |
 |---|---|
 | `eas/resource/user/theta` 官方仓库 | 仍未拆出，仍走 privileged builtin |
-| `timetable` 完整 T2 UI | 当前只有当前周事件列表；周网格、编辑、详情未移植 |
+| `timetable` 完整 T2 UI | **未完成**；当前 v0.1.0 只是 preview，只有当前周事件列表，周网格、编辑、详情未移植 |
 | `timetable` T3 | Widget、提醒、前台服务仍在宿主 |
 | 官方整合包 1.0 | 三套 preset 仍引用 5 个 builtin，不能宣称完全空壳化 |
 | 发布线 | 最新 release 是 0.9.0（API 10）；API 11 只在 master |
@@ -55,4 +55,4 @@ cd ../ui-timetable && ./gradlew :ui-plugin:assembleDebug
 
 ## 结论
 
-架构方向已经验证：Android 上可行的不是 Cordis 式“所有东西动态卸载”，而是 T1 逻辑核心、T2 Compose 界面、T3 宿主组件的分层。当前只完成了 timetable 的 T1/T2 样本，不能把整个迁移标记为完成。
+架构方向已经验证：Android 上可行的不是 Cordis 式“所有东西动态卸载”，而是 T1 逻辑核心、T2 Compose 界面、T3 宿主组件的分层。当前只完成了 timetable 的 T1 core 与 T2 preview 样本，不能把完整 T2 UI 或整个迁移标记为完成。
