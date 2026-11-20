@@ -24,6 +24,7 @@
 
 ```text
 oh-my-hita/
+├── plugin-sdk                 # API 10 的 api/model/component 固定版本产物
 ├── plugin-template            # 通用 T1/T2 模板 + CI
 ├── official-plugins/           # 不建议做 monorepo；以下是仓库名
 │   ├── ui-ai
@@ -39,6 +40,37 @@ oh-my-hita/
 ```
 
 插件 ID 保持现有反向域名，不因仓库拆分改变；否则整合包和历史数据全部失效。
+
+### 2.1 契约分发
+
+不能把 `api/model/component` 的 AAR 复制到每个插件仓库。独立仓库必须从
+`oh-my-hita/plugin-sdk` 获取固定版本：
+
+```text
+io.github.kajimi16.ohmyhita:plugin-api:10
+io.github.kajimi16.ohmyhita:plugin-model:10
+io.github.kajimi16.ohmyhita:plugin-component:10
+```
+
+`plugin-sdk` 负责：
+
+- 从宿主发布 AAR/POM/校验和；
+- 只追加版本，不原地覆盖；
+- 模板和所有插件仓库只依赖坐标，不提交 `libs/*.aar`；
+- API 升级时发布新 SDK 版本，插件按需升级。
+
+当前模板里的 `libs/*.aar` 只是迁移期的临时兜底，批量建仓前必须移除。
+
+### 2.2 三条插件轨道
+
+| 轨道 | 能力 | 模板 |
+|---|---|---|
+| T1 | 逻辑服务、同步、无界面 | `plugin` |
+| T2 | Compose 界面，不能声明组件/资源 | `ui-plugin` |
+| privileged | Activity/Widget/Service/资源，需宿主承载或 T3 | 不进通用模板 |
+
+`timetable/eas/resource/user/theta` 不能直接套 T1/T2 模板；它们属于 privileged
+track，必须先拆成 T1 core + T2 UI，并把 Widget/Service/资源交给宿主或新增 T3。
 
 ## 3. 迁移矩阵
 
@@ -105,6 +137,12 @@ links live news notice reminder score share training update
 
 - `hita-plugin-template` 已适配 API 10、Kotlin 1.9.24、Compose Compiler 1.5.14。
 - 本地 `publishMarket` 成功产出 T1 dex + T2 APK。
+
+### Phase 0.5：plugin-sdk
+
+- 建立 `oh-my-hita/plugin-sdk`，发布 API 10 的固定坐标与校验和。
+- 模板改用 Maven 坐标，删除 `libs/*.aar`。
+- 每个插件仓库通过同一 SDK 版本构建。
 
 ### Phase 1：空壳宿主
 
