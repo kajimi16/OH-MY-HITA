@@ -1,3 +1,19 @@
 {
-  "verified": []
+  "verified": [
+    {
+      "id": "com.stupidtree.hitax.timetable"
+    },
+    {
+      "id": "com.stupidtree.hitax.eas"
+    },
+    {
+      "id": "com.stupidtree.hitax.resource"
+    },
+    {
+      "id": "com.stupidtree.hitax.user"
+    },
+    {
+      "id": "com.stupidtree.hitax.theta"
+    }
+  ]
 }

@@ -22,7 +22,13 @@ object PluginTrust {
     fun parseVerifiedIds(json: String): Set<String> = runCatching {
         JsonParser.parseString(json).asJsonObject
             .getAsJsonArray("verified")
-            .mapNotNull { it.asJsonObject.get("id")?.asString }
+            .mapNotNull { element ->
+                when {
+                    element.isJsonObject -> element.asJsonObject.get("id")?.asString
+                    element.isJsonPrimitive -> element.asString
+                    else -> null
+                }
+            }
             .toSet()
     }.getOrDefault(emptySet())
 }
