@@ -1485,6 +1485,16 @@ private fun MorePage(
             ?: prefs.getString("name", null)?.takeIf { it.isNotBlank() }
             ?: prefs.getString("username", null)?.takeIf { it.isNotBlank() }
     }
+    val userSubtitle = remember(authRevision) {
+        val id = easAuth?.accountSubtitle()?.takeIf { it.isNotBlank() }
+            ?: prefs.getString("stuId", null)?.takeIf { it.isNotBlank() }
+        val details = listOf("school", "major", "grade")
+            .mapNotNull { prefs.getString(it, null)?.takeIf(String::isNotBlank) }
+            .joinToString(" · ")
+        listOfNotNull(id, details.takeIf { it.isNotBlank() })
+            .joinToString("\n")
+            .takeIf { it.isNotBlank() }
+    }
     val timetableCountLive = remember(service) {
         service?.getTimetableCount() ?: androidx.lifecycle.MutableLiveData(0)
     }
@@ -1615,7 +1625,7 @@ private fun MorePage(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        if (userName == null) "点击进行教务登录" else "已连接教务",
+                        userSubtitle ?: if (userName == null) "点击进行教务登录" else "",
                         color = shellSecondary(),
                         fontSize = 12.sp,
                         maxLines = 2,
