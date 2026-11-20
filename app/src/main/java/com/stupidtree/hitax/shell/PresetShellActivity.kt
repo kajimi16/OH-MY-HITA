@@ -480,6 +480,7 @@ private fun HitaAndroidShell(
             val lensExtra = tabWidth * (dock.stretch.value * 0.5f)
             val lensHeight = 44.dp * (1f + dock.lift.value * 0.12f)
             val indicatorOffset = tabWidth * dock.lens.value - lensExtra / 2f
+            val selectedNow = androidx.compose.runtime.rememberUpdatedState(selected)
             Surface(
                 shape = RoundedCornerShape(28.dp),
                 color = if (style == "apple_glass") MaterialTheme.colorScheme.surface.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface,
@@ -526,7 +527,7 @@ private fun HitaAndroidShell(
                                         barWidthPx,
                                         tabs.size,
                                         paddingPx,
-                                        selected,
+                                        selectedNow.value,
                                     )
                                     break
                                 }
