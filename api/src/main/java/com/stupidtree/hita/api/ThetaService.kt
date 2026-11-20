@@ -12,6 +12,13 @@ data class ThetaTopic(
     val articleNum: Int,
 )
 
+data class ThetaComment(
+    val id: String,
+    val content: String,
+    val author: String,
+    val createTime: Long,
+)
+
 data class ThetaArticle(
     val id: String,
     val title: String,
@@ -23,6 +30,8 @@ data class ThetaArticle(
 interface ThetaService {
     fun topics(mode: String, page: Int): LiveData<DataState<List<ThetaTopic>>>
     fun articles(topicId: String, page: Int): LiveData<DataState<List<ThetaArticle>>>
+
+    fun comments(articleId: String, page: Int): LiveData<DataState<List<ThetaComment>>>
 
     companion object { val KEY = ServiceKey<ThetaService>("hita.theta.feed") }
 }
