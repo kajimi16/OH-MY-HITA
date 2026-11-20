@@ -182,7 +182,8 @@ class PresetShellActivity : AppCompatActivity() {
                 .service(com.stupidtree.hita.api.ThemeController.KEY)?.themeStyle() ?: "classic"
             val scheme = shellStyleScheme(style, dark)
             MaterialTheme(colorScheme = scheme, typography = shellStyleTypography(style)) {
-                Surface(Modifier.fillMaxSize(), color = scheme.background) {
+                Box(Modifier.fillMaxSize().background(scheme.background)) {
+                    ShellBackdrop(style, dark)
                     HitaAndroidShell(service, homeworkViewModel, agentViewModel)
                 }
             }
