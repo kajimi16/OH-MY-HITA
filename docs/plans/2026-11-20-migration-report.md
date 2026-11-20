@@ -19,7 +19,7 @@
 
 | 项目 | 当前状态 |
 |---|---|
-| `eas` | T1/T2 已发布；T1 只含考试备忘录，登录/成绩/空教室/培养方案仍是 preview |
+| `eas` | T1/T2 已发布，但只有考试备忘录；登录/成绩/空教室/培养计划未迁移，**不能算完整 EAS 插件** |
 | `resource` | T1/T2 已拆出；T2 仍是搜索/Readme preview，不是完整资源页 |
 | `user` | T1/T2 preview；登录/资料编辑仍走特权路径 |
 | `theta` | T1 只有话题；文章/评论/消息与完整 UI 未迁移 |
@@ -60,4 +60,4 @@ cd ../ui-timetable && ./gradlew :ui-plugin:assembleDebug
 
 ## 结论
 
-架构方向已经验证：Android 上可行的不是 Cordis 式“所有东西动态卸载”，而是 T1 逻辑核心、T2 Compose 界面、T3 宿主组件的分层。当前只完成了 timetable 的 T1 core 与 T2 preview 样本，不能把完整 T2 UI 或整个迁移标记为完成。
+架构方向已经验证：Android 上可行的不是 Cordis 式“所有东西动态卸载”，而是 T1 逻辑核心、T2 Compose 界面、T3 宿主组件的分层。当前只是插件化架构预览：timetable 有周网格，resource/user/theta/eas 的 T2 仍有 preview 页面；EAS 主功能缺失，不能把稳定 1.0 标记为完成。
