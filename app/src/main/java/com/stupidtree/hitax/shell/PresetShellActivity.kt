@@ -22,6 +22,8 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.draw.alpha
@@ -70,10 +72,12 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.clickable
@@ -1752,6 +1756,7 @@ private fun MorePage(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EasLoginDialog(
     auth: com.stupidtree.hita.api.EasAuthService,
@@ -1781,51 +1786,59 @@ private fun EasLoginDialog(
             else -> Unit
         }
     }
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = { if (!loading) onDismiss() },
-        title = { Text("登录教务") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    singleLine = true,
-                    label = { Text("学号 / 用户名") },
-                    enabled = !loading,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    singleLine = true,
-                    label = { Text("密码") },
-                    enabled = !loading,
-                    visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                error?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+    ) {
+        Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 24.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("教务验证", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text("请登录深圳教务系统", fontSize = 16.sp, color = shellSecondary())
+                }
+                Button(
+                    onClick = {
+                        loading = true
+                        error = null
+                        request = auth.login(username.trim(), password)
+                    },
+                    enabled = !loading && username.isNotBlank() && password.isNotBlank(),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.height(36.dp),
+                ) {
+                    Text(if (loading) "登录中…" else "APP登录", fontSize = 18.sp)
                 }
             }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = !loading && username.isNotBlank() && password.isNotBlank(),
-                onClick = {
-                    loading = true
-                    error = null
-                    request = auth.login(username.trim(), password)
-                },
-            ) { Text(if (loading) "登录中…" else "登录") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !loading) { Text("取消") }
-        },
-    )
+            OutlinedTextField(
+                value = username,
+                onValueChange = { username = it },
+                singleLine = true,
+                label = { Text("学号 / 用户名") },
+                enabled = !loading,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            )
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                singleLine = true,
+                label = { Text("密码") },
+                enabled = !loading,
+                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
+                ),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            )
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("登录即表示同意用户协议与隐私政策", fontSize = 12.sp, color = shellSecondary())
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = onDismiss, enabled = !loading) { Text("稍后") }
+            }
+            error?.let {
+                Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+            }
+        }
+    }
+
 }
 
 @Composable
