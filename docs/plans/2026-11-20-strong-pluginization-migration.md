@@ -175,13 +175,14 @@ links live news notice reminder score share training update
 - `oh-my-hita/ui-*`：17 个 UI 插件独立仓库，统一依赖 `plugin-sdk:10.1`；全部本地构建通过，已创建 release APK，并带 `v*` 发布 workflow。
 - `oh-my-hita/registry`：17 个 UI 插件的官方索引，APK URL 与 sha256 已验证。
 - `oh-my-hita/official-presets`：三套官方整合包声明。
+- `oh-my-hita/timetable-core`：只依赖 `plugin-sdk:10.1` 的 T1 课表核心；已产出 160KB dex，包含 Room/DAO/仓库/ICS/同步 codec，不含 UI/Widget/Activity。
 
 空壳宿主验证：临时移除 5 个 `runtimeOnly` 后构建、安装、启动成功；官方 registry 可展示 UI 插件。
 
 ## 5.1 仍未完成
 
 - `timetable/eas/resource/user/theta` 仍是 privileged builtin，尚未拆成 T1/T2 官方仓库。
-- `timetable` 的 Widget/Service/数据库/同步，`eas` 的登录 Activity，资源/主页/社区 Activity，都需要宿主能力或 T3 设计。
+- `timetable` T1 core 已建立；Widget/Service 与 T2 Compose UI 仍待迁移。`eas` 的登录 Activity，资源/主页/社区 Activity，也都需要 T2 重写或 T3 设计。
 - 因此当前 official-presets 仍引用这 5 个 builtin，不能宣称已经完全空壳化。
 
 ## 6. 建议的验收命令
