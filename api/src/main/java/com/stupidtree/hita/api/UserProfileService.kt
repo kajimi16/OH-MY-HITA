@@ -1,6 +1,7 @@
 package com.stupidtree.hita.api
 
 import androidx.lifecycle.LiveData
+import com.stupidtree.component.data.DataState
 
 /** 当前登录用户的只读快照；token 不进入 UI 契约。 */
 data class UserProfileSnapshot(
@@ -20,6 +21,9 @@ data class UserProfileSnapshot(
  */
 interface UserProfileService {
     fun current(): LiveData<UserProfileSnapshot?>
+
+    /** 登录；成功后 current() 会读到新会话。 */
+    fun login(username: String, password: String): LiveData<DataState<Boolean>>
 
     fun logout()
 
