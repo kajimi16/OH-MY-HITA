@@ -84,6 +84,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -153,6 +154,7 @@ import com.stupidtree.hitax.agent.AgentChatViewModel
 import com.stupidtree.hitax.shell.agent.AgentChatScreen
 import com.stupidtree.hitax.shell.homework.HomeworkViewModel
 import com.stupidtree.hitax.shell.news.ShellNewsPage
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -1116,13 +1118,29 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
             (week - 1).toLong() * 7 * 24 * 3600 * 1000
     }
     val eventsLive = remember(service, start) {
-        service?.getEventsDuring(start, start + 7L * 24 * 3600 * 1000)
-            ?: androidx.lifecycle.MutableLiveData(emptyList())
+        service?.getEventsDuringWithColor(start, start + 7L * 24 * 3600 * 1000)
+            ?: androidx.lifecycle.MutableLiveData(null)
     }
-    val events by eventsLive.observeAsState(emptyList())
+    val eventsState by eventsLive.observeAsState(initial = null)
+    val events = eventsState.orEmpty()
+    val context = LocalContext.current
+    val snapshotStore = remember(context) { ShellTimetableSnapshotStore(context) }
+    val snapshotKey = "${timetable?.id ?: "none"}:$week"
+    var changeCount by remember(snapshotKey) { mutableIntStateOf(0) }
+    LaunchedEffect(snapshotKey, eventsState) {
+        val loaded = eventsState ?: return@LaunchedEffect
+        val current = ShellTimetableChange.snapshot(loaded)
+        val previous = snapshotStore.load(snapshotKey)
+        if (previous == null) {
+            snapshotStore.save(snapshotKey, current)
+        } else {
+            val changed = ShellTimetableChange.diff(previous, current)
+            if (changed > 0) changeCount = changed
+            snapshotStore.save(snapshotKey, current)
+        }
+    }
 
     Column(Modifier.fillMaxSize()) {
-        val context = LocalContext.current
         Row(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 13.5.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 "第${week}周",
@@ -1201,8 +1219,20 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
         }
         val todayIndex = (dayOfWeek(todayCalendar.timeInMillis) - 1).coerceIn(0, 6)
         val gridScroll = rememberScrollState()
+        val hintScope = androidx.compose.runtime.rememberCoroutineScope()
         LaunchedEffect(week) { gridScroll.scrollTo(0) }
-        Column(Modifier.weight(1f).verticalScroll(gridScroll)) {
+        val hasEveningEvents = remember(events) {
+            events.any { minuteOfDay(it.from.time) >= 18 * 60 + 30 }
+        }
+        val hideThresholdPx = with(LocalDensity.current) { 64.dp.toPx() }
+        val showEveningHint by remember(hasEveningEvents, gridScroll) {
+            derivedStateOf {
+                hasEveningEvents && gridScroll.maxValue > 0 &&
+                    gridScroll.value < gridScroll.maxValue - hideThresholdPx
+            }
+        }
+        Box(Modifier.weight(1f)) {
+        Column(Modifier.fillMaxSize().verticalScroll(gridScroll)) {
             Spacer(Modifier.height(12.dp))
             AnimatedContent(
                 targetState = week,
@@ -1226,7 +1256,7 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
                 val animatedStart = (timetable?.startTime?.time ?: currentWeekMondayMillis()) +
                     (animatedWeek - 1).toLong() * 7L * 24 * 3600 * 1000
                 val animatedEvents by remember(service, animatedStart) {
-                    service?.getEventsDuring(animatedStart, animatedStart + 7L * 24 * 3600 * 1000)
+                    service?.getEventsDuringWithColor(animatedStart, animatedStart + 7L * 24 * 3600 * 1000)
                         ?: androidx.lifecycle.MutableLiveData(emptyList<EventItem>())
                 }.observeAsState(emptyList())
         Row(Modifier.fillMaxWidth().height(hourHeight * 14).pointerInput(Unit) {
@@ -1302,6 +1332,67 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
             }
             Spacer(Modifier.height(96.dp))
         }
+        Column(
+            Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            if (changeCount > 0) {
+                TimetableChangePill(changeCount) { changeCount = 0 }
+            }
+            if (showEveningHint) {
+                TimetableEveningHintPill {
+                    hintScope.launch { gridScroll.animateScrollTo(gridScroll.maxValue) }
+                }
+            }
+        }
+        }
+    }
+}
+
+@Composable
+private fun TimetableChangePill(count: Int, onDismiss: () -> Unit) {
+    TimetableHintPill(
+        icon = R.drawable.ic_baseline_settings_backup_restore_24,
+        text = "课表已更新 · $count 处调整",
+        onClick = onDismiss,
+    )
+}
+
+@Composable
+private fun TimetableEveningHintPill(onClick: () -> Unit) {
+    TimetableHintPill(
+        icon = R.drawable.ic_moon,
+        text = "还有更多课程",
+        onClick = onClick,
+    )
+}
+
+@Composable
+private fun TimetableHintPill(icon: Int, text: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.94f))
+            .border(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f), CircleShape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(13.dp),
+        )
+        Spacer(Modifier.width(5.dp))
+        Text(
+            text,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+        )
     }
 }
 
