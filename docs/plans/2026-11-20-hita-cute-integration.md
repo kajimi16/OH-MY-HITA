@@ -33,7 +33,7 @@
 ]}
 ```
 
-默认 shell 与 HITA-L 一致，由 `MainActivity` 承载。`HITA_API_VERSION` 提升到 10，确保 0.8.0 不会看到这个依赖新宿主能力的预设。
+默认 shell 与 HITA-L 一致，由 `MainActivity` 承载。`HITA_API_VERSION` 提升到 10，确保 0.8.0 无法应用这个依赖新宿主能力的预设。
 
 ## 限制
 
