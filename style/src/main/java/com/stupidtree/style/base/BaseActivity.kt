@@ -51,6 +51,10 @@ abstract class BaseActivity<T : ViewModel, V : ViewBinding> : AppCompatActivity(
         super.attachBaseContext(newBase.createConfigurationContext(config))
     }
 
+    private fun isCutePresetActive(): Boolean =
+        getSharedPreferences("preset_state", MODE_PRIVATE)
+            .getString("active_preset", null) == "hita-cute-1.6.0"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // 插件可切换配色预设；在 inflate 之前覆盖宿主主题。
         val styleTheme = when (ThemeTools.getThemeStyle(this)) {
@@ -76,9 +80,11 @@ abstract class BaseActivity<T : ViewModel, V : ViewBinding> : AppCompatActivity(
             val id = resources.getIdentifier(presetStyle, "style", packageName)
             if (id != 0) setTheme(id)
         }
-        CuteThemeStore.activeStyleName(this)?.let { styleName ->
-            val id = resources.getIdentifier(styleName, "style", packageName)
-            if (id != 0) setTheme(id)
+        if (isCutePresetActive()) {
+            CuteThemeStore.activeStyleName(this)?.let { styleName ->
+                val id = resources.getIdentifier(styleName, "style", packageName)
+                if (id != 0) setTheme(id)
+            }
         }
         //setTranslucentStatusBar()
         val mode = when (ThemeTools.getThemeMode(this)) {
