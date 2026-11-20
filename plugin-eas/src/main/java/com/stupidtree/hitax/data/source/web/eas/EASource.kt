@@ -57,7 +57,7 @@ class EASource internal constructor() : EASService {
         return if (proxySession) jwProxyHostName else jwHostName
     }
     private val basicAuth = "Basic aW5jb246MTIzNDU="
-    private val timeout = 15000
+    private val timeout = 30000
 
     // ---------------------------------------------------------------- 公共头
     private fun baseHeaders(authorization: String, rolecode: String = "06"): Map<String, String> =
@@ -326,7 +326,7 @@ class EASource internal constructor() : EASService {
                 }
                 res.postValue(DataState(token, DataState.STATE.SUCCESS))
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("EASLogin", "login failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 res.postValue(DataState(DataState.STATE.FETCH_FAILED, e.message))
             }
         }.start()
@@ -346,8 +346,11 @@ class EASource internal constructor() : EASService {
             )
 
         val rsaResp = formPost(session, "/component/queryApplicationSetting/rsa", basicAuth, rolecode = "01")
+        Log.d("EASLogin", "rsa status=${rsaResp.statusCode()}")
         val raskeyResp = formPost(session, "/c_raskey", basicAuth, rolecode = "06")
+        Log.d("EASLogin", "raskey status=${raskeyResp.statusCode()}")
         val rsaPublicKeys = parseRsaPublicKeysFromRaskey(raskeyResp.body())
+        Log.d("EASLogin", "rsa keys=${rsaPublicKeys.size}")
         val rolecodes = listOf("06", "01")
 
         var payload: JSONObject? = null
@@ -357,6 +360,7 @@ class EASource internal constructor() : EASService {
                 session, "/authentication/ldap", basicAuth, rolecode = role,
                 data = mapOf("username" to username, "password" to password)
             )
+            Log.d("EASLogin", "ldap plain role=$role status=${ldapResp.statusCode()}")
             payload = JsonUtils.getJsonObject(ldapResp.body())
             token = buildTokenFromPayload(
                 payload,
@@ -364,7 +368,10 @@ class EASource internal constructor() : EASService {
                 password,
                 buildCookieMap(rsaResp, raskeyResp, ldapResp)
             )
-            if (token != null) return token
+            if (token != null) {
+                Log.d("EASLogin", "login success role=$role")
+                return token
+            }
         }
         if (rsaPublicKeys.isNotEmpty()) {
             loop@ for (role in rolecodes) {
@@ -374,6 +381,7 @@ class EASource internal constructor() : EASService {
                         session, "/authentication/ldap", basicAuth, rolecode = role,
                         data = mapOf("username" to username, "password" to encrypted)
                     )
+                    Log.d("EASLogin", "ldap rsa role=$role status=${ldapResp.statusCode()}")
                     payload = JsonUtils.getJsonObject(ldapResp.body())
                     token = buildTokenFromPayload(
                         payload,
@@ -381,7 +389,10 @@ class EASource internal constructor() : EASService {
                         password,
                         buildCookieMap(rsaResp, raskeyResp, ldapResp)
                     )
-                    if (token != null) break@loop
+                    if (token != null) {
+                        Log.d("EASLogin", "login success role=$role rsa")
+                        break@loop
+                    }
                 }
             }
         }
@@ -467,7 +478,7 @@ class EASource internal constructor() : EASService {
                 }
                 res.postValue(DataState(calendar))
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("EASLogin", "login failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 res.postValue(DataState(DataState.STATE.FETCH_FAILED, e.message))
             }
         }.start()
@@ -550,7 +561,7 @@ class EASource internal constructor() : EASService {
                 }
                 res.postValue(DataState(result))
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("EASLogin", "login failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 res.postValue(DataState(DataState.STATE.FETCH_FAILED, e.message))
             }
         }.start()
@@ -624,7 +635,7 @@ class EASource internal constructor() : EASService {
                     res.postValue(DataState(result, DataState.STATE.SUCCESS))
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("EASLogin", "login failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 res.postValue(DataState(DataState.STATE.FETCH_FAILED, e.message))
             }
         }.start()
@@ -1093,7 +1104,7 @@ class EASource internal constructor() : EASService {
                     res.postValue(DataState(DataState.STATE.FETCH_FAILED))
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("EASLogin", "login failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 res.postValue(DataState(DataState.STATE.FETCH_FAILED, e.message))
             }
         }.start()
@@ -1138,7 +1149,7 @@ class EASource internal constructor() : EASService {
                     res.postValue(DataState(DataState.STATE.FETCH_FAILED))
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("EASLogin", "login failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 res.postValue(DataState(DataState.STATE.FETCH_FAILED, e.message))
             }
         }.start()
@@ -1402,7 +1413,7 @@ class EASource internal constructor() : EASService {
                     res.postValue(DataState(DataState.STATE.FETCH_FAILED, message))
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("EASLogin", "login failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 res.postValue(DataState(DataState.STATE.FETCH_FAILED, e.message))
             }
         }.start()
@@ -1446,7 +1457,7 @@ class EASource internal constructor() : EASService {
                 }
                 res.postValue(DataState(result))
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("EASLogin", "login failed: ${e.javaClass.simpleName}: ${e.message}", e)
                 res.postValue(DataState(DataState.STATE.FETCH_FAILED, e.message))
             }
         }.start()

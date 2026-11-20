@@ -1775,7 +1775,14 @@ private fun EasLoginDialog(
         if (state.state == com.stupidtree.component.data.DataState.STATE.SUCCESS && state.data == true) {
             onSuccess()
         } else {
-            error = state.message ?: "登录失败，请检查账号密码"
+            val message = state.message.orEmpty()
+            error = when {
+                message.contains("timeout", ignoreCase = true) ||
+                    message.contains("timed out", ignoreCase = true) ->
+                    "网络超时，请检查校园网或 VPN 后重试"
+                message.isBlank() -> "登录失败，请检查账号密码"
+                else -> message
+            }
             loading = false
         }
     }
