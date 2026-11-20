@@ -1126,17 +1126,36 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
     val context = LocalContext.current
     val snapshotStore = remember(context) { ShellTimetableSnapshotStore(context) }
     val snapshotKey = "${timetable?.id ?: "none"}:$week"
+    var baseline by remember(snapshotKey) { mutableStateOf(snapshotStore.load(snapshotKey)) }
+    var pendingSnapshot by remember(snapshotKey) { mutableStateOf<Map<String, String>?>(null) }
     var changeCount by remember(snapshotKey) { mutableIntStateOf(0) }
     LaunchedEffect(snapshotKey, eventsState) {
         val loaded = eventsState ?: return@LaunchedEffect
         val current = ShellTimetableChange.snapshot(loaded)
-        val previous = snapshotStore.load(snapshotKey)
+        val previous = baseline
         if (previous == null) {
             snapshotStore.save(snapshotKey, current)
+            baseline = current
+        } else if (pendingSnapshot == null) {
+            val changed = ShellTimetableChange.diff(previous, current)
+            if (changed > 0) {
+                changeCount = changed
+                pendingSnapshot = current
+            } else {
+                snapshotStore.save(snapshotKey, current)
+                baseline = current
+            }
         } else {
             val changed = ShellTimetableChange.diff(previous, current)
-            if (changed > 0) changeCount = changed
-            snapshotStore.save(snapshotKey, current)
+            if (changed > 0) {
+                changeCount = changed
+                pendingSnapshot = current
+            } else {
+                snapshotStore.save(snapshotKey, current)
+                baseline = current
+                pendingSnapshot = null
+                changeCount = 0
+            }
         }
     }
 
@@ -1338,7 +1357,14 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             if (changeCount > 0) {
-                TimetableChangePill(changeCount) { changeCount = 0 }
+                TimetableChangePill(changeCount) {
+                    pendingSnapshot?.let {
+                        snapshotStore.save(snapshotKey, it)
+                        baseline = it
+                    }
+                    pendingSnapshot = null
+                    changeCount = 0
+                }
             }
             if (showEveningHint) {
                 TimetableEveningHintPill {
