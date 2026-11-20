@@ -281,7 +281,7 @@ private fun SearchScreen(
                     CenterHint(tokens, LocalContext.current.hostString("course_resource_empty", "没有找到相关课程资源"))
                 else -> LazyColumn(Modifier.fillMaxSize()) {
                     itemsIndexed(result?.data ?: emptyList()) { index, item ->
-                        Box(Modifier.animateItemPlacement()) {
+                        Box(Modifier.animateItem()) {
                             EntranceAnimation(
                                 index = index,
                                 generation = generation,
