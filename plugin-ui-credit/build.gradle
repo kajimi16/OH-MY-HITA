@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'org.jetbrains.kotlin.plugin.compose'
 }
 
 android {
@@ -9,13 +10,12 @@ android {
         applicationId "com.stupidtree.hita.ui.credit"
         minSdkVersion 23
         targetSdk 33
-        compileSdk 35
+        compileSdk 36
         versionCode 1
         versionName "0.1.0"
     }
     buildFeatures { compose = true }
-    composeOptions { kotlinCompilerExtensionVersion '1.5.14' }
-    compileOptions {
+compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -24,9 +24,9 @@ android {
 
 dependencies {
     compileOnly project(':api')
-    compileOnly "androidx.compose.runtime:runtime:1.6.8"
-    compileOnly "androidx.compose.runtime:runtime-livedata:1.6.8"
-    compileOnly "androidx.compose.ui:ui:1.6.8"
-    compileOnly "androidx.compose.foundation:foundation:1.6.8"
-    compileOnly "androidx.compose.material:material:1.6.8"
+    compileOnly "androidx.compose.runtime:runtime:1.9.4"
+    compileOnly "androidx.compose.runtime:runtime-livedata:1.9.4"
+    compileOnly "androidx.compose.ui:ui:1.9.4"
+    compileOnly "androidx.compose.foundation:foundation:1.9.4"
+    compileOnly "androidx.compose.material:material:1.9.4"
 }
