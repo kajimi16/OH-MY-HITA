@@ -75,13 +75,13 @@
     {
       "id": "com.stupidtree.hitax.eas",
       "name": "教务核心",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "apiVersion": 11,
-      "url": "https://github.com/oh-my-hita/eas-core/releases/download/v0.2.0/eas-core.dex",
-      "sha256": "6435c0528e5871f90029b399d167d817e88cdf219d72d86314e775dbff4f7136",
+      "url": "https://github.com/oh-my-hita/eas-core/releases/download/v0.3.0/eas-core.dex",
+      "sha256": "331dca9887fef440c0975cad67bde747933d15ac7f8a367910ea00543164183c",
       "entryClass": "com.stupidtree.hitax.plugin.EasCorePlugin",
       "minHostApi": 11,
-      "description": "T1 教务登录/成绩/考试/空教室/培养计划",
+      "description": "T1 教务 headless 核心（登录/成绩/考试/空教室/培养计划）",
       "author": "OH-MY-HITA",
       "repo": "https://github.com/oh-my-hita/eas-core",
       "tags": [
