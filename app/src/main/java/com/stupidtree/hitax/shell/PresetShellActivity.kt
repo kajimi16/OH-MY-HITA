@@ -28,6 +28,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.HazeStyle
 import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -417,11 +418,19 @@ private fun HitaAndroidShell(
             )
             Surface(
                 shape = RoundedCornerShape(28.dp),
-                color = if (style == "apple_glass") Color(0xFFEFFFFF).copy(alpha = 0.98f) else MaterialTheme.colorScheme.surface,
+                color = if (style == "apple_glass") MaterialTheme.colorScheme.surface.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface,
                 shadowElevation = 6.dp,
                 modifier = Modifier.width(barWidth).height(54.dp).then(
                     if (style == "apple_glass" && hazeState != null) {
-                        Modifier.hazeChild(state = hazeState, shape = RoundedCornerShape(28.dp))
+                        Modifier.hazeChild(
+                            state = hazeState,
+                            shape = RoundedCornerShape(28.dp),
+                            style = HazeStyle(
+                                tint = Color.White.copy(alpha = 0.16f),
+                                blurRadius = 24.dp,
+                                noiseFactor = 0.05f,
+                            ),
+                        )
                             .border(0.8.dp, Color.White.copy(alpha = 0.55f), RoundedCornerShape(28.dp))
                     } else Modifier
                 ),
@@ -571,11 +580,19 @@ private fun ShellDrawerOverlay(
                 modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().width(260.dp)
                     .then(
                         if (style == "apple_glass" && hazeState != null) {
-                            Modifier.hazeChild(state = hazeState, shape = RoundedCornerShape(0.dp))
+                            Modifier.hazeChild(
+                                state = hazeState,
+                                shape = RoundedCornerShape(0.dp),
+                                style = HazeStyle(
+                                    tint = Color.White.copy(alpha = 0.60f),
+                                    blurRadius = 20.dp,
+                                    noiseFactor = 0.03f,
+                                ),
+                            )
                                 .border(0.8.dp, Color.White.copy(alpha = 0.42f), RoundedCornerShape(0.dp))
                         } else Modifier
                     ),
-                color = if (style == "apple_glass") Color(0xFFEFFFFF).copy(alpha = 0.98f) else MaterialTheme.colorScheme.surface,
+                color = if (style == "apple_glass") MaterialTheme.colorScheme.surface.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface,
                 shadowElevation = 12.dp,
             ) {
                 Column(
