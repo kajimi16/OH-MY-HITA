@@ -132,6 +132,13 @@ class HApplication : Application() {
                 }
         })
         pluginHost.provideGlobal(
+            com.stupidtree.hita.api.HostEnvironmentService.KEY,
+            object : com.stupidtree.hita.api.HostEnvironmentService {
+                override val applicationContext: android.content.Context
+                    get() = this@HApplication.applicationContext
+            },
+        )
+        pluginHost.provideGlobal(
             com.stupidtree.hita.api.MotionController.KEY,
             com.stupidtree.hitax.motion.MotionControllerImpl(this@HApplication),
         )
