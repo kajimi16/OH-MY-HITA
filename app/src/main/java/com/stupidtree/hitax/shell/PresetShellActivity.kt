@@ -274,7 +274,7 @@ private fun loadShellTabs(context: android.content.Context): List<ShellTab> {
         val target = when (spec.id) {
             "com.stupidtree.hita.ui.homework" -> ShellTarget.TODO
             "hita.timeline" -> ShellTarget.TODAY
-            "hita.timetable" -> ShellTarget.TIMETABLE
+            "hita.timetable", "com.stupidtree.hita.ui.timetable" -> ShellTarget.TIMETABLE
             "com.stupidtree.hita.ui.ai" -> ShellTarget.ASSISTANT
             "com.stupidtree.hita.ui.news" -> ShellTarget.NEWS
             "hita.more" -> ShellTarget.MORE
@@ -1112,31 +1112,14 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
     }
     val week = (baseWeek + weekOffset).coerceAtLeast(1)
     val start = remember(timetable, week) {
-        (timetable?.startTime?.time ?: 0L) + (week - 1).toLong() * 7 * 24 * 3600 * 1000
+        (timetable?.startTime?.time ?: currentWeekMondayMillis()) +
+            (week - 1).toLong() * 7 * 24 * 3600 * 1000
     }
     val eventsLive = remember(service, start) {
         service?.getEventsDuring(start, start + 7L * 24 * 3600 * 1000)
             ?: androidx.lifecycle.MutableLiveData(emptyList())
     }
     val events by eventsLive.observeAsState(emptyList())
-
-    if (timetable == null) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                androidx.compose.material3.Icon(
-                    painter = painterResource(R.drawable.ic_timeline),
-                    contentDescription = null,
-                    tint = Color(0xFF3390EC).copy(alpha = 0.35f),
-                    modifier = Modifier.size(96.dp),
-                )
-                Spacer(Modifier.height(12.dp))
-                Text("还没有课表", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)
-                Spacer(Modifier.height(4.dp))
-                Text("请先在功能中心导入课表", color = shellTertiary(), fontSize = 12.sp)
-            }
-        }
-        return
-    }
 
     Column(Modifier.fillMaxSize()) {
         val context = LocalContext.current
@@ -1148,7 +1131,7 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
             )
             Spacer(Modifier.width(16.dp))
             Text(
-                timetable?.name ?: "默认课表1",
+                timetable?.name ?: "还没有课表",
                 color = shellSecondary(),
                 fontSize = 14.sp,
                 modifier = Modifier
@@ -1240,7 +1223,7 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
                 },
                 label = "timetable_week",
             ) { animatedWeek ->
-                val animatedStart = (timetable?.startTime?.time ?: 0L) +
+                val animatedStart = (timetable?.startTime?.time ?: currentWeekMondayMillis()) +
                     (animatedWeek - 1).toLong() * 7L * 24 * 3600 * 1000
                 val animatedEvents by remember(service, animatedStart) {
                     service?.getEventsDuring(animatedStart, animatedStart + 7L * 24 * 3600 * 1000)
@@ -1326,6 +1309,16 @@ private fun minuteOfDay(time: Long): Int {
     val c = java.util.Calendar.getInstance()
     c.timeInMillis = time
     return c.get(java.util.Calendar.HOUR_OF_DAY) * 60 + c.get(java.util.Calendar.MINUTE)
+}
+
+private fun currentWeekMondayMillis(): Long {
+    val calendar = java.util.Calendar.getInstance()
+    calendar.add(java.util.Calendar.DAY_OF_YEAR, 1 - dayOfWeek(calendar.timeInMillis))
+    calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+    calendar.set(java.util.Calendar.MINUTE, 0)
+    calendar.set(java.util.Calendar.SECOND, 0)
+    calendar.set(java.util.Calendar.MILLISECOND, 0)
+    return calendar.timeInMillis
 }
 
 private fun dayOfWeek(time: Long): Int {
