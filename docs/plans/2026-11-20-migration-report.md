@@ -7,6 +7,7 @@
 - 17 个原有 UI 页面拆成 `oh-my-hita/ui-*` 仓库，统一依赖 `plugin-sdk`，有 `v*` 发布 workflow。
 - 新增 `oh-my-hita/ui-timetable`：T2 课表 **preview**，只调用 `TimetableService`，不访问 Room/DAO/ICS；当前只渲染当前周事件列表，不能计入完整 T2 UI 验收。
 - 新增 `oh-my-hita/timetable-core`：T1 课表核心，Room/DAO/仓库/ICS/同步 codec；发布 v0.1.0 dex。
+- 新增 `oh-my-hita/resource-core` 与 `oh-my-hita/ui-resource`：T1 HOA/教师数据 + T2 搜索/Readme preview，均已发布 v0.1.0。
 - 新增 API 11 的 `HostEnvironmentService`，只暴露 `applicationContext`；T1 插件用无参 `Plugin` 装载。
 - 修复 `:api:generateApiAbi` 误取过期 release jar 的问题；ABI 现在覆盖 78 个类。
 - `plugin-sdk:11` 已发布；T1 core 使用远程坐标构建。
@@ -17,7 +18,8 @@
 
 | 项目 | 当前状态 |
 |---|---|
-| `eas/resource/user/theta` 官方仓库 | 仍未拆出，仍走 privileged builtin |
+| `eas/user/theta` 官方仓库 | 仍未拆出，仍走 privileged builtin |
+| `resource` | T1/T2 已拆出；T2 仍是搜索/Readme preview，不是完整资源页 |
 | `timetable` 完整 T2 UI | **未完成**；当前 v0.1.0 只是 preview，只有当前周事件列表，周网格、编辑、详情未移植 |
 | `timetable` T3 | Widget、提醒、前台服务仍在宿主 |
 | 官方整合包 1.0 | 三套 preset 仍引用 5 个 builtin，不能宣称完全空壳化 |
