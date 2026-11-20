@@ -85,7 +85,10 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
                     status.text = "请在页面完成登录，成功后会自动返回"
                     lastUrl = null
                     attempts = 0
-                    view?.evaluateJavascript("document.body.style.zoom='0.65';", null)
+                    view?.evaluateJavascript(
+                        "document.documentElement.style.zoom='0.6';document.body.style.zoom='0.6';",
+                        null,
+                    )
                     handler.removeCallbacks(poll)
                     handler.postDelayed(poll, 600)
                 }
