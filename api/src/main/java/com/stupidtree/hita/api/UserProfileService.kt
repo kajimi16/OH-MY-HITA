@@ -25,6 +25,9 @@ interface UserProfileService {
     /** 登录；成功后 current() 会读到新会话。 */
     fun login(username: String, password: String): LiveData<DataState<Boolean>>
 
+    /** 更新本地资料字段；头像上传不在本契约内。 */
+    fun updateProfile(nickname: String?, signature: String?): LiveData<DataState<Boolean>>
+
     fun logout()
 
     companion object {
