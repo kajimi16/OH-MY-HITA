@@ -34,7 +34,7 @@ fun shellStyleScheme(style: String, dark: Boolean): ColorScheme {
             onPrimary = Color.White,
             primaryContainer = if (dark) Color(0xFF12324E) else Color(0xFFD9ECFF),
             onPrimaryContainer = if (dark) Color(0xFFD6EAFF) else Color(0xFF00315F),
-            background = if (dark) Color(0xFF090B10) else Color(0xFFF4F8FC),
+            background = if (dark) Color(0xFF090B10) else Color(0xFFE0EFFC),
             surface = if (dark) Color.White.copy(alpha = 0.14f) else Color.White.copy(alpha = 0.58f),
             onSurface = if (dark) Color(0xFFF5F7FA) else Color(0xFF101318),
             onSurfaceVariant = if (dark) Color(0xFFCCD2DA) else Color(0xFF505761),

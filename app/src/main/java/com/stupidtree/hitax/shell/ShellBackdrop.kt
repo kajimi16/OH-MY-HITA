@@ -35,13 +35,12 @@ fun ShellBackdrop(style: String, dark: Boolean) {
                 drawRect(
                     Brush.linearGradient(
                         listOf(
-                            if (dark) Color(0xFF0B1220) else Color(0xFFEAF4FF),
-                            if (dark) Color(0xFF15243B) else Color(0xFFF7FBFF),
+                            if (dark) Color(0xFF0B1220) else Color(0xFFE0EFFC),
+                            if (dark) Color(0xFF15243B) else Color(0xFFE4F0FC),
                         )
                     )
                 )
-                drawCircle(Color(0xFF6FB3F2).copy(alpha = 0.18f), radius = size.minDimension * 0.42f, center = Offset(size.width * 0.82f, size.height * 0.12f))
-                drawCircle(Color(0xFFB388FF).copy(alpha = 0.12f), radius = size.minDimension * 0.34f, center = Offset(size.width * 0.12f, size.height * 0.72f))
+                // Upstream glass keeps a flat tinted canvas; no decorative blobs.
             }
             "cyber" -> Canvas(Modifier.fillMaxSize()) {
                 if (dark) {
