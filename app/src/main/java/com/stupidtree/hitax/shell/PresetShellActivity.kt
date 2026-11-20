@@ -482,9 +482,10 @@ private fun HitaAndroidShell(
             val lensHeight = 44.dp * (1f + dock.lift.value * 0.12f)
             val indicatorOffset = tabWidth * dock.lens.value - lensExtra / 2f
             val selectedNow = androidx.compose.runtime.rememberUpdatedState(selected)
+            val glassDockBase = if (isSystemInDarkTheme()) Color(0xFF121923) else Color.White
             Surface(
                 shape = RoundedCornerShape(28.dp),
-                color = if (style == "apple_glass") Color.White.copy(alpha = 0.86f) else MaterialTheme.colorScheme.surface,
+                color = if (style == "apple_glass") glassDockBase.copy(alpha = 0.95f) else MaterialTheme.colorScheme.surface,
                 shadowElevation = 6.dp,
                 modifier = Modifier.width(barWidth).height(54.dp)
                     .graphicsLayer {
@@ -698,7 +699,11 @@ private fun ShellDrawerOverlay(
                                 .border(0.8.dp, Color.White.copy(alpha = 0.42f), RoundedCornerShape(0.dp))
                         } else Modifier
                     ),
-                color = if (style == "apple_glass") Color.White.copy(alpha = 0.86f) else MaterialTheme.colorScheme.surface,
+                color = if (style == "apple_glass") {
+                    (if (isSystemInDarkTheme()) Color(0xFF121923) else Color(0xFFF7FAFF)).copy(alpha = 0.84f)
+                } else {
+                    MaterialTheme.colorScheme.surface
+                },
                 shadowElevation = 12.dp,
             ) {
                 Column(
