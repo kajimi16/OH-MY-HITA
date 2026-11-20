@@ -1839,6 +1839,7 @@ private fun EasLoginDialog(
     }
     ModalBottomSheet(
         onDismissRequest = { if (!loading) onDismiss() },
+        containerColor = if (isSystemInDarkTheme()) Color(0xFF121923) else Color(0xFFF7FAFF),
     ) {
         Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 24.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
