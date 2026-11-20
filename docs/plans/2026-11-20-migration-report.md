@@ -19,13 +19,13 @@
 
 | 项目 | 当前状态 |
 |---|---|
-| `eas` 官方仓库 | 只有未发布的 exam-memo T1 草稿；登录/成绩/空教室/培养方案仍未拆出 |
+| `eas` | T1/T2 已发布；T1 只含考试备忘录，登录/成绩/空教室/培养方案仍是 preview |
 | `resource` | T1/T2 已拆出；T2 仍是搜索/Readme preview，不是完整资源页 |
 | `user` | T1/T2 preview；登录/资料编辑仍走特权路径 |
 | `theta` | T1 只有话题；文章/评论/消息与完整 UI 未迁移 |
 | `timetable` 完整 T2 UI | **未完成**；当前 v0.1.0 只是 preview，只有当前周事件列表，周网格、编辑、详情未移植 |
 | `timetable` T3 | Widget、提醒、前台服务仍在宿主 |
-| 官方整合包 1.0 | 三套 preset 仍引用 5 个 builtin，不能宣称完全空壳化 |
+| 官方整合包 1.0 | 已发布 `official-presets` v1.0.0，三套 preset 改为 T1/T2 插件引用 |
 | 发布线 | 最新 release 是 0.9.0（API 10）；API 11 只在 master |
 
 ## 关键风险
