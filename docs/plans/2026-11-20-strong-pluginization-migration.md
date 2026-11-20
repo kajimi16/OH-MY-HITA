@@ -20,7 +20,7 @@
 
 ## 2. 目标组织布局
 
-建议 GitHub 组织 slug：`oh-my-hita`（显示名可写“OH-MY-HITA 插件组”）。
+组织已创建：`oh-my-hita`（OH-MY-HITA 插件组）。
 
 ```text
 oh-my-hita/
@@ -166,19 +166,23 @@ links live news notice reminder score share training update
 - `eas/resource/user/theta` 页面改 T2，或全部走 T3。
 - 每个仓库独立版本、独立 CI、独立 release。
 
-## 5. 外部阻塞
+## 5. 已落地状态
 
-当前 `gh` token：
+组织已创建并完成以下仓库：
 
-```text
-scopes: gist, read:org, repo, workflow
-```
+- `oh-my-hita/plugin-sdk`：API 10 的 api/model/component Maven 产物，模板已通过远程坐标构建。
+- `oh-my-hita/plugin-template`：API 10、Kotlin 1.9.24、Compose Compiler 1.5.14，CI 成功。
+- `oh-my-hita/ui-*`：17 个 UI 插件独立仓库，全部本地构建通过，已创建 release APK。
+- `oh-my-hita/registry`：17 个 UI 插件的官方索引，APK URL 与 sha256 已验证。
+- `oh-my-hita/official-presets`：三套官方整合包声明。
 
-没有组织创建权限；GitHub 也没有公开的创建组织 API。需要用户：
+空壳宿主验证：临时移除 5 个 `runtimeOnly` 后构建、安装、启动成功；官方 registry 可展示 UI 插件。
 
-1. 在 GitHub 创建 `oh-my-hita` 组织，并把 `kajimi16` 设为 owner；
-2. 确认组织 slug（`oh-my-hita` 当前 404，可用）；
-3. 之后由本会话批量创建仓库、推送模板和插件仓库。
+## 5.1 仍未完成
+
+- `timetable/eas/resource/user/theta` 仍是 privileged builtin，尚未拆成 T1/T2 官方仓库。
+- `timetable` 的 Widget/Service/数据库/同步，`eas` 的登录 Activity，资源/主页/社区 Activity，都需要宿主能力或 T3 设计。
+- 因此当前 official-presets 仍引用这 5 个 builtin，不能宣称已经完全空壳化。
 
 ## 6. 建议的验收命令
 
