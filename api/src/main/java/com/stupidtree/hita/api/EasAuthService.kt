@@ -13,6 +13,10 @@ interface EasAuthService {
     fun accountSubtitle(): String?
 
     fun login(username: String, password: String): LiveData<DataState<Boolean>>
+
+    /** 用深圳 WebView 会话 cookie 建立 T1 登录态，供 Web 登录兜底使用。 */
+    fun loginWithWebSession(cookies: Map<String, String>, webBaseUrl: String?): LiveData<DataState<Boolean>>
+
     fun logout()
 
     companion object {

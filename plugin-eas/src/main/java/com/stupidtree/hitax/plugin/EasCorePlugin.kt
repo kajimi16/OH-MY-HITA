@@ -39,5 +39,10 @@ private class EasAuthImpl(private val application: Application) : EasAuthService
     override fun login(username: String, password: String): LiveData<DataState<Boolean>> =
         repo.login(username, password)
 
+    override fun loginWithWebSession(
+        cookies: Map<String, String>,
+        webBaseUrl: String?,
+    ): LiveData<DataState<Boolean>> = repo.loginWithWebSession(cookies, webBaseUrl)
+
     override fun logout() = repo.logout()
 }

@@ -35,7 +35,7 @@ class EASToken {
     }
 
     fun isLogin(): Boolean {
-        return !accessToken.isNullOrEmpty()
+        return !accessToken.isNullOrEmpty() || cookies.isNotEmpty() || webCookies.isNotEmpty()
     }
 
     override fun toString(): String {

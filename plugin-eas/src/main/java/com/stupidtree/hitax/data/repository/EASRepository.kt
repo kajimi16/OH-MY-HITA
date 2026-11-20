@@ -53,6 +53,49 @@ class EASRepository internal constructor(application: Application) {
         }
     }
 
+    /** 用 WebView 登录得到的深圳教务 cookie 建立登录态。 */
+    fun loginWithWebSession(
+        cookies: Map<String, String>,
+        webBaseUrl: String?,
+    ): LiveData<DataState<Boolean>> {
+        val result = MutableLiveData<DataState<Boolean>>()
+        Thread {
+            runCatching {
+                val token = easPreferenceSource.getEasToken()
+                token.webCookies.clear()
+                token.webCookies.putAll(cookies)
+                token.webBaseUrl = webBaseUrl
+                val body = runCatching {
+                    com.stupidtree.hitax.data.source.web.eas.EASource()
+                        .jwPost(token, "/UserManager/queryxsxx", emptyMap()).body()
+                }.getOrDefault("")
+                fun field(vararg keys: String): String? {
+                    keys.forEach { key ->
+                        Regex("\"$key\"\\s*:\\s*\"([^\"]*)\"").find(body)?.groupValues?.get(1)
+                            ?.takeIf { it.isNotBlank() }?.let { return it }
+                    }
+                    return null
+                }
+                field("XM", "xm")?.let { token.name = it }
+                field("XH", "xh")?.let { token.stuId = it }
+                field("YXMC", "yxmc")?.let { token.school = it }
+                field("ZYMC", "zymc")?.let { token.major = it }
+                field("NJDM", "njdm", "NJMC", "njmc")?.let { token.grade = it }
+                token.username = token.username?.takeIf { it.isNotBlank() }
+                    ?: token.stuId
+                    ?: "web"
+                easPreferenceSource.saveEasToken(token)
+                DataState(true, DataState.STATE.SUCCESS)
+            }.onSuccess { result.postValue(it) }
+                .onFailure {
+                    result.postValue(
+                        DataState(DataState.STATE.FETCH_FAILED, it.message ?: "Web 登录失败")
+                    )
+                }
+        }.start()
+        return result
+    }
+
     /**
      * 验证登录
      */

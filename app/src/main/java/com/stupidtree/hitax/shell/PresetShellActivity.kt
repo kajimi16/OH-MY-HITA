@@ -1472,6 +1472,14 @@ private fun MorePage(
     }
     var authRevision by remember { mutableIntStateOf(0) }
     var showEasLogin by remember { mutableStateOf(false) }
+    val webLoginLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            authRevision++
+            android.widget.Toast.makeText(context, "已连接深圳教务 Web 会话", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
     val userName = remember(authRevision) {
         easAuth?.accountName()?.takeIf { it.isNotBlank() }
             ?: prefs.getString("name", null)?.takeIf { it.isNotBlank() }
@@ -1505,8 +1513,8 @@ private fun MorePage(
         val eas = (context.applicationContext as? HApplication)?.pluginHost
             ?.service(com.stupidtree.hita.api.EasService.KEY)
         when {
-            activity != null && eas != null -> eas.openAccount(activity)
             easAuth != null -> showEasLogin = true
+            activity != null && eas != null -> eas.openAccount(activity)
             else -> android.widget.Toast.makeText(context, "EAS 插件未安装", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
@@ -1752,6 +1760,12 @@ private fun MorePage(
                 authRevision++
                 android.widget.Toast.makeText(context, "教务登录成功", android.widget.Toast.LENGTH_SHORT).show()
             },
+            onWebLogin = {
+                showEasLogin = false
+                webLoginLauncher.launch(
+                    android.content.Intent(context, ShellEasWebLoginActivity::class.java)
+                )
+            },
         )
     }
 }
@@ -1762,6 +1776,7 @@ private fun EasLoginDialog(
     auth: com.stupidtree.hita.api.EasAuthService,
     onDismiss: () -> Unit,
     onSuccess: () -> Unit,
+    onWebLogin: () -> Unit,
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -1828,6 +1843,14 @@ private fun EasLoginDialog(
                 ),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
+            androidx.compose.material3.OutlinedButton(
+                onClick = onWebLogin,
+                enabled = !loading,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            ) {
+                Text("深圳Web登录")
+            }
             Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("登录即表示同意用户协议与隐私政策", fontSize = 12.sp, color = shellSecondary())
                 Spacer(Modifier.weight(1f))
