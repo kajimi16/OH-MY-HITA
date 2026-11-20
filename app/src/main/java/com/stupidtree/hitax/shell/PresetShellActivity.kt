@@ -618,7 +618,23 @@ private fun ShellDrawerOverlay(
         )
     }
     val userName = eas?.accountName()
-    val userSubtitle = eas?.accountSubtitle()?.takeIf { it.isNotBlank() }
+    val accountPrefs = remember {
+        context.getSharedPreferences("local_eas_token", android.content.Context.MODE_PRIVATE)
+    }
+    val userSubtitle = run {
+        val id = eas?.accountSubtitle()?.takeIf { it.isNotBlank() }
+            ?: accountPrefs.getString("stuId", null)?.takeIf { it.isNotBlank() }
+        val grade = accountPrefs.getString("grade", null)?.takeIf(String::isNotBlank)
+            ?: id?.take(4)?.takeIf { it.length == 4 }?.plus("级")
+        val details = listOf(
+            accountPrefs.getString("school", null),
+            accountPrefs.getString("major", null),
+            grade,
+        ).filterNotNull().filter(String::isNotBlank).joinToString(" · ")
+        listOfNotNull(id, details.takeIf { it.isNotBlank() })
+            .joinToString("\n")
+            .takeIf { it.isNotBlank() }
+    }
     val theme = remember {
         (context.applicationContext as? HApplication)?.pluginHost?.service(
             com.stupidtree.hita.api.ThemeController.KEY,
@@ -707,7 +723,7 @@ private fun ShellDrawerOverlay(
                         } else Modifier
                     ),
                 color = if (style == "apple_glass") {
-                    (if (isSystemInDarkTheme()) Color(0xFF121923) else Color(0xFFF7FAFF)).copy(alpha = 0.84f)
+                    if (isSystemInDarkTheme()) Color(0xFF121923) else Color(0xFFEEF1F6)
                 } else {
                     MaterialTheme.colorScheme.surface
                 },
@@ -727,7 +743,7 @@ private fun ShellDrawerOverlay(
                                     launch("com.stupidtree.hitax.ui.eas.login.ShenzhenWebLoginActivity")
                                 }
                             }
-                            .padding(top = 78.dp, bottom = 13.dp),
+                            .padding(top = 78.dp, bottom = 17.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         androidx.compose.foundation.Image(
@@ -748,7 +764,7 @@ private fun ShellDrawerOverlay(
                             color = shellSecondary(),
                             fontSize = 16.sp,
                             textAlign = TextAlign.Center,
-                            maxLines = 3,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
@@ -830,7 +846,7 @@ private fun ShellDrawerOverlay(
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                     )
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(7.dp))
                 }
             }
         }
@@ -1488,9 +1504,13 @@ private fun MorePage(
     val userSubtitle = remember(authRevision) {
         val id = easAuth?.accountSubtitle()?.takeIf { it.isNotBlank() }
             ?: prefs.getString("stuId", null)?.takeIf { it.isNotBlank() }
-        val details = listOf("school", "major", "grade")
-            .mapNotNull { prefs.getString(it, null)?.takeIf(String::isNotBlank) }
-            .joinToString(" · ")
+        val grade = prefs.getString("grade", null)?.takeIf(String::isNotBlank)
+            ?: id?.take(4)?.takeIf { it.length == 4 }?.plus("级")
+        val details = listOf(
+            prefs.getString("school", null),
+            prefs.getString("major", null),
+            grade,
+        ).filterNotNull().filter(String::isNotBlank).joinToString(" · ")
         listOfNotNull(id, details.takeIf { it.isNotBlank() })
             .joinToString("\n")
             .takeIf { it.isNotBlank() }
