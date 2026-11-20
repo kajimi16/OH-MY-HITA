@@ -138,6 +138,7 @@
         </receiver>
 
         <activity android:name=".ui.about.ActivityAbout" />
+        <activity android:name=".ui.style.CuteAppearanceActivity" />
         <activity android:name=".ui.news.lecture.ActivityLecture" />
         <activity android:name=".ui.news.NewsDetailActivity" />
         <activity

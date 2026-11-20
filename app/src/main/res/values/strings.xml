@@ -877,6 +877,8 @@
     <string name="plugin_details_no_description">暂无说明</string>
 
     <string name="market_title">插件市场</string>
+    <string name="cute_appearance_title">可爱外观</string>
+    <string name="cute_theme_from_background">从背景提取最接近的主题色</string>
     <string name="market_tab_explore">探索</string>
     <string name="market_tab_installed">已安装</string>
     <string name="market_tab_updates">更新</string>

@@ -17,6 +17,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewbinding.ViewBinding
+import com.stupidtree.style.CuteThemeStore
 import com.stupidtree.style.R
 import com.stupidtree.style.ThemeTools
 
@@ -73,6 +74,10 @@ abstract class BaseActivity<T : ViewModel, V : ViewBinding> : AppCompatActivity(
         }
         if (presetStyle != null) {
             val id = resources.getIdentifier(presetStyle, "style", packageName)
+            if (id != 0) setTheme(id)
+        }
+        CuteThemeStore.activeStyleName(this)?.let { styleName ->
+            val id = resources.getIdentifier(styleName, "style", packageName)
             if (id != 0) setTheme(id)
         }
         //setTranslucentStatusBar()

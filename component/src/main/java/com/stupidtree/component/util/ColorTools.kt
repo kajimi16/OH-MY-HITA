@@ -16,6 +16,14 @@ object ColorTools {
     )
     var colorsQueue = mutableListOf<String>()
 
+    /** 切换到 HITA_CUTE 的课表配色；下一次分配从新配色开头开始。 */
+    fun applyPalette(colors: List<String>) {
+        if (colors.isEmpty()) return
+        colors_material = colors.toTypedArray()
+        colorsQueue.clear()
+        lastTimestamp = 0
+    }
+
     fun randomColorMaterial(): Int {
         //超过时间，重置队列
         if (colorsQueue.isEmpty() || lastTimestamp + TIME_INTERVAL < System.currentTimeMillis()) {

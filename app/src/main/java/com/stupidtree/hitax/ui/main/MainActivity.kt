@@ -114,7 +114,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null && redirectToActiveShell()) return
-        if (com.stupidtree.hitax.market.PresetStateStore.activeId(this) == "hita-l-1.5.3") {
+        if (isHitaLFamily()) {
             window.navigationBarColor = Color.BLACK
             androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
                 .isAppearanceLightNavigationBars = false
@@ -149,7 +149,55 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
     override fun onResume() {
         super.onResume()
-        redirectToActiveShell()
+        if (redirectToActiveShell()) return
+        applyCuteBackground()
+    }
+
+    private fun isHitaLFamily(): Boolean =
+        com.stupidtree.hitax.market.PresetStateStore.activeId(this) in setOf(
+            "hita-l-1.5.3",
+            "hita-cute-1.6.0",
+        )
+
+    private fun isCutePreset(): Boolean =
+        com.stupidtree.hitax.market.PresetStateStore.activeId(this) == "hita-cute-1.6.0"
+
+    /** HITA_CUTE 只把背景应用到抽屉；不清除其它预设自己的背景。 */
+    private fun applyCuteBackground() {
+        if (!isCutePreset()) {
+            binding.drawer.background = null
+            return
+        }
+        val repo = com.stupidtree.hitax.data.repository.BackgroundRepository.getInstance(application)
+        val settings = repo.getSettingsSnapshot()
+        if (!settings.enabled) {
+            binding.drawer.background = null
+            return
+        }
+        if (settings.bgColor.isNotBlank()) {
+            binding.drawer.setBackgroundColor(runCatching { Color.parseColor(settings.bgColor) }.getOrDefault(Color.TRANSPARENT))
+            return
+        }
+        if (settings.imageUri.isBlank()) {
+            binding.drawer.background = null
+            return
+        }
+        val bitmap = runCatching {
+            com.stupidtree.hitax.utils.BackgroundHelper.getProcessedBitmap(
+                settings.imageUri,
+                settings.blurRadius,
+                resources.displayMetrics.widthPixels,
+                resources.displayMetrics.heightPixels,
+                settings.fitMode,
+            )
+        }.getOrNull()
+        if (bitmap == null) {
+            binding.drawer.background = null
+            return
+        }
+        val drawable = android.graphics.drawable.BitmapDrawable(resources, bitmap)
+        drawable.alpha = ((100 - settings.transparency).coerceIn(0, 100) / 100f * 255).toInt()
+        binding.drawer.background = drawable
     }
 
     /**
@@ -183,6 +231,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         drawerNickname = headerView.findViewById(R.id.nickname)
         drawerUsername = headerView.findViewById(R.id.username)
         attachPluginNavItems()
+        binding.drawerNavigationview.menu.findItem(R.id.drawer_nav_cute)?.isVisible = isCutePreset()
         binding.drawer.addDrawerListener(object : DrawerListener {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
                 //offset 偏移值
@@ -216,6 +265,9 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 }
                 R.id.drawer_nav_about -> {
                     ActivityUtils.startActivity(getThis(), ActivityAbout::class.java)
+                }
+                R.id.drawer_nav_cute -> {
+                    startActivity(android.content.Intent(getThis(), com.stupidtree.hitax.ui.style.CuteAppearanceActivity::class.java))
                 }
                 R.id.drawer_nav_market -> {
                     // 市场不再占底栏槽位（复刻型预设没有这个 tab），统一从抽屉进入
@@ -293,7 +345,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         backfillPresetLayoutOnStartup()
         //  binding.title.text = binding.navView.menu.getItem(0).title
         pages = buildPages()
-        hitaLMode = com.stupidtree.hitax.market.PresetStateStore.activeId(this) == "hita-l-1.5.3"
+        hitaLMode = isHitaLFamily()
         if (hitaLMode) {
             binding.navView.visibility = VISIBLE
             binding.navViewExtended.visibility = GONE
@@ -671,8 +723,8 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 NavigationFragment()
             },
         )
-        if (com.stupidtree.hitax.market.PresetStateStore.activeId(this) == "hita-l-1.5.3") {
-            // HITA-L 1.5.3 固定三页；SmoothBottomBar 菜单也是静态三项，不能追加插件页。
+        if (isHitaLFamily()) {
+            // HITA-L / HITA_CUTE 固定三页；SmoothBottomBar 菜单也是静态三项，不能追加插件页。
             return result
         }
         result += Page(

@@ -13,6 +13,7 @@ import com.stupidtree.sync.data.model.History
 import java.util.concurrent.Executors
 
 class SubjectRepository(application: Application) {
+    private val app = application
     private val historyTag = "subject"
     private val executor = Executors.newSingleThreadScheduledExecutor()
     private val eventItemDao = AppDatabase.getDatabase(application).eventItemDao()
@@ -96,6 +97,7 @@ class SubjectRepository(application: Application) {
 
     fun actionResetRecentSubjectColors() {
         executor.execute {
+            ColorTools.applyPalette(com.stupidtree.style.CutePaletteStore.colors(app))
             val timetable =
                 timetableDao.getTimetableClosestToTimestampSync(System.currentTimeMillis())
             timetable?.let {
@@ -112,6 +114,7 @@ class SubjectRepository(application: Application) {
 
     fun actionResetSubjectColors(timetableId: String) {
         executor.execute {
+            ColorTools.applyPalette(com.stupidtree.style.CutePaletteStore.colors(app))
             val subjects = subjectDao.getSubjectsSync(timetableId)
             for (s in subjects) {
                 s.color = ColorTools.randomColorMaterial()

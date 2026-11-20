@@ -9,9 +9,13 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 [旧版本（0.7.2 及更早，已归档）](https://github.com/kajimi16/OH-MY-HITA-legacy/releases) ·
 [文档索引](docs/README.md)
 
-当前发布：`0.8.0`（API 9）。
+当前发布：`0.8.1`（API 10）。
 包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
 0.7.2 及更早版本保留在已归档的旧仓库，仅供下载与追溯。
+
+### API 10 说明
+
+API 10 兼容 API 9；本版新增的 HITA_CUTE 外观能力由宿主提供，未新增插件接口。
 
 ### API 9 能力
 
@@ -34,11 +38,18 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 | `ThemeController` | 主题、字体、圆角/间距 token |
 | `TimetableAppearanceService` | 壁纸、透明度、模糊、遮罩 |
 
+### HITA_CUTE 外观
+
+- HITA_CUTE 预设：`hita-cute-1.6.0`。
+- 20 套主题色、6 组课表配色、自定义背景图片/纯色。
+- 入口：HITA_CUTE 抽屉 → 可爱外观。
+
 ### 市场整合包
 
 首次启动会直接列出整合包：
 
 - `hita-l-1.5.3`：经典轻量组合
+- `hita-cute-1.6.0`：HITA_L 外观分支，20 套主题色与课表配色
 - `hita-android-3.1.2`：HITA_Android v3.1.2 复刻，21 个插件（含可选公告/深圳课程）
 
 市场卡片显示「使用中」，支持切换；切换会安装缺失插件，并停用旧组合独有的 UI/内置插件。

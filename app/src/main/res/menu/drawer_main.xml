@@ -12,6 +12,10 @@
         android:icon="@drawable/ic_menu_settings"
         android:title="@string/menu_timeable_curriculum" />
     <item
+        android:id="@+id/drawer_nav_cute"
+        android:icon="@drawable/ic_baseline_color_lens_24"
+        android:title="@string/cute_appearance_title" />
+    <item
         android:id="@+id/drawer_nav_market"
         android:icon="@drawable/ic_nav_plugin"
         android:title="@string/market_entry" />
