@@ -751,17 +751,26 @@ private fun TodayPage(service: TimetableService?, motionTokens: MotionTokens) {
             fontWeight = FontWeight.SemiBold,
         )
         Spacer(Modifier.height(39.dp))
+        val style = (androidx.compose.ui.platform.LocalContext.current.applicationContext as? HApplication)
+            ?.pluginHost?.service(com.stupidtree.hita.api.ThemeController.KEY)?.themeStyle() ?: "classic"
+        val cardGradient = when (style) {
+            "apple_glass" -> listOf(Color(0xFF3D7FB8), Color(0xFF1E4D78))
+            "cyber" -> listOf(Color(0xFF0C4457), Color(0xFF04050C))
+            "sora_cloud" -> listOf(Color(0xFFC94B38), Color(0xFF7C2A20))
+            "p5" -> listOf(Color(0xFFE60012), Color(0xFF101010))
+            "deep_space" -> listOf(Color(0xFF1A2340), Color(0xFF0B1020))
+            "sumi" -> listOf(Color(0xFF33322F), Color(0xFF1C1A16))
+            else -> listOf(Color(0xFF1C5E9D), Color(0xFF0C5C91))
+        }
         Card(
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF0C5C91)),
+            shape = MaterialTheme.shapes.large,
+            colors = CardDefaults.cardColors(containerColor = cardGradient.first()),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded },
         ) {
             Column(
                 Modifier.fillMaxWidth().background(
-                    androidx.compose.ui.graphics.Brush.linearGradient(
-                        listOf(Color(0xFF1C5E9D), Color(0xFF0C5C91)),
-                    ),
+                    androidx.compose.ui.graphics.Brush.linearGradient(cardGradient),
                 ),
             ) {
                 Row(
