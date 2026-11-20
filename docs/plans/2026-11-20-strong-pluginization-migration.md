@@ -170,9 +170,9 @@ links live news notice reminder score share training update
 
 组织已创建并完成以下仓库：
 
-- `oh-my-hita/plugin-sdk`：API 10 的 api/model/component Maven 产物，模板已通过远程坐标构建。
+- `oh-my-hita/plugin-sdk`：API 10 的 `plugin-sdk:10.1` 聚合坐标，POM 带 api/model/component 与传递依赖；模板已通过远程坐标构建。
 - `oh-my-hita/plugin-template`：API 10、Kotlin 1.9.24、Compose Compiler 1.5.14，CI 成功。
-- `oh-my-hita/ui-*`：17 个 UI 插件独立仓库，全部本地构建通过，已创建 release APK。
+- `oh-my-hita/ui-*`：17 个 UI 插件独立仓库，统一依赖 `plugin-sdk:10.1`；全部本地构建通过，已创建 release APK，并带 `v*` 发布 workflow。
 - `oh-my-hita/registry`：17 个 UI 插件的官方索引，APK URL 与 sha256 已验证。
 - `oh-my-hita/official-presets`：三套官方整合包声明。
 
