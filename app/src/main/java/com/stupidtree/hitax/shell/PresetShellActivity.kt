@@ -178,30 +178,10 @@ class PresetShellActivity : AppCompatActivity() {
         val agentViewModel = AgentChatViewModel(application)
         setContent {
             val dark = isSystemInDarkTheme()
-            val scheme = if (dark) {
-                androidx.compose.material3.darkColorScheme(
-                    primary = Color(0xFF6FB3F2),
-                    onPrimary = Color(0xFF001B33),
-                    primaryContainer = Color(0xFF1E3A5F),
-                    onPrimaryContainer = Color(0xFFD6E4F5),
-                    background = Color(0xFF101317),
-                    surface = Color(0xFF1A1E24),
-                    onSurface = Color(0xFFF2F4F7),
-                    onSurfaceVariant = Color(0xFFAEB6C2),
-                )
-            } else {
-                androidx.compose.material3.lightColorScheme(
-                    primary = Color(0xFF3390EC),
-                    onPrimary = Color.White,
-                    primaryContainer = Color(0xFFEBF4FC),
-                    onPrimaryContainer = Color(0xFF003366),
-                    background = Color(0xFFF6F7FA),
-                    surface = Color.White,
-                    onSurface = Color.Black,
-                    onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            MaterialTheme(colorScheme = scheme) {
+            val style = (application as HApplication).pluginHost
+                .service(com.stupidtree.hita.api.ThemeController.KEY)?.themeStyle() ?: "classic"
+            val scheme = shellStyleScheme(style, dark)
+            MaterialTheme(colorScheme = scheme, typography = shellStyleTypography(style)) {
                 Surface(Modifier.fillMaxSize(), color = scheme.background) {
                     HitaAndroidShell(service, homeworkViewModel, agentViewModel)
                 }
@@ -505,8 +485,44 @@ private fun ShellDrawerOverlay(open: Boolean, motionTokens: MotionTokens, onClos
         }
         onClose()
     }
+    var showStyleMenu by remember { mutableStateOf(false) }
+    val styleId = theme?.themeStyle() ?: "classic"
+    val styleLabels = listOf(
+        "classic" to "经典搭配",
+        "apple_glass" to "玻璃艺术",
+        "cyber" to "赛博朋克",
+        "sora_cloud" to "日映构成",
+        "p5" to "波普涂鸦",
+        "deep_space" to "深空星野",
+        "sumi" to "墨韵",
+    )
     val drawerDuration = if (motionTokens.enabled) motionTokens.durationMediumMs else 0
     val drawerEasing = motionTokens.easing.toComposeEasing()
+    if (showStyleMenu) {
+        AlertDialog(
+            onDismissRequest = { showStyleMenu = false },
+            title = { Text("界面风格") },
+            text = {
+                Column {
+                    styleLabels.forEach { (id, label) ->
+                        Text(
+                            (if (id == styleId) "✓ " else "   ") + label,
+                            modifier = Modifier.fillMaxWidth()
+                                .clickable {
+                                    if (theme?.setThemeStyle(id) == true) {
+                                        showStyleMenu = false
+                                        onClose()
+                                        (context as? android.app.Activity)?.recreate()
+                                    }
+                                }
+                                .padding(vertical = 12.dp),
+                        )
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { showStyleMenu = false }) { Text("取消") } },
+        )
+    }
     AnimatedVisibility(
         visible = open,
         modifier = Modifier.fillMaxSize(),
@@ -567,14 +583,7 @@ private fun ShellDrawerOverlay(open: Boolean, motionTokens: MotionTokens, onClos
                         title = "界面风格 · $styleLabel",
                         icon = Icons.Default.Palette,
                     ) {
-                        context.startActivity(
-                            android.content.Intent(context, com.stupidtree.hitax.uiplugin.PluginUiActivity::class.java)
-                                .putExtra(
-                                    com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_PLUGIN_ID,
-                                    "com.stupidtree.hita.ui.appearance",
-                                )
-                        )
-                        onClose()
+                        showStyleMenu = true
                     }
                     DrawerRow(
                         title = "用户协议与隐私政策",
