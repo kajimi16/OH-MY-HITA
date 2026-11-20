@@ -1613,15 +1613,19 @@ private fun MorePage(
                 android.content.res.Configuration.UI_MODE_NIGHT_YES
             val theme = (context.applicationContext as HApplication).pluginHost
                 .service(com.stupidtree.hita.api.ThemeController.KEY)
-            IconButton(onClick = { theme?.setNightMode(!isNight) }) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_moon_auto),
-                    contentDescription = "切换深浅色",
-                    tint = shellSecondary(),
-                )
-            }
-            IconButton(onClick = onOpenDrawer) {
-                Icon(Icons.Default.Menu, contentDescription = "打开抽屉", tint = shellSecondary())
+            Row(Modifier.offset(x = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { theme?.setNightMode(!isNight) }) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_moon_auto),
+                        contentDescription = "切换深浅色",
+                        tint = shellSecondary(),
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                Spacer(Modifier.width(8.dp))
+                IconButton(onClick = onOpenDrawer) {
+                    Icon(Icons.Default.Menu, contentDescription = "打开抽屉", tint = shellSecondary())
+                }
             }
         }
         Spacer(Modifier.height(22.dp))
