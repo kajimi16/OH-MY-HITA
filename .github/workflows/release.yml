@@ -120,7 +120,7 @@ jobs:
           ./gradlew :app:assembleRelease \
             -PappVersionName="${{ steps.ver.outputs.version }}" \
             -PappVersionCode=${{ steps.ver.outputs.code }} \
-            -PpluginIndexUrl="https://raw.githubusercontent.com/kajimi16/hita-community-plugins/master/registry/index.json" \
+            -PpluginIndexUrl="https://raw.githubusercontent.com/oh-my-hita/registry/main/registry/index.json" \
             -PusageBaseUrl="https://hita.kajimi.cc"
 
       - name: Rename APK

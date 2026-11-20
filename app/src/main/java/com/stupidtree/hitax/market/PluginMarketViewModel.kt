@@ -860,6 +860,13 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
         val ctx = getApplication<Application>()
         if (source.url.isBlank()) {
             val file = File(ctx.filesDir, "market/index.json")
+            if (!file.isFile) {
+                // 空壳首次启动：内置索引已被 ensureDemoIndex 释放；仍缺失时回退官方源。
+                ensureDemoIndex()
+            }
+            if (!file.isFile) {
+                throw IllegalStateException("市场索引缺失，请在设置中添加官方源")
+            }
             return Triple(
                 gson.fromJson(file.readText(), MarketIndex::class.java),
                 file.parentFile.absolutePath,
