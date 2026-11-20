@@ -14,6 +14,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -25,6 +26,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeChild
 import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -123,6 +126,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.text.style.TextOverflow
@@ -180,6 +184,7 @@ class PresetShellActivity : AppCompatActivity() {
             val dark = isSystemInDarkTheme()
             val style = (application as HApplication).pluginHost
                 .service(com.stupidtree.hita.api.ThemeController.KEY)?.themeStyle() ?: "classic"
+            val hazeState = remember { dev.chrisbanes.haze.HazeState() }
             val scheme = shellStyleScheme(style, dark)
             MaterialTheme(
                 colorScheme = scheme,
@@ -187,8 +192,14 @@ class PresetShellActivity : AppCompatActivity() {
                 shapes = shellStyleShapes(style),
             ) {
                 Box(Modifier.fillMaxSize().background(scheme.background)) {
-                    ShellBackdrop(style, dark)
-                    HitaAndroidShell(service, homeworkViewModel, agentViewModel)
+                    Box(
+                        Modifier.fillMaxSize().then(
+                            if (style == "apple_glass") {
+                                Modifier.haze(hazeState)
+                            } else Modifier
+                        )
+                    ) { ShellBackdrop(style, dark) }
+                    HitaAndroidShell(service, homeworkViewModel, agentViewModel, style, hazeState)
                 }
             }
         }
@@ -287,6 +298,8 @@ private fun HitaAndroidShell(
     service: TimetableService?,
     homeworkViewModel: HomeworkViewModel,
     agentViewModel: AgentChatViewModel,
+    style: String,
+    hazeState: dev.chrisbanes.haze.HazeState?,
 ) {
     val shellContext = androidx.compose.ui.platform.LocalContext.current
     val tabs = remember(shellContext) { loadShellTabs(shellContext) }
@@ -373,7 +386,7 @@ private fun HitaAndroidShell(
                 val tab = tabs.getOrNull(index)
                 when (tab?.target) {
                     ShellTarget.TODO -> HomeworkScreen(homeworkViewModel)
-                    ShellTarget.TODAY -> TodayPage(service, motionTokens)
+                    ShellTarget.TODAY -> TodayPage(service, motionTokens, style, hazeState)
                     ShellTarget.TIMETABLE -> TimetablePage(service, motionTokens)
                     ShellTarget.ASSISTANT -> AgentChatScreen(
                         agentViewModel,
@@ -404,9 +417,14 @@ private fun HitaAndroidShell(
             )
             Surface(
                 shape = RoundedCornerShape(28.dp),
-                color = MaterialTheme.colorScheme.surface,
+                color = if (style == "apple_glass") Color.Transparent else MaterialTheme.colorScheme.surface,
                 shadowElevation = 6.dp,
-                modifier = Modifier.width(barWidth).height(54.dp),
+                modifier = Modifier.width(barWidth).height(54.dp).then(
+                    if (style == "apple_glass" && hazeState != null) {
+                        Modifier.hazeChild(state = hazeState, shape = RoundedCornerShape(28.dp))
+                            .border(0.8.dp, Color.White.copy(alpha = 0.55f), RoundedCornerShape(28.dp))
+                    } else Modifier
+                ),
             ) {
                 Box(Modifier.fillMaxSize().padding(4.dp)) {
                     Surface(
@@ -713,7 +731,12 @@ private fun UnavailableShellPage(title: String) {
 }
 
 @Composable
-private fun TodayPage(service: TimetableService?, motionTokens: MotionTokens) {
+private fun TodayPage(
+    service: TimetableService?,
+    motionTokens: MotionTokens,
+    style: String,
+    hazeState: dev.chrisbanes.haze.HazeState?,
+) {
     val dateText = remember { SimpleDateFormat("M月d日 EEE", Locale.CHINA).format(Date()) }
     var events by remember(service) {
         mutableStateOf<List<com.stupidtree.hitax.data.model.timetable.EventItem>>(emptyList())
@@ -762,15 +785,27 @@ private fun TodayPage(service: TimetableService?, motionTokens: MotionTokens) {
             "sumi" -> listOf(Color(0xFF33322F), Color(0xFF1C1A16))
             else -> listOf(Color(0xFF1C5E9D), Color(0xFF0C5C91))
         }
+        val glass = style == "apple_glass"
         Card(
             shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(containerColor = cardGradient.first()),
+            colors = CardDefaults.cardColors(
+                containerColor = if (glass) Color.Transparent else cardGradient.first(),
+            ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-            modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded },
+            modifier = Modifier.fillMaxWidth()
+                .then(
+                    if (glass && hazeState != null) {
+                        Modifier.hazeChild(state = hazeState, shape = MaterialTheme.shapes.large)
+                            .border(0.8.dp, Color.White.copy(alpha = 0.52f), MaterialTheme.shapes.large)
+                    } else Modifier
+                )
+                .clickable { expanded = !expanded },
         ) {
             Column(
                 Modifier.fillMaxWidth().background(
-                    androidx.compose.ui.graphics.Brush.linearGradient(cardGradient),
+                    androidx.compose.ui.graphics.Brush.linearGradient(
+                        if (glass) cardGradient.map { it.copy(alpha = 0.42f) } else cardGradient
+                    ),
                 ),
             ) {
                 Row(
