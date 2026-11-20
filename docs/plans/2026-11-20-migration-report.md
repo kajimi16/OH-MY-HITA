@@ -12,8 +12,8 @@
 - 新增 API 11 的 `HostEnvironmentService`，只暴露 `applicationContext`；T1 插件用无参 `Plugin` 装载。
 - 修复 `:api:generateApiAbi` 误取过期 release jar 的问题；ABI 现在覆盖 78 个类。
 - `plugin-sdk:11` 已发布；T1 core 使用远程坐标构建。
-- `registry` 已包含 18 个 UI 插件、T1 课表核心与三套官方整合包声明。
-- 空壳宿主已验证能启动、拉取 registry 并展示 UI 插件。
+- `registry` 已包含 22 个 UI 插件、5 个 T1 核心与三套官方整合包声明。
+- 空壳宿主已验证能构建、启动，并展示官方整合包；v1.0.0 标签发布空壳 APK。
 
 ## 仍未完成
 
