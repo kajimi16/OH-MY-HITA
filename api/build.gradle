@@ -48,16 +48,9 @@ tasks.register('generateApiAbi') {
     description = 'Generate api-abi.txt from the public :api contract.'
     dependsOn 'bundleLibCompileToJarDebug'
     doLast {
-        def jar = fileTree("$buildDir/intermediates") { include '**/classes.jar' }.files.find { candidate ->
-            try {
-                new java.util.zip.ZipFile(candidate).withCloseable {
-                    it.getEntry('com/stupidtree/hita/api/Plugin.class') != null
-                }
-            } catch (ignored) {
-                false
-            }
-        }
-        if (jar == null) throw new GradleException('未找到包含 :api 契约的 classes.jar')
+        // 只取 compileDebug 的产物；遍历 intermediates 会先命中过期的 release jar。
+        def jar = file("$buildDir/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar")
+        if (!jar.isFile()) throw new GradleException('未找到 :api compileDebug classes.jar')
         def classes = []
         new java.util.zip.ZipFile(jar).withCloseable { zip ->
             zip.entries().each { entry ->
