@@ -1772,18 +1772,11 @@ private fun EasLoginDialog(
     val result by (request ?: fallback).observeAsState()
     LaunchedEffect(result) {
         val state = result ?: return@LaunchedEffect
-        when (state.state) {
-            com.stupidtree.component.data.DataState.STATE.SUCCESS -> {
-                if (state.data == true) onSuccess() else {
-                    error = state.message ?: "登录失败"
-                    loading = false
-                }
-            }
-            com.stupidtree.component.data.DataState.STATE.FETCH_FAILED -> {
-                error = state.message ?: "登录失败，请检查账号密码"
-                loading = false
-            }
-            else -> Unit
+        if (state.state == com.stupidtree.component.data.DataState.STATE.SUCCESS && state.data == true) {
+            onSuccess()
+        } else {
+            error = state.message ?: "登录失败，请检查账号密码"
+            loading = false
         }
     }
     ModalBottomSheet(
