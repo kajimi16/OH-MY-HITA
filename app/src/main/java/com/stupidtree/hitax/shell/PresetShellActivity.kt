@@ -309,6 +309,24 @@ private fun HitaAndroidShell(
     }
     val selected = tabs.indexOfFirst { it.id == selectedId }.takeIf { it >= 0 } ?: 0
     var drawerOpen by remember { mutableStateOf(false) }
+    val drawerProgress by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (drawerOpen) 1f else 0f,
+        animationSpec = if (style == "apple_glass") {
+            androidx.compose.animation.core.tween(
+                durationMillis = ShellMotion.drawerDurationMs(style, drawerOpen),
+                easing = if (drawerOpen) {
+                    androidx.compose.animation.core.LinearOutSlowInEasing
+                } else {
+                    androidx.compose.animation.core.FastOutLinearInEasing
+                },
+            )
+        } else {
+            androidx.compose.animation.core.spring(dampingRatio = 0.9f, stiffness = 300f)
+        },
+        label = "drawer_progress",
+    )
+    val density = LocalDensity.current
+    val drawerWidthPx = with(density) { 260.dp.toPx() }
     val hostApplication = shellContext.applicationContext as? HApplication
     val motion = remember(hostApplication) {
         hostApplication?.pluginHost?.service(MotionController.KEY)
@@ -377,7 +395,16 @@ private fun HitaAndroidShell(
     }
     BackHandler(enabled = drawerOpen) { drawerOpen = false }
     Box(Modifier.fillMaxSize()) {
-    Column(Modifier.fillMaxSize()) {
+    Column(
+        Modifier.fillMaxSize().graphicsLayer {
+            val scale = ShellMotion.drawerScale(style, drawerProgress)
+            scaleX = scale
+            scaleY = scale
+            translationX = ShellMotion.drawerOffsetPx(
+                style, drawerProgress, drawerWidthPx, density.density,
+            )
+        },
+    ) {
         Box(Modifier.weight(1f)) {
             AnimatedContent(
                 targetState = selected,
