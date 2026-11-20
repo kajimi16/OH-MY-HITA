@@ -421,6 +421,7 @@ private fun HitaAndroidShell(
             translationX = ShellMotion.drawerOffsetPx(
                 style, drawerProgress, drawerWidthPx, density.density,
             )
+            transformOrigin = androidx.compose.ui.graphics.TransformOrigin(1f, 0.5f)
         },
     ) {
         Box(
