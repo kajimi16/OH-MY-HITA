@@ -1780,6 +1780,8 @@ private fun EasLoginDialog(
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var campus by remember { mutableStateOf("深圳") }
+    var agreed by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var request by remember { mutableStateOf<androidx.lifecycle.LiveData<com.stupidtree.component.data.DataState<Boolean>>?>(null) }
@@ -1807,8 +1809,8 @@ private fun EasLoginDialog(
         Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, bottom = 24.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("教务验证", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                    Text("请登录深圳教务系统", fontSize = 16.sp, color = shellSecondary())
+                    Text("教务认证", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text("请登录教务账号以继续", fontSize = 16.sp, color = shellSecondary())
                 }
                 Button(
                     onClick = {
@@ -1816,13 +1818,34 @@ private fun EasLoginDialog(
                         error = null
                         request = auth.login(username.trim(), password)
                     },
-                    enabled = !loading && username.isNotBlank() && password.isNotBlank(),
+                    enabled = !loading && agreed && campus == "深圳" &&
+                        username.isNotBlank() && password.isNotBlank(),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.height(36.dp),
                 ) {
-                    Text(if (loading) "登录中…" else "APP登录", fontSize = 18.sp)
+                    Text(if (loading) "登录中…" else "API 登录", fontSize = 18.sp)
                 }
             }
+            Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                listOf("深圳", "本部", "威海").forEachIndexed { index, label ->
+                    if (index > 0) Spacer(Modifier.width(12.dp))
+                    androidx.compose.material3.RadioButton(
+                        selected = campus == label,
+                        onClick = { campus = label },
+                        enabled = !loading,
+                    )
+                    Text(label, fontSize = 14.sp, modifier = Modifier.padding(start = 2.dp))
+                }
+            }
+            if (campus != "深圳") {
+                Text(
+                    "当前宿主仅支持深圳 API 登录，请使用网页登录",
+                    fontSize = 12.sp,
+                    color = shellSecondary(),
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+            if (campus == "深圳") {
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
@@ -1843,15 +1866,21 @@ private fun EasLoginDialog(
                 ),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
+            }
             androidx.compose.material3.OutlinedButton(
                 onClick = onWebLogin,
                 enabled = !loading,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             ) {
-                Text("深圳Web登录")
+                Text("使用统一身份认证网页登录")
             }
             Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.Checkbox(
+                    checked = agreed,
+                    onCheckedChange = { agreed = it },
+                    enabled = !loading,
+                )
                 Text("登录即表示同意用户协议与隐私政策", fontSize = 12.sp, color = shellSecondary())
                 Spacer(Modifier.weight(1f))
                 TextButton(onClick = onDismiss, enabled = !loading) { Text("稍后") }
