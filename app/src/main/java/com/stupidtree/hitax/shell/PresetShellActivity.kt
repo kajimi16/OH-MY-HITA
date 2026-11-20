@@ -484,7 +484,7 @@ private fun HitaAndroidShell(
             val selectedNow = androidx.compose.runtime.rememberUpdatedState(selected)
             Surface(
                 shape = RoundedCornerShape(28.dp),
-                color = if (style == "apple_glass") MaterialTheme.colorScheme.surface.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface,
+                color = if (style == "apple_glass") Color.White.copy(alpha = 0.86f) else MaterialTheme.colorScheme.surface,
                 shadowElevation = 6.dp,
                 modifier = Modifier.width(barWidth).height(54.dp)
                     .graphicsLayer {
@@ -674,7 +674,11 @@ private fun ShellDrawerOverlay(
     if (drawerProgress <= 0.001f) return
         Box(Modifier.fillMaxSize()) {
             Box(
-                Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.32f * drawerProgress))
+                Modifier.fillMaxSize().background(
+                    Color.Black.copy(
+                        alpha = (if (style == "apple_glass") 0.22f else 0.32f) * drawerProgress,
+                    ),
+                )
                     .clickable(enabled = drawerProgress > 0.1f) { onClose() },
             )
             Surface(
@@ -694,7 +698,7 @@ private fun ShellDrawerOverlay(
                                 .border(0.8.dp, Color.White.copy(alpha = 0.42f), RoundedCornerShape(0.dp))
                         } else Modifier
                     ),
-                color = if (style == "apple_glass") MaterialTheme.colorScheme.surface.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surface,
+                color = if (style == "apple_glass") Color.White.copy(alpha = 0.86f) else MaterialTheme.colorScheme.surface,
                 shadowElevation = 12.dp,
             ) {
                 Column(
