@@ -39,10 +39,10 @@
     {
       "id": "com.stupidtree.hitax.user",
       "name": "个人主页核心",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "apiVersion": 11,
-      "url": "https://github.com/oh-my-hita/user-core/releases/download/v0.1.0/user-core.dex",
-      "sha256": "9878200eceb94080d6ea5914bbe76fd3e3eec693020aa57bf2d23291a329addf",
+      "url": "https://github.com/oh-my-hita/user-core/releases/download/v0.1.1/user-core.dex",
+      "sha256": "de481603c1b6b8f432cfbc6b9957bd8366f7058cd293c4fbb26b124b86af6b78",
       "entryClass": "com.stupidtree.hitax.plugin.UserCorePlugin",
       "minHostApi": 11,
       "description": "T1 本地用户会话 preview",
@@ -57,9 +57,9 @@
     {
       "id": "com.stupidtree.hitax.theta",
       "name": "社区话题核心",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "apiVersion": 11,
-      "url": "https://github.com/oh-my-hita/theta-core/releases/download/v0.1.0/timetable-core.dex",
+      "url": "https://github.com/oh-my-hita/theta-core/releases/download/v0.1.1/theta-core.dex",
       "sha256": "a4cfbd1a8d07e2673f5ce003ff79987ca6db82abe56539ff640ef42d3cefea25",
       "entryClass": "com.stupidtree.hitax.plugin.ThetaCorePlugin",
       "minHostApi": 11,
@@ -75,13 +75,13 @@
     {
       "id": "com.stupidtree.hitax.eas",
       "name": "教务核心",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "apiVersion": 11,
-      "url": "https://github.com/oh-my-hita/eas-core/releases/download/v0.1.0/eas-core.dex",
-      "sha256": "19ba82e5c00caf36393d524c34d4dce2a06b6d0be2f498c39c4c7051d34d92ec",
+      "url": "https://github.com/oh-my-hita/eas-core/releases/download/v0.2.0/eas-core.dex",
+      "sha256": "6435c0528e5871f90029b399d167d817e88cdf219d72d86314e775dbff4f7136",
       "entryClass": "com.stupidtree.hitax.plugin.EasCorePlugin",
       "minHostApi": 11,
-      "description": "T1 教务考试备忘录 preview",
+      "description": "T1 教务登录/成绩/考试/空教室/培养计划",
       "author": "OH-MY-HITA",
       "repo": "https://github.com/oh-my-hita/eas-core",
       "tags": [
@@ -376,10 +376,10 @@
     {
       "id": "com.stupidtree.hita.ui.resource",
       "name": "课程资源",
-      "version": "0.1.0",
-      "url": "https://github.com/oh-my-hita/ui-resource/releases/download/v0.1.0/plugin.apk",
-      "sha256": "c8e7a84d8dde9b8b59b891ea7eaf7b2ec358e36ccc8742ea4b9c42df64d96c6b",
-      "size": 819597,
+      "version": "0.1.1",
+      "url": "https://github.com/oh-my-hita/ui-resource/releases/download/v0.1.1/plugin.apk",
+      "sha256": "13681d9125933524450b8022f524f4e23c347c86225f0fb6f5d5665bcd823ec8",
+      "size": 819657,
       "minHostApi": 10,
       "description": "OH-MY-HITA 官方界面插件",
       "author": "OH-MY-HITA",
@@ -391,7 +391,14 @@
       "capabilities": [
         "hita.ui.resource"
       ],
-      "composeVersion": "1.6.8"
+      "composeVersion": "1.6.8",
+      "mainTabs": [
+        {
+          "id": "resource",
+          "title": "课程资源",
+          "order": 30
+        }
+      ]
     },
     {
       "id": "com.stupidtree.hita.ui.score",
@@ -557,12 +564,12 @@
     {
       "id": "com.stupidtree.hita.ui.eas",
       "name": "教务",
-      "version": "0.1.0",
-      "url": "https://github.com/oh-my-hita/ui-eas/releases/download/v0.1.0/plugin.apk",
-      "sha256": "eb52fa9c8653df236ff4af681c8523aed3551e9646dd4e1582d8851d96566a84",
-      "size": 814019,
+      "version": "0.2.0",
+      "url": "https://github.com/oh-my-hita/ui-eas/releases/download/v0.2.0/plugin.apk",
+      "sha256": "aaf411eea899a7668d86175b3d4b755a96148c1e81907523c19fcbaf5647e3e1",
+      "size": 826000,
       "minHostApi": 10,
-      "description": "OH-MY-HITA 官方界面插件 preview",
+      "description": "OH-MY-HITA 官方界面插件",
       "author": "OH-MY-HITA",
       "tags": [
         "HITA",
