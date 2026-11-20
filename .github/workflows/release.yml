@@ -1,17 +1,9 @@
 name: Release
 
-# 合并进 master 即发版：自动取最近的 v* tag，patch +1，打 tag 并创建 Release。
-# 也可以手动推 tag（v1.2.3）来指定版本号。
-
+# 只允许手动推 tag 或手动触发；禁止 master push 自动 patch 发版。
 on:
   push:
-    branches: [ master ]
     tags: [ 'v*' ]
-    # 纯文档 / CI 配置的合并不发版
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.github/**'
   workflow_dispatch:
     inputs:
       version:
