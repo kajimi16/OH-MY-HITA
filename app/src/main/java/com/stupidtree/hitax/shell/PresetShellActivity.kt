@@ -715,7 +715,14 @@ private fun ShellDrawerOverlay(
                 ) {
                     Column(
                         Modifier.fillMaxWidth()
-                            .clickable { launch("com.stupidtree.hitax.ui.eas.login.ShenzhenWebLoginActivity") }
+                            .clickable {
+                                val activity = context as? androidx.fragment.app.FragmentActivity
+                                if (activity != null && eas != null) {
+                                    eas.openAccount(activity)
+                                } else {
+                                    launch("com.stupidtree.hitax.ui.eas.login.ShenzhenWebLoginActivity")
+                                }
+                            }
                             .padding(top = 78.dp, bottom = 13.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
@@ -1455,8 +1462,15 @@ private fun MorePage(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { context.getSharedPreferences("local_eas_token", android.content.Context.MODE_PRIVATE) }
-    val userName = remember {
-        prefs.getString("name", null)?.takeIf { it.isNotBlank() }
+    val easAuth = remember(context) {
+        (context.applicationContext as? HApplication)?.pluginHost
+            ?.service(com.stupidtree.hita.api.EasAuthService.KEY)
+    }
+    var authRevision by remember { mutableIntStateOf(0) }
+    var showEasLogin by remember { mutableStateOf(false) }
+    val userName = remember(authRevision) {
+        easAuth?.accountName()?.takeIf { it.isNotBlank() }
+            ?: prefs.getString("name", null)?.takeIf { it.isNotBlank() }
             ?: prefs.getString("username", null)?.takeIf { it.isNotBlank() }
     }
     val timetableCountLive = remember(service) {
@@ -1470,6 +1484,26 @@ private fun MorePage(
                 android.content.Intent().setClassName(context, className)
                     .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
             )
+        }
+    }
+    fun withEas(action: (com.stupidtree.hita.api.EasService, androidx.fragment.app.FragmentActivity) -> Unit) {
+        val activity = context as? androidx.fragment.app.FragmentActivity
+        val eas = (context.applicationContext as? HApplication)?.pluginHost
+            ?.service(com.stupidtree.hita.api.EasService.KEY)
+        if (activity != null && eas != null) {
+            action(eas, activity)
+        } else {
+            android.widget.Toast.makeText(context, "EAS 插件未安装", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+    fun openAccount() {
+        val activity = context as? androidx.fragment.app.FragmentActivity
+        val eas = (context.applicationContext as? HApplication)?.pluginHost
+            ?.service(com.stupidtree.hita.api.EasService.KEY)
+        when {
+            activity != null && eas != null -> eas.openAccount(activity)
+            easAuth != null -> showEasLogin = true
+            else -> android.widget.Toast.makeText(context, "EAS 插件未安装", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
     fun openPlugin(id: String) {
@@ -1552,9 +1586,7 @@ private fun MorePage(
         Card(
             shape = RoundedCornerShape(22.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            modifier = Modifier.fillMaxWidth().clickable {
-                open("com.stupidtree.hitax.ui.eas.login.ShenzhenWebLoginActivity")
-            },
+            modifier = Modifier.fillMaxWidth().clickable { openAccount() },
         ) {
             Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Image(
@@ -1620,14 +1652,18 @@ private fun MorePage(
         }
         Spacer(Modifier.height(8.dp))
         MoreGroup("教务功能") {
-            MoreRow("考试", icon = R.drawable.ic_baseline_today_24) { open("com.stupidtree.hitax.ui.eas.exam.ExamActivity") }
+            MoreRow("考试", icon = R.drawable.ic_baseline_today_24) {
+                withEas { eas, activity -> eas.openExam(activity) }
+            }
             MoreRow("成绩管理", icon = R.drawable.ic_baseline_format_list_bulleted_24) {
-                open("com.stupidtree.hitax.ui.eas.score.ScoreInquiryActivity")
+                withEas { eas, activity -> eas.openScores(activity) }
             }
             MoreRow("个人成绩明细", "成绩状态 · 分项得分 · 权重折算", R.drawable.ic_baseline_format_list_bulleted_24) {
                 openPlugin("com.stupidtree.hita.ui.score")
             }
-            MoreRow("空教室", icon = R.drawable.ic_baseline_location_city_24) { open("com.stupidtree.hitax.ui.eas.classroom.EmptyClassroomActivity") }
+            MoreRow("空教室", icon = R.drawable.ic_baseline_location_city_24) {
+                withEas { eas, activity -> eas.openClassroom(activity) }
+            }
             MoreRow("培养方案", "完成度 · 学分类别 · 培养课组", R.drawable.ic_baseline_format_list_bulleted_24) {
                 openPlugin("com.stupidtree.hita.ui.training")
             }
@@ -1703,6 +1739,93 @@ private fun MorePage(
             }
         }
     }
+    if (showEasLogin && easAuth != null) {
+        EasLoginDialog(
+            auth = easAuth,
+            onDismiss = { showEasLogin = false },
+            onSuccess = {
+                showEasLogin = false
+                authRevision++
+                android.widget.Toast.makeText(context, "教务登录成功", android.widget.Toast.LENGTH_SHORT).show()
+            },
+        )
+    }
+}
+
+@Composable
+private fun EasLoginDialog(
+    auth: com.stupidtree.hita.api.EasAuthService,
+    onDismiss: () -> Unit,
+    onSuccess: () -> Unit,
+) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var loading by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var request by remember { mutableStateOf<androidx.lifecycle.LiveData<com.stupidtree.component.data.DataState<Boolean>>?>(null) }
+    val fallback = remember { androidx.lifecycle.MutableLiveData<com.stupidtree.component.data.DataState<Boolean>>() }
+    val result by (request ?: fallback).observeAsState()
+    LaunchedEffect(result) {
+        val state = result ?: return@LaunchedEffect
+        when (state.state) {
+            com.stupidtree.component.data.DataState.STATE.SUCCESS -> {
+                if (state.data == true) onSuccess() else {
+                    error = state.message ?: "登录失败"
+                    loading = false
+                }
+            }
+            com.stupidtree.component.data.DataState.STATE.FETCH_FAILED -> {
+                error = state.message ?: "登录失败，请检查账号密码"
+                loading = false
+            }
+            else -> Unit
+        }
+    }
+    AlertDialog(
+        onDismissRequest = { if (!loading) onDismiss() },
+        title = { Text("登录教务") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    singleLine = true,
+                    label = { Text("学号 / 用户名") },
+                    enabled = !loading,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    singleLine = true,
+                    label = { Text("密码") },
+                    enabled = !loading,
+                    visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                error?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = !loading && username.isNotBlank() && password.isNotBlank(),
+                onClick = {
+                    loading = true
+                    error = null
+                    request = auth.login(username.trim(), password)
+                },
+            ) { Text(if (loading) "登录中…" else "登录") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !loading) { Text("取消") }
+        },
+    )
 }
 
 @Composable
