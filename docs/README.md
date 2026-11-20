@@ -19,6 +19,7 @@
 | `plans/2026-11-20-customization-api-expansion.md` | 自定义能力 API 扩展方案 |
 | `plans/2026-11-20-plugin-market-redesign.md` | 0.8.0 插件市场信息架构与 UI/UX 改版设计 |
 | `plans/2026-11-20-hita-cute-integration.md` | 0.9.0 HITA_CUTE 差异与集成映射 |
+| `plans/2026-11-20-strong-pluginization-migration.md` | 强插件化、官方插件仓库与官方整合包迁移设计 |
 
 ## 历史计划
 
