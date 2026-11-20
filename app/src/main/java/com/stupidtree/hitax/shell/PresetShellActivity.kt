@@ -507,14 +507,14 @@ private fun HitaAndroidShell(
             }
         }
     }
-    ShellDrawerOverlay(drawerOpen, motionTokens, style, hazeState) { drawerOpen = false }
+    ShellDrawerOverlay(drawerOpen, drawerProgress, style, hazeState) { drawerOpen = false }
     }
 }
 
 @Composable
 private fun ShellDrawerOverlay(
     open: Boolean,
-    motionTokens: MotionTokens,
+    drawerProgress: Float,
     style: String,
     hazeState: dev.chrisbanes.haze.HazeState?,
     onClose: () -> Unit,
@@ -561,8 +561,7 @@ private fun ShellDrawerOverlay(
         "deep_space" to "深空星野",
         "sumi" to "墨韵",
     )
-    val drawerDuration = if (motionTokens.enabled) motionTokens.durationMediumMs else 0
-    val drawerEasing = motionTokens.easing.toComposeEasing()
+    val drawerWidthPx = with(androidx.compose.ui.platform.LocalDensity.current) { 260.dp.toPx() }
     if (showStyleMenu) {
         AlertDialog(
             onDismissRequest = { showStyleMenu = false },
@@ -588,23 +587,15 @@ private fun ShellDrawerOverlay(
             confirmButton = { TextButton(onClick = { showStyleMenu = false }) { Text("取消") } },
         )
     }
-    AnimatedVisibility(
-        visible = open,
-        modifier = Modifier.fillMaxSize(),
-        enter = slideInHorizontally(
-            animationSpec = tween<IntOffset>(durationMillis = drawerDuration, easing = drawerEasing),
-        ) { it } + fadeIn(tween<Float>(durationMillis = drawerDuration, easing = drawerEasing)),
-        exit = slideOutHorizontally(
-            animationSpec = tween<IntOffset>(durationMillis = drawerDuration, easing = drawerEasing),
-        ) { it } + fadeOut(tween<Float>(durationMillis = drawerDuration, easing = drawerEasing)),
-    ) {
+    if (drawerProgress <= 0.001f) return
         Box(Modifier.fillMaxSize()) {
             Box(
-                Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.32f))
-                    .clickable { onClose() },
+                Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.32f * drawerProgress))
+                    .clickable(enabled = drawerProgress > 0.1f) { onClose() },
             )
             Surface(
                 modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().width(260.dp)
+                    .graphicsLayer { translationX = (1f - drawerProgress) * drawerWidthPx }
                     .then(
                         if (style == "apple_glass" && hazeState != null) {
                             Modifier.hazeChild(
@@ -737,7 +728,6 @@ private fun ShellDrawerOverlay(
             }
         }
     }
-}
 
 @Composable
 private fun DrawerRow(
