@@ -64,10 +64,23 @@ class HitaLiteActivity : AppCompatActivity() {
     }
 
     private fun updatePageTitle(position: Int) {
-        binding.litePageTitle.text = when (position) {
-            0 -> SimpleDateFormat("M月d日 EEE", Locale.CHINA).format(Date())
-            1 -> getString(R.string.lite_title_timetable)
-            else -> getString(R.string.lite_title_navigation)
+        when (position) {
+            0 -> {
+                binding.litePageTitle.text =
+                    SimpleDateFormat("M月d日 EEE", Locale.CHINA).format(Date())
+                binding.litePageChip.visibility = android.view.View.GONE
+                binding.litePageActions.visibility = android.view.View.GONE
+            }
+            1 -> {
+                binding.litePageTitle.text = "无课表"
+                binding.litePageChip.visibility = android.view.View.GONE
+                binding.litePageActions.visibility = android.view.View.VISIBLE
+            }
+            else -> {
+                binding.litePageTitle.text = getString(R.string.lite_title_navigation)
+                binding.litePageChip.visibility = android.view.View.GONE
+                binding.litePageActions.visibility = android.view.View.GONE
+            }
         }
     }
 

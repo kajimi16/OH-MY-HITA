@@ -5,16 +5,70 @@
     android:layout_height="match_parent"
     android:background="?attr/backgroundColorBottom">
 
-    <TextView
-        android:id="@+id/lite_page_title"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:paddingStart="18dp"
-        android:paddingEnd="18dp"
-        android:textColor="?attr/textColorPrimary"
-        android:textSize="24sp"
-        android:textStyle="bold" />
+        android:paddingEnd="12dp">
+
+        <TextView
+            android:id="@+id/lite_page_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/textColorPrimary"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/lite_page_chip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/lite_bg_round_white_light"
+            android:paddingStart="8dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="3dp"
+            android:textColor="?attr/textColorSecondary"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:id="@+id/lite_page_actions"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/lite_action_theme"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:padding="17dp"
+                android:tintMode="src_in"
+                android:src="@drawable/lite_ic_theme"
+                android:tint="?attr/textColorSecondary" />
+
+            <ImageView
+                android:id="@+id/lite_action_add"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:padding="16dp"
+                android:tintMode="src_in"
+                android:src="@drawable/lite_ic_add"
+                android:tint="?attr/textColorSecondary" />
+        </LinearLayout>
+    </LinearLayout>
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/lite_pager"
