@@ -215,10 +215,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         val shell = com.stupidtree.hitax.market.PresetStateStore.activeShell(this)
         if (shell.isNullOrBlank()) return false
         redirectedToShell = true
-        startActivity(
-            Intent(this, com.stupidtree.hitax.shell.PresetShellActivity::class.java)
-                .putExtra(com.stupidtree.hitax.shell.PresetShellActivity.EXTRA_SHELL_ID, shell)
-        )
+        startActivity(com.stupidtree.hitax.market.PresetShellRouter.intent(this, shell))
         finish()
         return true
     }

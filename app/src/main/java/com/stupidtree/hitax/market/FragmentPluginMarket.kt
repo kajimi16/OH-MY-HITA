@@ -174,8 +174,7 @@ class FragmentPluginMarket :
             viewModel.consumePresetSwitch()
             val context = requireContext()
             val intent = if (!target.shell.isNullOrBlank()) {
-                Intent(context, com.stupidtree.hitax.shell.PresetShellActivity::class.java)
-                    .putExtra(com.stupidtree.hitax.shell.PresetShellActivity.EXTRA_SHELL_ID, target.shell)
+                PresetShellRouter.intent(context, target.shell)
             } else {
                 Intent(context, com.stupidtree.hitax.ui.main.MainActivity::class.java)
             }

@@ -35,6 +35,7 @@ object PresetStateStore {
         if (!declared.isNullOrBlank()) return declared
         return when (id) {
             "hita-android-3.1.2" -> "hita-android-3.1.2"
+            "hita-lite-2.0" -> PresetShellRouter.HITA_LITE_SHELL
             else -> null
         }
     }

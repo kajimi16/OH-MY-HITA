@@ -881,6 +881,21 @@
           "iconAsset": "builtin:navigation"
         }
       ]
+    },
+    {
+      "id": "hita-lite-2.0",
+      "name": "HITA-Lite 2.0",
+      "version": "2.0",
+      "source": "HITA-Lite v2.1 (versionName 2.0)",
+      "minHostApi": 11,
+      "shell": "hita-lite-2.0",
+      "description": "HITA_Lite 旧版三页界面，使用宿主服务提供课表、教务和账户能力。",
+      "repo": "https://github.com/bdbd2yy/HITA_L",
+      "plugins": [
+        {"id":"com.stupidtree.hitax.timetable","kind":"dex","required":true},
+        {"id":"com.stupidtree.hitax.eas","kind":"dex","required":true},
+        {"id":"com.stupidtree.hitax.user","kind":"dex","required":true}
+      ]
     }
   ]
 }

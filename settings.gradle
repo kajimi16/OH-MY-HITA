@@ -9,6 +9,7 @@ include ':plugin-hita'
 include ':sample-plugin'
 include ':plugin-eas',':plugin-resource',':plugin-user'
 include ':plugin-apk-sample',':plugin-ui-sample'
+include ':legacy-hitalite'
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
