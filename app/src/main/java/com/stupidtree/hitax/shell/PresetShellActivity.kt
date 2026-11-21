@@ -698,7 +698,7 @@ private fun ShellDrawerOverlay(
         )
     }
     if (drawerProgress <= 0.001f) return
-        Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize()) {
             Box(
                 Modifier.fillMaxSize().background(
                     Color.Black.copy(

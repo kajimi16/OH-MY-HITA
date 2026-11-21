@@ -114,9 +114,8 @@ class PluginGuideAnimationView @JvmOverloads constructor(
                 val local = (phase * steps.size - active).coerceIn(0f, 1f)
                 val dotX = startX + (endX - startX) * local
                 canvas.drawCircle(dotX, lineY, dp(4f), dotPaint)
-                canvas.drawCircle(dotX, lineY, dp(9f), dotPaint.apply {
-                    alpha = 60
-                })
+                dotPaint.alpha = 60
+                canvas.drawCircle(dotX, lineY, dp(9f), dotPaint)
                 dotPaint.alpha = 255
             }
         }
