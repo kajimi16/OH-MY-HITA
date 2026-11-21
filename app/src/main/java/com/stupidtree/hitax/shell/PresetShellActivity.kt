@@ -504,7 +504,7 @@ private fun HitaAndroidShell(
             }
             Surface(
                 shape = dockShape,
-                color = hitaGlassContainerColor(dockBase),
+                color = if (style == "apple_glass") dockBase else hitaGlassContainerColor(dockBase),
                 border = hitaGlassCardBorder(),
                 shadowElevation = 6.dp,
                 modifier = Modifier.width(barWidth).height(54.dp)
@@ -978,6 +978,7 @@ private fun TodayPage(
         val cardText = if (styled) MaterialTheme.colorScheme.onSurface else Color.White
         val cardTextMuted = if (styled) MaterialTheme.colorScheme.onSurfaceVariant else Color.White.copy(alpha = 0.8f)
         val cardIconBack = if (styled) MaterialTheme.colorScheme.primaryContainer else Color.White.copy(alpha = 0.16f)
+        val cardPanelBack = if (styled) MaterialTheme.colorScheme.surfaceVariant else Color.White.copy(alpha = 0.16f)
         Card(
             shape = cardShape,
             colors = hitaGlassCardColors(
@@ -1046,7 +1047,7 @@ private fun TodayPage(
                 androidx.compose.material3.Icon(
                     painter = painterResource(R.drawable.ic_baseline_arrow_drop_down_24),
                     contentDescription = if (expanded) "收起今日课程" else "展开今日课程",
-                    tint = Color.White,
+                    tint = cardText,
                     modifier = Modifier.align(Alignment.End).padding(end = 16.dp).size(44.dp)
                         .rotate(arrowRotation),
                 )
@@ -1064,21 +1065,21 @@ private fun TodayPage(
                     Row(
                         Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                             .clip(RoundedCornerShape(24.dp))
-                            .background(Color.White.copy(alpha = 0.16f))
+                            .background(cardPanelBack)
                             .padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(
                                 countdown ?: "接下来没事了",
-                                color = Color.White,
+                                color = cardText,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 nextEvent?.name ?: "see you",
-                                color = Color.White.copy(alpha = 0.8f),
+                                color = cardTextMuted,
                                 fontSize = 14.sp,
                             )
                         }
@@ -1087,7 +1088,7 @@ private fun TodayPage(
                                 if (nextEvent != null) R.drawable.ic_baseline_access_alarm_24 else R.drawable.ic_empty,
                             ),
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = cardText,
                             modifier = Modifier.size(28.dp),
                         )
                     }

@@ -14,6 +14,7 @@ object PluginFetch {
             repeat(3) { attempt ->
                 try {
                     target.delete()
+                    target.parentFile?.mkdirs()
                     val conn = URL(absolute).openConnection() as HttpURLConnection
                     conn.instanceFollowRedirects = true
                     conn.connectTimeout = 30_000

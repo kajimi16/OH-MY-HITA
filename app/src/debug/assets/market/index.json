@@ -57,10 +57,10 @@
     {
       "id": "com.stupidtree.hitax.theta",
       "name": "社区话题核心",
-      "version": "0.1.1",
+      "version": "0.1.3",
       "apiVersion": 11,
-      "url": "https://github.com/oh-my-hita/theta-core/releases/download/v0.1.1/theta-core.dex",
-      "sha256": "a4cfbd1a8d07e2673f5ce003ff79987ca6db82abe56539ff640ef42d3cefea25",
+      "url": "https://github.com/oh-my-hita/theta-core/releases/download/v0.1.3/theta-core.dex",
+      "sha256": "d73d96fa10ef1cd9a848e452b34a6fe7429b5794c51314edc03194d6451c1fe2",
       "entryClass": "com.stupidtree.hitax.plugin.ThetaCorePlugin",
       "minHostApi": 11,
       "description": "T1 社区话题数据核心 preview",
@@ -70,7 +70,8 @@
         "HITA",
         "official",
         "T1"
-      ]
+      ],
+      "size": 59284
     },
     {
       "id": "com.stupidtree.hitax.eas",
@@ -222,10 +223,10 @@
     {
       "id": "com.stupidtree.hita.ui.eas",
       "name": "教务",
-      "version": "0.1.0",
-      "url": "https://github.com/oh-my-hita/ui-eas/releases/download/v0.2.0/plugin.apk",
-      "sha256": "aaf411eea899a7668d86175b3d4b755a96148c1e81907523c19fcbaf5647e3e1",
-      "size": 845538,
+      "version": "0.2.1",
+      "url": "https://github.com/oh-my-hita/ui-eas/releases/download/v0.2.1/plugin.apk",
+      "sha256": "0d637e475bf147000fa406ffb27a28f2f120c17f7056188ee25ca00c9c211e04",
+      "size": 885422,
       "minHostApi": 10,
       "description": "OH-MY-HITA 官方界面插件",
       "author": "OH-MY-HITA",
@@ -244,7 +245,7 @@
           "order": 60
         }
       ],
-      "composeVersion": "1.6.8"
+      "composeVersion": "1.9.4"
     },
     {
       "id": "com.stupidtree.hita.ui.group",
@@ -470,10 +471,10 @@
     {
       "id": "com.stupidtree.hita.ui.theta",
       "name": "社区",
-      "version": "0.1.0",
-      "url": "https://github.com/oh-my-hita/ui-theta/releases/download/v0.1.0/plugin.apk",
-      "sha256": "be17aa506fc9eaff303a0d17f1d1cda8d42eaf24e890e986547e0bab92b89afb",
-      "size": 814010,
+      "version": "0.1.1",
+      "url": "https://github.com/oh-my-hita/ui-theta/releases/download/v0.1.1/plugin.apk",
+      "sha256": "b8b77735196fd9b78ef8b4c73702318893ccc684992c0687d89068b0041f25d2",
+      "size": 879990,
       "minHostApi": 10,
       "description": "OH-MY-HITA 官方界面插件",
       "author": "OH-MY-HITA",
@@ -492,15 +493,15 @@
           "order": 50
         }
       ],
-      "composeVersion": "1.6.8"
+      "composeVersion": "1.9.4"
     },
     {
       "id": "com.stupidtree.hita.ui.timetable",
       "name": "课表",
-      "version": "0.1.1",
-      "url": "https://github.com/oh-my-hita/ui-timetable/releases/download/v0.1.1/plugin.apk",
-      "sha256": "0f339d1e65b38916bc1f8b955ecce4ec689b55771c360acf9f4486e6d9ab640b",
-      "size": 824487,
+      "version": "0.1.2",
+      "url": "https://github.com/oh-my-hita/ui-timetable/releases/download/v0.1.2/plugin.apk",
+      "sha256": "7eb39169053e3b2079c45ae198176197a7b1fd4c070d321a4a7270645c76c071",
+      "size": 880949,
       "minHostApi": 10,
       "description": "OH-MY-HITA 官方界面插件",
       "author": "OH-MY-HITA",
@@ -519,7 +520,7 @@
           "order": 0
         }
       ],
-      "composeVersion": "1.6.8"
+      "composeVersion": "1.9.4"
     },
     {
       "id": "com.stupidtree.hita.ui.training",
@@ -564,10 +565,10 @@
     {
       "id": "com.stupidtree.hita.ui.user",
       "name": "个人主页",
-      "version": "0.1.0",
-      "url": "https://github.com/oh-my-hita/ui-user/releases/download/v0.1.0/plugin.apk",
-      "sha256": "a1b1573f83670b78d6c8f4afa54e7639ddf7b40434c46c33080db44e54dfca6b",
-      "size": 810305,
+      "version": "0.1.1",
+      "url": "https://github.com/oh-my-hita/ui-user/releases/download/v0.1.1/plugin.apk",
+      "sha256": "7e2aeacecc3ab16791329ea923de08cb58f7455e4691f8d192fb31d20d079c81",
+      "size": 873888,
       "minHostApi": 10,
       "description": "OH-MY-HITA 官方界面插件",
       "author": "OH-MY-HITA",
@@ -586,7 +587,7 @@
           "order": 40
         }
       ],
-      "composeVersion": "1.6.8"
+      "composeVersion": "1.9.4"
     }
   ],
   "presets": [

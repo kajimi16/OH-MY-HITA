@@ -593,7 +593,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
                 override fun cleanup() {
                     runCatching { installer.cleanupStaging() }
-                    uiStagingRoot.deleteRecursively()
+                    // 每个 prepareUi 自己清理 per-id 目录；不要删共享 root，
+                    // 否则会与并发的 prepare 抢目录，导致 FileOutputStream ENOENT。
                     artifacts.clear()
                 }
             }

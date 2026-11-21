@@ -2,8 +2,10 @@ package com.stupidtree.hita.theta.data.source.web
 
 import android.content.Context
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.Observer
 import com.stupidtree.component.data.DataState
+import com.stupidtree.component.web.ApiResponse
 import com.stupidtree.component.web.BaseWebSource
 import com.stupidtree.hita.theta.data.model.Topic
 import com.stupidtree.hita.theta.data.source.web.service.TopicService
@@ -32,39 +34,42 @@ class TopicWebSource(context: Context) : BaseWebSource<TopicService>(
         pageNum: Int,
         extra: String
     ): LiveData<DataState<List<Topic>>> {
-        return service.getTopics(
-                HttpUtils.getHeaderAuth(token), mode, pageSize, pageNum, extra
-            ).map{ input ->
-            when (input.code) {
-                SUCCESS -> return@map DataState(input.data ?: listOf())
-                codes.TOKEN_INVALID -> return@map DataState(DataState.STATE.TOKEN_INVALID)
-                else -> return@map DataState(
-                    DataState.STATE.FETCH_FAILED,
-                    input.message
-                )
-            }
-        }
+        val result = MediatorLiveData<DataState<List<Topic>>>()
+        result.addSource(
+            service.getTopics(HttpUtils.getHeaderAuth(token), mode, pageSize, pageNum, extra),
+            object : Observer<ApiResponse<List<Topic>>?> {
+                override fun onChanged(input: ApiResponse<List<Topic>>?) {
+                    if (input == null) return
+                    result.value = when (input.code) {
+                        SUCCESS -> DataState(input.data ?: listOf())
+                        codes.TOKEN_INVALID -> DataState(DataState.STATE.TOKEN_INVALID)
+                        else -> DataState(DataState.STATE.FETCH_FAILED, input.message)
+                    }
+                }
+            },
+        )
+        return result
     }
 
     fun getTopic(
         token: String,
         topicId: String
     ): LiveData<DataState<Topic>> {
-        return service.getTopic(
-                HttpUtils.getHeaderAuth(token), topicId
-            ).map{ input ->
-            if (input != null) {
-                when (input.code) {
-                    SUCCESS -> return@map DataState(input.data ?: Topic())
-                    codes.TOKEN_INVALID -> return@map DataState(DataState.STATE.TOKEN_INVALID)
-                    else -> return@map DataState(
-                        DataState.STATE.FETCH_FAILED,
-                        input.message
-                    )
+        val result = MediatorLiveData<DataState<Topic>>()
+        result.addSource(
+            service.getTopic(HttpUtils.getHeaderAuth(token), topicId),
+            object : Observer<ApiResponse<Topic>?> {
+                override fun onChanged(input: ApiResponse<Topic>?) {
+                    if (input == null) return
+                    result.value = when (input.code) {
+                        SUCCESS -> DataState(input.data ?: Topic())
+                        codes.TOKEN_INVALID -> DataState(DataState.STATE.TOKEN_INVALID)
+                        else -> DataState(DataState.STATE.FETCH_FAILED, input.message)
+                    }
                 }
-            }
-            DataState(DataState.STATE.FETCH_FAILED)
-        }
+            },
+        )
+        return result
     }
 
 
