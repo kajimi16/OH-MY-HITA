@@ -498,7 +498,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
             .setMessage(
                 "选择一个整合包开始：\n\n" +
                     "· HITA-L：经典轻量组合\n" +
-                    "· HITA_Android 3.1.2：完整复刻组合\n\n" +
+                    "· HITA_Android 3.1.2：完整组合\n\n" +
                     "也可以先从零开始，之后在插件市场随时切换。"
             )
             .setPositiveButton("选择整合包") { _, _ ->

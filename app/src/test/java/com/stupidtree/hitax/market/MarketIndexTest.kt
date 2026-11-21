@@ -62,7 +62,7 @@ class MarketIndexTest {
         val index = gson.fromJson(
             """
             {"presets":[{
-              "id":"hita-android-3.1.2","name":"HITA Android 3.1.2 复刻",
+              "id":"hita-android-3.1.2","name":"HITA Android 3.1.2",
               "version":"1","source":"HITA_Android v3.1.2","minHostApi":7,
               "plugins":[
                 {"id":"com.stupidtree.hitax.timetable","kind":"builtin"},

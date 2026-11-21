@@ -13,7 +13,7 @@ class PresetTabsParseTest {
     @Test
     fun parsesTabsInUpstreamOrder() {
         val json = """
-            {"id":"hita-android-3.1.2","name":"HITA Android 3.1.2 复刻","tabs":[
+            {"id":"hita-android-3.1.2","name":"HITA Android 3.1.2","tabs":[
               {"id":"com.stupidtree.hita.ui.homework","title":"待办","order":0},
               {"id":"hita.timeline","title":"今日","order":1},
               {"id":"hita.timetable","title":"时间表","order":2},

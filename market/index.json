@@ -720,11 +720,11 @@
     },
     {
       "id": "hita-android-3.1.2",
-      "name": "HITA Android 3.1.2 复刻",
+      "name": "HITA Android 3.1.2",
       "version": "0.1",
       "source": "HITA_Android v3.1.2",
       "minHostApi": 11,
-      "description": "按市场插件复刻 HITA_Android v3.1.2；底栏按上游固定为 待办/今日/时间表/助手/资讯/更多。资讯位用 HOA 资讯源（θ 社区后端当前不可用）；不采集用量统计。",
+      "description": "按市场插件还原 HITA_Android v3.1.2；底栏按上游固定为 待办/今日/时间表/助手/资讯/更多。资讯位用 HOA 资讯源（θ 社区后端当前不可用）；不采集用量统计。",
       "plugins": [
         {
           "id": "com.stupidtree.hitax.timetable",

@@ -185,6 +185,7 @@ private fun BlogTab() {
 @Composable
 private fun NoticeTab() {
     val context = LocalContext.current
+    val blogFont = remember { FontFamily(Typeface.createFromAsset(context.assets, "blog/lxgw-wenkai.ttf")) }
     var cookie by remember { mutableStateOf(readCookie()) }
     val loginLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         CookieManager.getInstance().flush()
@@ -230,10 +231,20 @@ private fun NoticeTab() {
                         shadowElevation = 6.dp,
                     ) {
                         Column(Modifier.padding(14.dp)) {
-                            Text(notice.title, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+                            Text(
+                                notice.title,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 15.sp,
+                                fontFamily = blogFont,
+                            )
                             if (notice.date.isNotBlank()) {
                                 Spacer(Modifier.height(4.dp))
-                                Text(notice.date, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                                Text(
+                                    notice.date,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 12.sp,
+                                    fontFamily = blogFont,
+                                )
                             }
                         }
                     }

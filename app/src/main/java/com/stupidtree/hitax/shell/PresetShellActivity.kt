@@ -579,12 +579,31 @@ private fun HitaAndroidShell(
                             .width(tabWidth + lensExtra)
                             .height(lensHeight),
                         shape = RoundedCornerShape(22.dp),
-                        color = Color(0xFF3390EC).copy(alpha = 0.12f),
+                        color = when (style) {
+                            "p5" -> MaterialTheme.colorScheme.primary
+                            "sora_cloud" -> Color(0xFFC94B38)
+                            "sumi" -> MaterialTheme.colorScheme.secondary
+                            "cyber", "apple_glass", "deep_space" ->
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+                            else -> Color(0xFF3390EC).copy(alpha = 0.12f)
+                        },
                     ) {}
                     Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                        val dockStyle = style in setOf("classic", "apple_glass", "deep_space")
+                        val iconSize = if (dockStyle) 20.dp else 18.dp
                         tabs.forEachIndexed { index, tab ->
                             val active = selected == index
-                            val tint = if (active) Color(0xFF0088CC) else MaterialTheme.colorScheme.onSurface
+                            val tint = if (active) {
+                                when (style) {
+                                    "apple_glass", "deep_space" -> MaterialTheme.colorScheme.primary
+                                    "p5" -> MaterialTheme.colorScheme.onPrimary
+                                    "sora_cloud" -> SoraPaper
+                                    "sumi" -> Color(0xFFF7F2E7)
+                                    else -> Color(0xFF0088CC)
+                                }
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            }
                             Column(
                                 Modifier
                                     .width(tabWidth)
@@ -598,13 +617,16 @@ private fun HitaAndroidShell(
                                     painter = painterResource(tab.iconRes),
                                     contentDescription = null,
                                     tint = tint,
-                                    modifier = Modifier.size(18.dp),
+                                    modifier = Modifier.size(iconSize),
                                 )
+                                Spacer(Modifier.height(2.dp))
                                 Text(
                                     tab.title,
                                     color = tint,
                                     fontSize = 10.sp,
                                     lineHeight = 10.sp,
+                                    letterSpacing = 0.sp,
+                                    fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
                                 )
                             }
                         }
@@ -779,8 +801,9 @@ private fun ShellDrawerOverlay(
                         Spacer(Modifier.height(8.dp))
                         Text(
                             userSubtitle ?: "未登录教务",
-                            color = shellSecondary(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                             fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
@@ -792,7 +815,7 @@ private fun ShellDrawerOverlay(
                     )
                     DrawerRow(
                         title = "界面风格 · $styleLabel",
-                        icon = Icons.Default.Palette,
+                        iconRes = R.drawable.ic_baseline_color_lens_24,
                     ) {
                         showStyleMenu = true
                     }
@@ -808,7 +831,7 @@ private fun ShellDrawerOverlay(
                     }
                     DrawerRow(
                         title = "用户反馈",
-                        icon = Icons.Default.Edit,
+                        iconRes = R.drawable.ic_baseline_edit_24,
                     ) {
                         context.startActivity(
                             android.content.Intent(
@@ -835,32 +858,33 @@ private fun ShellDrawerOverlay(
                     Spacer(Modifier.height(18.dp))
                     Text(
                         "Co-authored by",
-                        color = shellSecondary(),
-                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "茶蘼 | 离谱 | 北极熊 | 软糯",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 13.sp,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "纪行 | RadiantAbyss",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 13.sp,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        "茶蘼 | 离谱 | 北极熊 | 软糯 | 纪行",
-                        color = Color(0xFF2F80ED),
-                        fontSize = 15.sp,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "RadiantAbyss",
-                        color = Color(0xFF2F80ED),
-                        fontSize = 15.sp,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(Modifier.height(14.dp))
-                    Text(
                         "Limpu 的赞赏码",
-                        color = shellTertiary(),
-                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                     )
@@ -878,28 +902,30 @@ private fun DrawerRow(
     onClick: () -> Unit,
 ) {
     Row(
-        Modifier.fillMaxWidth().height(56.dp).clickable(onClick = onClick)
-            .padding(horizontal = 16.dp),
+        Modifier.fillMaxWidth().clickable(onClick = onClick)
+            .padding(horizontal = 32.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         when {
             icon != null -> androidx.compose.material3.Icon(
                 icon,
                 contentDescription = null,
-                tint = Color(0xFF2563EB),
-                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp),
             )
             iconRes != null -> androidx.compose.material3.Icon(
                 painter = painterResource(iconRes),
                 contentDescription = null,
-                tint = Color(0xFF2563EB),
-                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp),
             )
         }
         Text(
             title,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp,
-            modifier = Modifier.padding(start = 13.dp),
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 16.dp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -958,7 +984,8 @@ private fun TodayPage(
             dateText,
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 24.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
+            fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
         )
         Spacer(Modifier.height(39.dp))
         val style = (androidx.compose.ui.platform.LocalContext.current.applicationContext as? HApplication)
@@ -1223,43 +1250,61 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
         Row(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 13.5.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 "第${week}周",
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
+                fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
             )
             Spacer(Modifier.width(16.dp))
             Text(
                 timetable?.name ?: "还没有课表",
-                color = shellSecondary(),
-                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                fontSize = 12.sp,
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 6.dp, vertical = 3.dp),
             )
             Spacer(Modifier.weight(1f))
-            IconButton(onClick = {
-                val body = buildString {
-                    append("第").append(week).append("周 ")
-                    append(timetable?.name ?: "默认课表").append("\n")
-                    events.sortedBy { it.from.time }.forEach {
-                        append(it.from.toString().takeLast(8).take(5)).append(" ").append(it.name).append("\n")
+            IconButton(
+                onClick = {
+                    val body = buildString {
+                        append("第").append(week).append("周 ")
+                        append(timetable?.name ?: "默认课表").append("\n")
+                        events.sortedBy { it.from.time }.forEach {
+                            append(it.from.toString().takeLast(8).take(5)).append(" ").append(it.name).append("\n")
+                        }
                     }
-                }
-                context.startActivity(
-                    android.content.Intent.createChooser(
-                        android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(android.content.Intent.EXTRA_TEXT, body)
-                        }, "分享课表"
+                    context.startActivity(
+                        android.content.Intent.createChooser(
+                            android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(android.content.Intent.EXTRA_TEXT, body)
+                            }, "分享课表"
+                        )
                     )
+                },
+                modifier = Modifier.size(56.dp),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_baseline_share_24),
+                    contentDescription = "分享课表",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }) { Icon(Icons.Default.Share, "分享课表", tint = shellSecondary()) }
-            IconButton(onClick = {
-                val activity = context as? androidx.fragment.app.FragmentActivity
-                val uiService = (context.applicationContext as? HApplication)
-                    ?.pluginHost?.service(com.stupidtree.hita.api.TimetableUiService.KEY)
-                if (activity != null && uiService != null) uiService.openStylePanel(activity)
-            }) {
-                Icon(Icons.Default.Settings, "课表设置", tint = shellSecondary())
+            }
+            IconButton(
+                onClick = {
+                    val activity = context as? androidx.fragment.app.FragmentActivity
+                    val uiService = (context.applicationContext as? HApplication)
+                        ?.pluginHost?.service(com.stupidtree.hita.api.TimetableUiService.KEY)
+                    if (activity != null && uiService != null) uiService.openStylePanel(activity)
+                },
+                modifier = Modifier.size(56.dp),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_theme),
+                    contentDescription = "课表设置",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp),
+                )
             }
         }
         Spacer(Modifier.height(16.4.dp))
@@ -1395,10 +1440,24 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
                                         },
                                 ) {
                                     Column(Modifier.fillMaxSize().padding(5.dp)) {
-                                        Text(item.name, color = Color.White, fontSize = 11.sp, maxLines = 4, overflow = TextOverflow.Ellipsis)
+                                        Text(
+                                            item.name,
+                                            color = Color.White,
+                                            fontSize = 12.sp,
+                                            lineHeight = 15.sp,
+                                            maxLines = 4,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
                                         Spacer(Modifier.weight(1f))
                                         item.place?.takeIf { it.isNotBlank() }?.let {
-                                            Text(it, color = Color.White, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                            Text(
+                                                it,
+                                                color = Color.White,
+                                                fontSize = 9.sp,
+                                                lineHeight = 12.sp,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
                                         }
                                     }
                                 }
@@ -2003,7 +2062,12 @@ private fun MoreRow(
             Modifier.size(40.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(painterResource(icon), null, tint = Color(0xFF3390EC), modifier = Modifier.size(22.dp))
+            Icon(
+                painterResource(icon),
+                null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(22.dp),
+            )
         }
         Column(Modifier.weight(1f).padding(start = 12.dp)) {
             Text(title, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -2021,7 +2085,7 @@ private fun MoreRow(
         Icon(
             painter = painterResource(R.drawable.ic_baseline_keyboard_arrow_right_24),
             contentDescription = null,
-            tint = shellTertiary(),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -2043,7 +2107,12 @@ private fun MoreToggleRow(
             Modifier.size(40.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(painterResource(icon), null, tint = Color(0xFF3390EC), modifier = Modifier.size(22.dp))
+            Icon(
+                painterResource(icon),
+                null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(22.dp),
+            )
         }
         Column(Modifier.weight(1f).padding(start = 12.dp)) {
             Text(title, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)

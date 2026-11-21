@@ -140,7 +140,8 @@ fun AgentChatScreen(viewModel: AgentChatViewModel, timetableId: String?) {
                     "助手",
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 24.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = MaterialTheme.typography.displayLarge.fontFamily,
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
