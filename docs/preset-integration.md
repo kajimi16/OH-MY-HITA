@@ -103,7 +103,50 @@ HITA Android 的写法要点：
 - `iconAsset` 使用 `builtin:*`，避免依赖每个插件 APK 的图标路径。
 - `shell` 当前由 `PresetStateStore.shellForPreset()` 映射为 `hita-android-3.1.2`，索引没有显式写。
 
-### 3.4 宿主分支
+### 3.4 索引源与缓存
+
+三份仓库内索引只是构建输入；正式分发还必须同步官方 registry：
+
+```text
+仓库根索引       market/index.json
+打包 fallback    app/src/main/assets/market/index.json
+debug fallback   app/src/debug/assets/market/index.json
+官方 registry    build/preset-repos/registry/registry/index.json
+```
+
+`build/preset-repos/registry` 是 `oh-my-hita/registry` 的 clone，通常被 gitignore 忽略。
+修改 preset 后要单独提交并 push 该仓库；只改主仓库三份索引，线上市场仍会读到旧 preset。
+
+运行时还有两层缓存，改完索引不等于设备立即更新：
+
+- `IndexCache.loadStartup()`：无网络启动时读 `filesDir/market/index.json` 或
+  `filesDir/market-cache/<hash>/index.json`。
+- `ensureDemoIndex()`：内置索引只在 `filesDir/market/index.json` 不存在时复制一次；
+  已安装用户不会自动覆盖。
+- `PresetLayoutStore` 保存的是上次成功应用时的 `tabs_json`，不会因为索引里新增
+  `iconAsset` 自动重排；`PresetLayoutSync` 只补缺失图标。
+
+因此发布新 preset 后要验证：
+
+1. 官方 registry 已 push。
+2. App 内刷新市场索引，或清掉 `filesDir/market*` 后重新拉取。
+3. 冷启动读取的是新 preset，而不是旧 `tabs_json`。
+
+### 3.5 HITA-L/CUTE 的内置兼容路径
+
+HITA-L/CUTE 的静态三页依赖 `hita.timeline` / `hita.timetable` 的 TabContribution。
+空壳化后运行时 `timetable-core` 是 headless dex，不再注册这两个 tab；实际接入时补了：
+
+- `app/build.gradle`：`runtimeOnly project(':plugin-hita')`，把 `HitaPlugin`、
+  `FragmentTimeLine`、`TimetableFragment` 及资源打进 APK。
+- `MainActivity.ensureLegacyTimetableTabs()`：仅在 `isHitaLFamily()` 且
+  `hita.timeline` 缺失时，卸载同 id 的 headless core，反射装载内置 `HitaPlugin`。
+- 失败时回滚 headless core，避免整个会话没有 `TimetableService`。
+
+这条路径只服务 HITA-L/CUTE 的旧三页，不应扩展成所有 preset 的默认行为；HITA Android
+继续使用运行时 UI 插件和声明式 `tabs`。
+
+### 3.6 宿主分支
 
 索引只描述意图，宿主必须实现对应分支：
 
@@ -143,6 +186,13 @@ HITA Android 的写法要点：
 - 切换成功至少展示一次进度窗口，避免一闪而过。
 - 切换后关闭市场 Activity，目标 UI 用 `CLEAR_TOP | SINGLE_TOP` 启动。
 
+冷启动不是再次执行 `applyPreset`：
+
+- `HApplication.replayActivePreset()` → `planStartup()`
+- 只根据已保存的 preset、缓存索引、已安装/禁用状态做 enable/disable 对账
+- 启动期不下载、不安装新 artifact；缺文件时保持当前组合
+- 结果写入 `CompositionStore.recordStartup()`，用于诊断
+
 ## 5. 组合与停用语义
 
 `CompositionStore` 区分三类禁用：
@@ -169,6 +219,8 @@ HITA Android 的写法要点：
 一次整合包接入至少验证：
 
 - [ ] 三份索引一致：preset id、version、refs、tabs、iconAsset。
+- [ ] 官方 `oh-my-hita/registry` 已更新并 push。
+- [ ] 已刷新应用内索引，或清理 `filesDir/market*`，不依赖旧 `IndexCache`。
 - [ ] `:verifyMarketIndex` 通过。
 - [ ] `MarketIndexTest`、`PresetTabsParseTest`、Composition 相关单测通过。
 - [ ] 冷启动恢复 active preset。
@@ -220,7 +272,15 @@ HITA Android 的写法要点：
 
 宿主需要补充 Shell 映射、tab id → UI 插件/基页映射和未知 id 的 fallback。
 
-## 8. 结论
+## 8. 相关文档
+
+- `docs/plans/2026-11-20-hita-cute-integration.md`：CUTE 主题/背景差异与集成映射。
+- `docs/plans/2026-11-19-0.7.3-preset-switch-and-market-cards.md`：切换状态机与市场卡片。
+- `docs/plans/2026-11-18-7.1-ui-alignment-and-bugs.md`：整合包状态、HITA Android UI 对齐与残差。
+- `docs/plans/2026-11-20-strong-pluginization-migration.md`：空壳宿主、官方插件和官方整合包迁移。
+- `docs/plans/2026-11-21-plugin-ui-source-consolidation.md`：已发布 UI 插件从主仓库移除后的边界。
+
+## 9. 结论
 
 三次接入沉淀下来的规则：
 
