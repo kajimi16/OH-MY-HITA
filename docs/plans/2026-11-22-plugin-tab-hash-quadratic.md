@@ -7,8 +7,8 @@
 1. `enabled()` 调用 `installed()`，后者对每个已安装 UI 插件 APK 做一次 SHA-256 校验。
 2. 对每个启用插件调用 `compatibility(it)`，而 `compatibility()` 内部再次调用 `installed()`。
 
-因此一次 `mainTabs()` 的哈希次数是 `N + N×N`（N 个 tint 插件），而不是 `N`。
-22 个 UI 插件时，一次主界面构建会重复读取并哈希约 22×23 个 APK。
+因此一次 `mainTabs()` 的哈希次数是 `(N+1)×N`（N 个 UI 插件），而不是 `N`。
+22 个 UI 插件时，一次主界面构建约执行 22×23 次 APK 读取/哈希，而不是 506 个不同 APK。
 这些调用位于 `Application`/`Activity` 启动路径，直接计入冷启动。
 
 ## 设计
