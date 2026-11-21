@@ -6,6 +6,7 @@ import com.stupidtree.hita.api.EasAuthService
 import com.stupidtree.hita.api.EasService
 import com.stupidtree.hita.api.ResourceUiService
 import com.stupidtree.hita.api.TimetableService
+import com.stupidtree.hita.api.TimetableUiService
 import com.stupidtree.hita.api.UserProfileService
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.legacy.lite.HitaLiteActivity
@@ -34,9 +35,33 @@ object PresetShellRouter {
     private fun bindLiteServices(context: Context) {
         val host = (context.applicationContext as? HApplication)?.pluginHost ?: return
         LiteHostBridge.timetable = host.service(TimetableService.KEY)
+        LiteHostBridge.timetableUi = host.service(TimetableUiService.KEY)
         LiteHostBridge.eas = host.service(EasService.KEY)
         LiteHostBridge.easAuth = host.service(EasAuthService.KEY)
         LiteHostBridge.userProfile = host.service(UserProfileService.KEY)
         LiteHostBridge.resourceUi = host.service(ResourceUiService.KEY)
+        LiteHostBridge.openAbout = { activity ->
+            activity.startActivity(
+                Intent(activity, com.stupidtree.hitax.ui.about.ActivityAbout::class.java)
+            )
+        }
+        LiteHostBridge.openAgreement = { fm ->
+            com.stupidtree.hitax.ui.about.UserAgreementDialog().show(fm, "ua")
+        }
+        LiteHostBridge.openAddEvent = { activity ->
+            host.service(com.stupidtree.hita.api.HostUiService.KEY)
+                ?.openAddEvent(activity, null)
+        }
+        LiteHostBridge.openTimetableManager = { activity ->
+            LiteHostBridge.timetableUi?.openManager(activity)
+        }
+        LiteHostBridge.openTimetableDetail = { activity, id ->
+            LiteHostBridge.timetableUi?.openDetail(activity, id)
+        }
+        LiteHostBridge.openSearch = { activity ->
+            activity.startActivity(
+                Intent(activity, com.stupidtree.hitax.ui.search.SearchActivity::class.java)
+            )
+        }
     }
 }

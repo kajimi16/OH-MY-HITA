@@ -1,98 +1,260 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/lite_drawer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/backgroundColorBottom">
+    android:background="?attr/backgroundColorBottom"
+    android:nestedScrollingEnabled="true">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/lite_appbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#00000000"
+            android:fitsSystemWindows="true"
+            app:elevation="0dp">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/lite_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="64dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="bottom"
+                    android:orientation="horizontal"
+                    android:paddingStart="8dp">
+
+                    <LinearLayout
+                        android:id="@+id/lite_navigation_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/lite_navigation_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="@string/lite_title_navigation"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                        <ImageView
+                            android:id="@+id/lite_switch_theme"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_gravity="center"
+                            android:layout_marginEnd="-8dp"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:padding="19dp"
+                            android:theme="@style/lite_button_ripple_control"
+                            android:tintMode="src_in"
+                            app:srcCompat="@drawable/lite_ic_add"
+                            app:tint="?attr/textColorSecondary" />
+
+                        <ImageView
+                            android:id="@+id/lite_drawer_button"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="-6dp"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:padding="16dp"
+                            android:theme="@style/lite_button_ripple_control"
+                            android:tint="?attr/textColorSecondary"
+                            android:tintMode="src_in"
+                            app:srcCompat="@drawable/lite_ic_menu" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/lite_today_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/lite_today_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_weight="1"
+                            android:text="@string/lite_title_timeline"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/lite_timetable_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:id="@+id/lite_timetable_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:text="@string/lite_no_timetable"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/lite_timetable_name_card"
+                            android:layout_width="wrap_content"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="12dp"
+                            android:alpha="0.8"
+                            android:backgroundTint="?attr/backgroundColorBottomAsTint"
+                            android:backgroundTintMode="src_over"
+                            android:visibility="gone"
+                            app:cardBackgroundColor="?attr/colorControlNormal"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+
+                            <TextView
+                                android:id="@+id/lite_timetable_name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:alpha="0.8"
+                                android:paddingStart="6dp"
+                                android:paddingTop="3dp"
+                                android:paddingEnd="6dp"
+                                android:paddingBottom="3dp"
+                                android:textColor="?attr/textColorPrimary"
+                                android:textSize="12sp" />
+                        </androidx.cardview.widget.CardView>
+
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                        <ImageView
+                            android:id="@+id/lite_timetable_setting"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_gravity="center"
+                            android:layout_marginEnd="-8dp"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:padding="16dp"
+                            android:theme="@style/lite_button_ripple_control"
+                            android:tint="?attr/textColorSecondary"
+                            android:tintMode="src_in"
+                            app:srcCompat="@drawable/lite_ic_theme" />
+
+                        <ImageView
+                            android:id="@+id/lite_add_event"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="-6dp"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:padding="16dp"
+                            android:theme="@style/lite_button_ripple_control"
+                            android:tintMode="src_in"
+                            app:srcCompat="@drawable/lite_ic_add"
+                            app:tint="?attr/textColorSecondary" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.appcompat.widget.Toolbar>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/lite_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="56dp"
+            android:overScrollMode="never"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior" />
+
+        <me.ibrahimsn.lib.SmoothBottomBar
+            android:id="@+id/lite_nav"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_gravity="bottom"
+            app:backgroundColor="?attr/backgroundColorBottom"
+            app:duration="180"
+            app:iconSize="21dp"
+            app:iconTint="?attr/colorPrimaryDisabled"
+            app:iconTintActive="?attr/colorPrimary"
+            app:indicatorColor="?attr/backgroundIconColorBottom"
+            app:indicatorRadius="24dp"
+            app:itemPadding="8dp"
+            app:menu="@menu/lite_main_bottom_nav_menu"
+            app:sideMargins="24dp"
+            app:textColor="?attr/colorPrimary"
+            app:textSize="12sp" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="18dp"
-        android:paddingEnd="12dp">
+        android:layout_width="260dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="?attr/backgroundColorSecond"
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/lite_page_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/textColorPrimary"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/lite_page_chip"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:background="@drawable/lite_bg_round_white_light"
-            android:paddingStart="8dp"
-            android:paddingTop="3dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="3dp"
-            android:textColor="?attr/textColorSecondary"
-            android:textSize="12sp"
-            android:visibility="gone" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="16dp"
+            android:alpha="0.8"
+            android:background="?android:attr/listDivider" />
 
         <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <LinearLayout
-            android:id="@+id/lite_page_actions"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:visibility="gone">
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/lite_drawer_navigationview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center|start"
+            android:background="#00000000"
+            android:overScrollMode="never"
+            app:elevation="0dp"
+            app:itemHorizontalPadding="32dp"
+            app:itemIconPadding="16dp"
+            app:itemIconSize="20dp"
+            app:itemIconTint="?attr/colorPrimary"
+            app:itemMaxLines="1"
+            app:itemTextAppearance="@style/TextAppearance.AppCompat.Button"
+            app:itemTextColor="?attr/textColorSecondary"
+            app:menu="@menu/lite_drawer_main" />
 
-            <ImageView
-                android:id="@+id/lite_action_theme"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:foreground="?attr/selectableItemBackgroundBorderless"
-                android:padding="17dp"
-                android:tintMode="src_in"
-                android:src="@drawable/lite_ic_theme"
-                android:tint="?attr/textColorSecondary" />
-
-            <ImageView
-                android:id="@+id/lite_action_add"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:foreground="?attr/selectableItemBackgroundBorderless"
-                android:padding="16dp"
-                android:tintMode="src_in"
-                android:src="@drawable/lite_ic_add"
-                android:tint="?attr/textColorSecondary" />
-        </LinearLayout>
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:layout_gravity="bottom|center" />
     </LinearLayout>
 
-    <androidx.viewpager.widget.ViewPager
-        android:id="@+id/lite_pager"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="64dp"
-        android:layout_marginBottom="56dp"
-        android:overScrollMode="never" />
-
-    <me.ibrahimsn.lib.SmoothBottomBar
-        android:id="@+id/lite_nav"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:layout_gravity="bottom"
-        app:backgroundColor="?attr/backgroundColorBottom"
-        app:duration="180"
-        app:iconSize="21dp"
-        app:iconTint="?attr/colorPrimaryDisabled"
-        app:iconTintActive="?attr/colorPrimary"
-        app:indicatorColor="?attr/backgroundIconColorBottom"
-        app:indicatorRadius="24dp"
-        app:itemPadding="8dp"
-        app:menu="@menu/lite_main_bottom_nav_menu"
-        app:sideMargins="24dp"
-        app:textColor="?attr/colorPrimary"
-        app:textSize="12sp" />
-</FrameLayout>
+</androidx.drawerlayout.widget.DrawerLayout>

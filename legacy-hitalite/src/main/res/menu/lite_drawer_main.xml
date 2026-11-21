@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/lite_drawer_nav_ua"
+        android:icon="@drawable/lite_ic_info"
+        android:title="@string/lite_drawer_agreement" />
+    <item
+        android:id="@+id/lite_drawer_nav_about"
+        android:icon="@drawable/lite_logo"
+        android:title="@string/lite_drawer_about" />
+</menu>

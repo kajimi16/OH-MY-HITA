@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lite_nav_import_timetable">导入课表</string>
+    <string name="lite_nav_shortcut_empty_classroom_short">空教室</string>
+    <string name="lite_nav_navi_jw_title">教务功能</string>
+    <string name="lite_nav_navi_campus_title">更多服务</string>
+    <string name="lite_nav_ade_exam">考试</string>
+    <string name="lite_nav_none">无</string>
+    <string name="lite_nav_jw_tabs_cj">成绩管理</string>
+    <string name="lite_nav_jw_login_entry_title">教务功能登录</string>
+    <string name="lite_nav_jw_login_connected_title">统一身份认证已连接</string>
+    <string name="lite_nav_jw_login_entry_subtitle">点击进行统一身份认证登录</string>
+    <string name="lite_nav_jw_login_status_with_student_id">教务登录为 %1$s</string>
+    <string name="lite_nav_community_name">θ社区</string>
+    <string name="lite_nav_no_timetable">无课表</string>
+    <string name="lite_nav_title_timetable_manager">课表管理</string>
+    <string name="lite_nav_recent_timetable">最近课表</string>
+    <string name="lite_nav_timetable_count_format">共%d个课表</string>
+    <string name="lite_nav_prompt_import">从教务系统上导入学期课表</string>
+    <string name="lite_nav_prompt_empty_classroom">查询校区教室空闲情况</string>
+    <string name="lite_nav_lecture_title">讲座信息</string>
+</resources>
