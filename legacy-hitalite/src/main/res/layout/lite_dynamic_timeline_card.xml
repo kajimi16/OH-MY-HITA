@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingStart="16dp">
+
+    <LinearLayout
+        android:layout_width="24dp"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <View
+            android:id="@+id/lite_timeline_dot"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginTop="26dp"
+            android:background="@drawable/lite_timeline_dot" />
+
+        <View
+            android:id="@+id/lite_timeline_rail_line"
+            android:layout_width="2dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="4dp"
+            android:layout_weight="1"
+            android:background="@color/lite_timeline_divider" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/lite_timeline_card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:layout_weight="1"
+        android:background="@drawable/lite_timeline_bg_card"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <TextView
+            android:id="@+id/lite_timeline_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/lite_timeline_accent"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/lite_timeline_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/lite_timeline_text_secondary"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/lite_timeline_place"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/lite_timeline_text_secondary"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/lite_timeline_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/lite_timeline_text_secondary"
+            android:textSize="11sp" />
+
+        <ProgressBar
+            android:id="@+id/lite_timeline_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginTop="8dp"
+            android:max="100"
+            android:progressTint="@color/lite_timeline_accent"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>

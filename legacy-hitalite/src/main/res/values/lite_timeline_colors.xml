@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="lite_timeline_accent">#FF304FFE</color>
+    <color name="lite_timeline_accent_soft">#11304FFE</color>
+    <color name="lite_timeline_card">#FFFFFFFF</color>
+    <color name="lite_timeline_card_passed">#FFF2F2F2</color>
+    <color name="lite_timeline_text_primary">#DE000000</color>
+    <color name="lite_timeline_text_secondary">#8A000000</color>
+    <color name="lite_timeline_divider">#22304FFE</color>
+    <color name="lite_timeline_dot_passed">#FFBDBDBD</color>
+    <color name="lite_timeline_icon_soft">#40304FFE</color>
+</resources>

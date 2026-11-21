@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lite_timeline_unknown_location">地点未定</string>
+    <string name="lite_timeline_empty">今天没有课程安排</string>
+    <string name="lite_timeline_today_title">今日安排</string>
+    <string name="lite_timeline_upcoming_title">即将到来</string>
+    <string name="lite_timeline_upcoming_empty">接下来几天没有安排</string>
+    <string name="lite_timeline_close">关闭</string>
+    <string name="lite_timeline_event_time">时间：%1$s</string>
+    <string name="lite_timeline_event_place">地点：%1$s</string>
+    <string name="lite_timeline_duration_minute">%1$d 分钟</string>
+    <string name="lite_timeline_duration_hour">%1$d 小时</string>
+    <string name="lite_timeline_duration_hour_minute">%1$d 小时 %2$d 分钟</string>
+    <string name="lite_timeline_head_free_title">今日空闲</string>
+    <string name="lite_timeline_head_free_subtitle">今天没有课程，享受空闲时光</string>
+    <string name="lite_timeline_head_ongoing_subtitle">正在进行</string>
+    <string name="lite_timeline_head_goodnight_title">夜深了</string>
+    <string name="lite_timeline_head_goodnight_subtitle">早点休息，明天见</string>
+    <string name="lite_timeline_head_goodmorning_title">早上好</string>
+    <string name="lite_timeline_head_goodmorning_subtitle">今天有 %1$d 门课程</string>
+    <string name="lite_timeline_head_lunch_title">午餐时间</string>
+    <string name="lite_timeline_head_lunch_subtitle">先去吃饭，下午继续</string>
+    <string name="lite_timeline_head_dinner_title">晚餐时间</string>
+    <string name="lite_timeline_head_dinner_subtitle">先去吃饭，晚上继续</string>
+    <string name="lite_timeline_head_normal_title">接下来</string>
+    <string name="lite_timeline_head_normal_subtitle">按部就班，继续前进</string>
+    <string name="lite_timeline_head_finish_title">今日已完成</string>
+    <string name="lite_timeline_head_finish_subtitle">今天的安排都结束了</string>
+    <string name="lite_timeline_gonow_subtitle">还有 %1$d 分钟开始</string>
+    <string name="lite_timeline_counting_pattern">%1$s · %2$s</string>
+    <string name="lite_timeline_counting_hour">%1$d 小时 %2$d 分钟后开始</string>
+    <string name="lite_timeline_counting_minute">%1$d 分钟后开始</string>
+    <string name="lite_timeline_counting_free">暂无安排</string>
+    <string name="lite_timeline_top_countdown_hour">%1$d 小时 %2$d 分钟后开始</string>
+    <string name="lite_timeline_top_countdown_minute">%1$d 分钟后开始</string>
+</resources>
