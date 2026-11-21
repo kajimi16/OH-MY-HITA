@@ -46,4 +46,6 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.4'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4'
     implementation 'com.github.ibrahimsn98:SmoothBottomBar:1.7.6'
+    implementation 'br.com.simplepass:loading-button-android:2.2.0'
+    implementation 'tyrantgit:explosionfield:1.0.1'
 }

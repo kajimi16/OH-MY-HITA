@@ -53,7 +53,12 @@ object PresetShellRouter {
                 ?.openAddEvent(activity, null)
         }
         LiteHostBridge.openTimetableManager = { activity ->
-            LiteHostBridge.timetableUi?.openManager(activity)
+            activity.startActivity(
+                Intent(
+                    activity,
+                    com.stupidtree.hitax.legacy.lite.ui.timetable.manager.LiteTimetableManagerActivity::class.java,
+                )
+            )
         }
         LiteHostBridge.openTimetableDetail = { activity, id ->
             LiteHostBridge.timetableUi?.openDetail(activity, id)
