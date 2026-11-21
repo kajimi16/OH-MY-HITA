@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/backgroundColorBottom">
+
+    <TextView
+        android:id="@+id/lite_page_title"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:gravity="center_vertical"
+        android:paddingStart="18dp"
+        android:paddingEnd="18dp"
+        android:textColor="?attr/textColorPrimary"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/lite_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="64dp"
+        android:layout_marginBottom="56dp"
+        android:overScrollMode="never" />
+
+    <me.ibrahimsn.lib.SmoothBottomBar
+        android:id="@+id/lite_nav"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_gravity="bottom"
+        app:backgroundColor="?attr/backgroundColorBottom"
+        app:duration="180"
+        app:iconSize="21dp"
+        app:iconTint="?attr/colorPrimaryDisabled"
+        app:iconTintActive="?attr/colorPrimary"
+        app:indicatorColor="?attr/backgroundIconColorBottom"
+        app:indicatorRadius="24dp"
+        app:itemPadding="8dp"
+        app:menu="@menu/lite_main_bottom_nav_menu"
+        app:sideMargins="24dp"
+        app:textColor="?attr/colorPrimary"
+        app:textSize="12sp" />
+</FrameLayout>

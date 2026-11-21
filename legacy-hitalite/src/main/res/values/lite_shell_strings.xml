@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lite_title_timeline">今日</string>
+    <string name="lite_title_timetable">时间表</string>
+    <string name="lite_title_navigation">功能中心</string>
+</resources>

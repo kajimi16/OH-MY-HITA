@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/lite_nav_today"
+        android:icon="@drawable/lite_ic_nav_today"
+        android:title="@string/lite_title_timeline" />
+    <item
+        android:id="@+id/lite_nav_timetable"
+        android:icon="@drawable/lite_ic_nav_timetable"
+        android:title="@string/lite_title_timetable" />
+    <item
+        android:id="@+id/lite_nav_navigation"
+        android:icon="@drawable/lite_ic_nav_navigation"
+        android:title="@string/lite_title_navigation" />
+</menu>
