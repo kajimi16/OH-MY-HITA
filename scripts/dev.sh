@@ -4,7 +4,7 @@
 #   ./scripts/dev.sh status
 #   ./scripts/dev.sh reset                 # 清空运行时插件/市场缓存并重启
 #   ./scripts/dev.sh open <ui-plugin-id> [query]
-#   ./scripts/dev.sh install-ui <module|apk>
+#   ./scripts/dev.sh install-ui /path/to/plugin-debug.apk
 #   ./scripts/dev.sh install-dex <plugin-id>
 #   ./scripts/dev.sh uninstall-dex <plugin-id>
 #   ./scripts/dev.sh enable-dex <plugin-id> <true|false>
@@ -59,18 +59,9 @@ case "${1:-status}" in
     fi
     ;;
   install-ui)
-    TARGET="${2:?usage: dev.sh install-ui <module|apk>}"
-    if [ -f "$TARGET" ]; then
-      SHA=$(sha256sum "$TARGET" | cut -d' ' -f1)
-      $ADB push "$TARGET" /data/local/tmp/dev-ui-plugin.apk >/dev/null
-      run_as cp /data/local/tmp/dev-ui-plugin.apk "/data/user/0/$PKG/files/dev-ui-plugin.apk"
-      broadcast -a com.stupidtree.hitax.DEV_INSTALL_UI_PLUGIN \
-        -n "$PKG/com.stupidtree.hitax.uiplugin.DevUiPluginInstallerReceiver" \
-        --es path "/data/user/0/$PKG/files/dev-ui-plugin.apk" --es sha256 "$SHA"
-    else
-      "$ROOT/scripts/dev-install-ui-plugin.sh" "$TARGET"
-      exit 0
-    fi
+    TARGET="${2:?usage: dev.sh install-ui /path/to/plugin-debug.apk}"
+    "$ROOT/scripts/dev-install-ui-plugin.sh" "$TARGET"
+    exit 0
     ;;
   install-dex)
     ID="${2:?usage: dev.sh install-dex <plugin-id>}"

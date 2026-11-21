@@ -147,8 +147,9 @@ API 10 在 0.9.0 正式引入并兼容 API 9；本版新增的 HITA_CUTE 外观�
 ### 运行时界面插件的快速调试
 
 - 一键调试：`./scripts/dev.sh status|reset|open|install-ui|install-dex|uninstall-dex|enable-dex|logs`
-- 安装（debug 包）：`./scripts/dev-install-ui-plugin.sh plugin-ui-resource`
-  构建 → `adb push` → `run-as` 落盘 → 广播安装 → 冷启动，单次约 3–5 秒，跳过市场下载。
+- 安装（debug 包）：`./scripts/dev-install-ui-plugin.sh /path/to/plugin-debug.apk`
+  APK 由对应 `oh-my-hita/ui-*` 仓库构建；主仓库只保留 `plugin-ui-sample` 模板。
+  `adb push` → `run-as` 落盘 → 广播安装 → 冷启动，单次约 3–5 秒，跳过市场下载。
 - 对比截图：
 
   ```bash

@@ -1,32 +1,34 @@
 #!/usr/bin/env bash
 # 开发期快速安装运行时界面插件（仅 debug 包可用）。
-# 用法：./scripts/dev-install-ui-plugin.sh [module] [--no-build]
+# 用法：./scripts/dev-install-ui-plugin.sh /path/to/plugin-debug.apk
 set -euo pipefail
 
-MODULE="${1:-plugin-ui-resource}"
-BUILD=1
-[ "${2:-}" = "--no-build" ] && BUILD=0
+if [ "$#" -ne 1 ]; then
+  echo "usage: $0 /path/to/plugin-debug.apk" >&2
+  exit 1
+fi
+
+APK="$1"
+[ -f "$APK" ] || { echo "error: APK not found or not a regular file: $APK" >&2; exit 1; }
 
 PKG="${PKG:-io.github.kajimi16.ohmyhita}"
 ADB="${ADB:-$HOME/Android/Sdk/platform-tools/adb}"
 
-cd "$(dirname "$0")/.."
-if [ "$BUILD" = "1" ]; then
-  ./gradlew ":$MODULE:assembleDebug" -q
-fi
-
-APK=$(find "$MODULE/build/outputs/apk/debug" -name "*.apk" | head -1)
-[ -n "$APK" ] || { echo "APK not found for $MODULE" >&2; exit 1; }
-
 META=$(python3 - "$APK" <<'PY'
 import json, sys, zipfile
-with zipfile.ZipFile(sys.argv[1]) as z:
-    meta = json.loads(z.read("assets/plugin.json"))
-print(meta["id"], meta["version"], meta["entryClass"], sep="\t")
+try:
+    with zipfile.ZipFile(sys.argv[1]) as z:
+        meta = json.loads(z.read("assets/plugin.json"))
+    print(meta["id"], meta["version"], meta["entryClass"], sep="\t")
+except (KeyError, ValueError, zipfile.BadZipFile, OSError) as exc:
+    sys.exit(f"error: cannot read assets/plugin.json from APK: {exc}")
 PY
 )
 ID=$(echo "$META" | cut -f1)
 VERSION=$(echo "$META" | cut -f2)
+ENTRY=$(echo "$META" | cut -f3)
+[ -n "$ID" ] && [ -n "$VERSION" ] && [ -n "$ENTRY" ] || { echo "error: plugin.json missing id/version/entryClass" >&2; exit 1; }
+
 SHA=$(sha256sum "$APK" | cut -d' ' -f1)
 
 $ADB push "$APK" "/data/local/tmp/dev-ui-plugin.apk" >/dev/null
@@ -47,4 +49,4 @@ $ADB shell am force-stop "$PKG"
 $ADB shell am start -n "$PKG/com.stupidtree.hitax.ui.ActivitySplash" >/dev/null 2>&1 || \
   $ADB shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null
 
-echo "installed: $ID@$VERSION sha256=${SHA:0:12}"
+echo "installed: $ID@$VERSION entryClass=$ENTRY sha256=${SHA:0:12}"
