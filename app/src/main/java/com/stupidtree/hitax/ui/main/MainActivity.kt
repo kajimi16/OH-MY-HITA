@@ -703,7 +703,9 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     private fun buildPages(): List<Page> {
         val host = (application as HApplication).pluginHost
         val layout = com.stupidtree.hitax.market.PresetLayoutStore.tabs(this)
-        layoutMode = layout.isNotEmpty()
+        // HITA-L / HITA_CUTE 的底栏是静态三项（今日/时间表/导航），
+        // 不能被旧索引里的插件 tabs 覆盖成 5 页；否则 navView 与 pager 错位。
+        layoutMode = layout.isNotEmpty() && !isHitaLFamily()
         if (layoutMode) return layoutPages(layout)
         val result = mutableListOf(
             Page(

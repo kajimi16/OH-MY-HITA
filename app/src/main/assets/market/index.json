@@ -650,34 +650,7 @@
           "required": true
         }
       ],
-      "repo": "https://github.com/LiPu-jpg/HITA_L",
-      "tabs": [
-        {
-          "id": "com.stupidtree.hita.ui.timetable",
-          "title": "课表",
-          "order": 0
-        },
-        {
-          "id": "com.stupidtree.hita.ui.eas",
-          "title": "教务",
-          "order": 1
-        },
-        {
-          "id": "com.stupidtree.hita.ui.resource",
-          "title": "课程资源",
-          "order": 2
-        },
-        {
-          "id": "com.stupidtree.hita.ui.user",
-          "title": "我的",
-          "order": 3
-        },
-        {
-          "id": "com.stupidtree.hita.ui.theta",
-          "title": "社区",
-          "order": 4
-        }
-      ]
+      "repo": "https://github.com/LiPu-jpg/HITA_L"
     },
     {
       "id": "hita-cute-1.6.0",
@@ -743,33 +716,6 @@
         "HITA",
         "HITA_CUTE",
         "整合包"
-      ],
-      "tabs": [
-        {
-          "id": "com.stupidtree.hita.ui.timetable",
-          "title": "课表",
-          "order": 0
-        },
-        {
-          "id": "com.stupidtree.hita.ui.eas",
-          "title": "教务",
-          "order": 1
-        },
-        {
-          "id": "com.stupidtree.hita.ui.resource",
-          "title": "课程资源",
-          "order": 2
-        },
-        {
-          "id": "com.stupidtree.hita.ui.user",
-          "title": "我的",
-          "order": 3
-        },
-        {
-          "id": "com.stupidtree.hita.ui.theta",
-          "title": "社区",
-          "order": 4
-        }
       ]
     },
     {
