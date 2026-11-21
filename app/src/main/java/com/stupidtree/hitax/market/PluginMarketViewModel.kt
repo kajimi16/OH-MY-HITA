@@ -55,8 +55,17 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
     private val uiPluginManager = UiPluginManager(application)
 
-    /** 界面插件 prepare 阶段的 staging 根目录；cleanup 时整体删除。 */
-    private val uiStagingRoot = File(application.cacheDir, "ui-staging")
+    /**
+     * 界面插件 prepare 阶段的 staging 根目录。
+     * 放在 filesDir 而不是 cacheDir：Android 的 installd 会在 cache 超配额时
+     * 异步清理 cache/ui-staging，大整合包下载中途会触发 ENOENT。
+     */
+    private val uiStagingRoot = File(application.filesDir, "ui-staging")
+
+    init {
+        // 清理旧版本遗留在 cache 的 staging。
+        File(application.cacheDir, "ui-staging").deleteRecursively()
+    }
 
     /** 运行时界面插件（Compose 容器，独立 APK）。 */
     val uiPlugins = MutableLiveData<List<InstalledUiPlugin>>(emptyList())
@@ -593,8 +602,8 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
                 override fun cleanup() {
                     runCatching { installer.cleanupStaging() }
-                    // 每个 prepareUi 自己清理 per-id 目录；不要删共享 root，
-                    // 否则会与并发的 prepare 抢目录，导致 FileOutputStream ENOENT。
+                    artifacts.values.filterIsInstance<PreparedArtifact.Ui>()
+                        .forEach { it.file.parentFile?.deleteRecursively() }
                     artifacts.clear()
                 }
             }
