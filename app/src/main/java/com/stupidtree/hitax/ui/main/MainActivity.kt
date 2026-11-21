@@ -1,6 +1,7 @@
 package com.stupidtree.hitax.ui.main
 
 import android.app.Activity
+import android.app.Application
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -696,12 +697,41 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
     }
 
     /**
+     * 兼容 HITA-L / HITA_CUTE 的今日与时间表。
+     *
+     * 前置条件：host 已完成启动恢复，APK 已打包 :plugin-hita。
+     * 后置条件：`hita.timeline` 缺失时，卸载同 id 的 headless core，装入内置 HitaPlugin；
+     * 两个 tab 由该插件的资源完整提供。
+     * 不变式：已有 `hita.timeline` 时不触碰 host；失败只记录日志，保留不可用占位页。
+     * 违约处理：反射失败视为该兼容路径不可用，不阻断主界面。
+     */
+    private fun ensureLegacyTimetableTabs(host: com.stupidtree.hita.kernel.PluginHost) {
+        if (!isHitaLFamily()) return
+        if (host.tabs.find("hita.timeline") != null) return
+        Log.i("MainActivity", "legacy timetable tabs missing; loading builtin HitaPlugin")
+        runCatching {
+            host.uninstall("com.stupidtree.hitax.timetable")
+            val clazz = Class.forName(
+                "com.stupidtree.hitax.plugin.HitaPlugin",
+                true,
+                javaClass.classLoader,
+            )
+            val plugin = clazz.getConstructor(Application::class.java)
+                .newInstance(application) as com.stupidtree.hita.api.Plugin
+            host.install(plugin)
+        }.onFailure {
+            Log.e("MainActivity", "legacy timetable fallback failed", it)
+        }
+    }
+
+    /**
      * 页面头互斥显示：顺序与 pager 的页序一一对应
      * （0 今日 / 1 时间表 / 2 功能中心 / 3 插件市场 / 4 插件贡献页）。
      * 新增标签页时只需在这里加一项，避免某个分支漏关导致标题叠加。
      */
     private fun buildPages(): List<Page> {
         val host = (application as HApplication).pluginHost
+        ensureLegacyTimetableTabs(host)
         val layout = com.stupidtree.hitax.market.PresetLayoutStore.tabs(this)
         // HITA-L / HITA_CUTE 的底栏是静态三项（今日/时间表/导航），
         // 不能被旧索引里的插件 tabs 覆盖成 5 页；否则 navView 与 pager 错位。

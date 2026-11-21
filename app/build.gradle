@@ -133,6 +133,10 @@ dependencies {
     implementation project(path: ':api')
     implementation project(path: ':kernel')
     // 插件在运行时打包进 APK，但不在宿主编译期可见（防止宿主越界引用插件实现）
+    // 兼容 HITA-L/CUTE：这两个旧预设的今日/时间表依赖内置插件 UI；
+    // 只在运行时按需反射装载，不进入宿主编译类路径。
+    runtimeOnly project(path: ':plugin-hita')
+    runtimeOnly project(path: ':plugin-resource')
     implementation project(path: ':component')
     implementation project(path: ':user')
     implementation project(path: ':sync')
