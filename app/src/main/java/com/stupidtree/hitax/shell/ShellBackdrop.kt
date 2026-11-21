@@ -13,6 +13,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.material3.MaterialTheme
+import com.stupidtree.hitax.shell.style.hitaSoraCloudBackground
+import com.stupidtree.hitax.shell.style.hitaDeepSpaceBackground
+import com.stupidtree.hitax.shell.style.hitaSumiBackground
 import kotlin.math.sin
 
 /**
@@ -29,6 +33,7 @@ fun ShellBackdrop(style: String, dark: Boolean) {
             x to y
         }
     }
+    val cyberBackground = MaterialTheme.colorScheme.background
     Box(Modifier.fillMaxSize()) {
         when (style) {
             "apple_glass" -> Canvas(Modifier.fillMaxSize()) {
@@ -55,66 +60,16 @@ fun ShellBackdrop(style: String, dark: Boolean) {
                 // Upstream glass keeps a flat tinted canvas; no decorative blobs.
             }
             "cyber" -> Canvas(Modifier.fillMaxSize()) {
-                if (dark) {
-                    drawRect(Brush.verticalGradient(listOf(Color(0xFF04050C), Color(0xFF0A0E1D), Color(0xFF04050C))))
-                } else {
-                    drawRect(Brush.verticalGradient(listOf(Color(0xFFF3F6FC), Color(0xFFE6F7FB), Color(0xFFF3F6FC))))
-                }
-                val step = size.width / 12f
-                for (i in 0..12) {
-                    drawLine((if (dark) Color(0xFF22D3EE) else Color(0xFF0891B2)).copy(alpha = if (dark) 0.10f else 0.08f), Offset(i * step, 0f), Offset(i * step, size.height), 1f)
-                }
-                val hStep = size.height / 18f
-                for (i in 0..18) {
-                    drawLine((if (dark) Color(0xFFA78BFA) else Color(0xFF7C5CD6)).copy(alpha = if (dark) 0.08f else 0.06f), Offset(0f, i * hStep), Offset(size.width, i * hStep), 1f)
-                }
+                // 上游 cyber 不绘制装饰背景，氛围由切角/霓虹卡片提供。
+                drawRect(cyberBackground)
             }
-            "sora_cloud" -> Canvas(Modifier.fillMaxSize()) {
-                drawRect(Brush.verticalGradient(listOf(Color(0xFFF3EBD9), Color(0xFFFFF8E8))))
-                drawCircle(Color(0xFFD2A23C).copy(alpha = 0.25f), radius = size.minDimension * 0.2f, center = Offset(size.width * 0.78f, size.height * 0.14f))
-                val p = Path().apply {
-                    moveTo(0f, size.height * 0.68f)
-                    cubicTo(size.width * 0.25f, size.height * 0.58f, size.width * 0.5f, size.height * 0.80f, size.width, size.height * 0.66f)
-                }
-                drawPath(p, Color(0xFF315D6D).copy(alpha = 0.12f), style = Stroke(width = 3f))
-            }
+            "sora_cloud" -> Box(Modifier.fillMaxSize().hitaSoraCloudBackground())
             "p5" -> Canvas(Modifier.fillMaxSize()) {
-                drawRect(Color(0xFFF4F4F4))
-                val stripe = size.width / 9f
-                var x = -size.height
-                while (x < size.width) {
-                    val p = Path().apply {
-                        moveTo(x, 0f); lineTo(x + stripe, 0f); lineTo(x + stripe + size.height, size.height); lineTo(x + size.height, size.height); close()
-                    }
-                    drawPath(p, Color(0xFFE60012).copy(alpha = 0.07f))
-                    x += stripe * 2
-                }
-                drawRect(Color(0xFF101010).copy(alpha = 0.04f), size = Size(size.width, size.height * 0.06f))
+                // 上游 P5 不绘制装饰背景，材质由错位硬阴影卡片提供。
+                drawRect(cyberBackground)
             }
-            "deep_space" -> Canvas(Modifier.fillMaxSize()) {
-                if (dark) {
-                    drawRect(Brush.verticalGradient(listOf(Color(0xFF04060D), Color(0xFF0B1020), Color(0xFF04060D))))
-                } else {
-                    drawRect(Brush.verticalGradient(listOf(Color(0xFFF1EEE7), Color(0xFFFDFBF4), Color(0xFFF1EEE7))))
-                }
-                stars.forEachIndexed { i, (x, y) ->
-                    drawCircle(
-                        (if (dark) Color.White else Color(0xFF8A6D1F)).copy(alpha = 0.18f + (i % 5) * 0.06f),
-                        radius = 1.2f + (i % 3),
-                        center = Offset(x * size.width, y * size.height),
-                    )
-                }
-                drawCircle(Color(0xFFE3C878).copy(alpha = 0.14f), radius = size.minDimension * 0.22f, center = Offset(size.width * 0.82f, size.height * 0.16f))
-            }
-            "sumi" -> Canvas(Modifier.fillMaxSize()) {
-                drawRect(Brush.verticalGradient(listOf(Color(0xFFF4EEE1), Color(0xFFFBF7EC))))
-                val p = Path().apply {
-                    moveTo(0f, size.height * 0.78f)
-                    cubicTo(size.width * 0.22f, size.height * 0.70f, size.width * 0.42f, size.height * 0.86f, size.width, size.height * 0.74f)
-                }
-                drawPath(p, Color(0xFF33322F).copy(alpha = 0.10f), style = Stroke(width = 10f))
-                drawLine(Color(0xFFA63B2A).copy(alpha = 0.25f), Offset(size.width * 0.86f, size.height * 0.10f), Offset(size.width * 0.86f, size.height * 0.22f), 2f)
-            }
+            "deep_space" -> Box(Modifier.fillMaxSize().hitaDeepSpaceBackground())
+            "sumi" -> Box(Modifier.fillMaxSize().hitaSumiBackground())
             else -> Unit
         }
     }

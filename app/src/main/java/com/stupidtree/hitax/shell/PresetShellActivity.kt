@@ -90,6 +90,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -161,6 +162,7 @@ import com.stupidtree.hitax.agent.AgentChatViewModel
 import com.stupidtree.hitax.shell.agent.AgentChatScreen
 import com.stupidtree.hitax.shell.homework.HomeworkViewModel
 import com.stupidtree.hitax.shell.news.ShellNewsPage
+import com.stupidtree.hitax.shell.style.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -203,20 +205,22 @@ class PresetShellActivity : AppCompatActivity() {
                 .service(com.stupidtree.hita.api.ThemeController.KEY)?.themeStyle() ?: "classic"
             val hazeState = remember { dev.chrisbanes.haze.HazeState() }
             val scheme = shellStyleScheme(style, dark)
-            MaterialTheme(
-                colorScheme = scheme,
-                typography = shellStyleTypography(style),
-                shapes = shellStyleShapes(style),
-            ) {
-                Box(Modifier.fillMaxSize().background(scheme.background)) {
-                    Box(
-                        Modifier.fillMaxSize().then(
-                            if (style == "apple_glass") {
-                                Modifier.haze(hazeState)
-                            } else Modifier
-                        )
-                    ) { ShellBackdrop(style, dark) }
-                    HitaAndroidShell(service, homeworkViewModel, agentViewModel, style, hazeState)
+            CompositionLocalProvider(LocalShellStyle provides ShellStyleState(style, dark)) {
+                MaterialTheme(
+                    colorScheme = scheme,
+                    typography = shellStyleTypography(style),
+                    shapes = shellStyleShapes(style),
+                ) {
+                    Box(Modifier.fillMaxSize().background(scheme.background)) {
+                        Box(
+                            Modifier.fillMaxSize().then(
+                                if (style == "apple_glass") {
+                                    Modifier.haze(hazeState)
+                                } else Modifier
+                            )
+                        ) { ShellBackdrop(style, dark) }
+                        HitaAndroidShell(service, homeworkViewModel, agentViewModel, style, hazeState)
+                    }
                 }
             }
         }
@@ -492,11 +496,19 @@ private fun HitaAndroidShell(
             val indicatorOffset = tabWidth * dock.lens.value - lensExtra / 2f
             val selectedNow = androidx.compose.runtime.rememberUpdatedState(selected)
             val glassDockBase = if (isSystemInDarkTheme()) Color(0xFF121923) else Color.White
+            val dockShape = hitaStyleCardShape(28.dp, 16.dp)
+            val dockBase = when {
+                style == "apple_glass" -> glassDockBase.copy(alpha = 0.95f)
+                style == "sora_cloud" -> if (isSystemInDarkTheme()) Color(0xFF25221D) else SoraPaper
+                else -> MaterialTheme.colorScheme.surface
+            }
             Surface(
-                shape = RoundedCornerShape(28.dp),
-                color = if (style == "apple_glass") glassDockBase.copy(alpha = 0.95f) else MaterialTheme.colorScheme.surface,
+                shape = dockShape,
+                color = hitaGlassContainerColor(dockBase),
+                border = hitaGlassCardBorder(),
                 shadowElevation = 6.dp,
                 modifier = Modifier.width(barWidth).height(54.dp)
+                    .hitaGlassCardModifier(dockShape, 8.dp)
                     .graphicsLayer {
                         val s = ShellMotion.pressScale(
                             dock.swell.value,
@@ -707,8 +719,12 @@ private fun ShellDrawerOverlay(
                 )
                     .clickable(enabled = drawerProgress > 0.1f) { onClose() },
             )
+            val drawerShape = hitaStyleCardShape(0.dp, 18.dp)
             Surface(
+                shape = drawerShape,
+                border = hitaGlassCardBorder(),
                 modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().width(260.dp)
+                    .hitaGlassCardModifier(drawerShape, 18.dp)
                     .graphicsLayer { translationX = (1f - drawerProgress) * drawerWidthPx }
                     .then(
                         if (style == "apple_glass" && hazeState != null) {
@@ -957,18 +973,31 @@ private fun TodayPage(
             else -> listOf(Color(0xFF1C5E9D), Color(0xFF0C5C91))
         }
         val glass = style == "apple_glass"
+        val styled = style in setOf("cyber", "sora_cloud", "p5", "deep_space", "sumi")
+        val cardShape = hitaStyleCardShape(16.dp, 14.dp)
+        val cardText = if (styled) MaterialTheme.colorScheme.onSurface else Color.White
+        val cardTextMuted = if (styled) MaterialTheme.colorScheme.onSurfaceVariant else Color.White.copy(alpha = 0.8f)
+        val cardIconBack = if (styled) MaterialTheme.colorScheme.primaryContainer else Color.White.copy(alpha = 0.16f)
         Card(
-            shape = MaterialTheme.shapes.large,
-            colors = CardDefaults.cardColors(
-                containerColor = if (glass) Color.Transparent else cardGradient.first(),
+            shape = cardShape,
+            colors = hitaGlassCardColors(
+                containerColor = when {
+                    glass -> Color.Transparent
+                    styled -> MaterialTheme.colorScheme.surface
+                    else -> cardGradient.first()
+                },
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            border = hitaGlassCardBorder(),
             modifier = Modifier.fillMaxWidth()
+                .hitaGlassCardModifier(cardShape, 14.dp)
                 .clickable { expanded = !expanded },
         ) {
             Column(
-                Modifier.fillMaxWidth().background(
-                    androidx.compose.ui.graphics.Brush.verticalGradient(cardGradient),
+                Modifier.fillMaxWidth().then(
+                    if (styled) Modifier else Modifier.background(
+                        androidx.compose.ui.graphics.Brush.verticalGradient(cardGradient),
+                    )
                 ),
             ) {
                 Row(
@@ -981,7 +1010,7 @@ private fun TodayPage(
                             finished -> "全部结束"
                             else -> "今日课程"
                         },
-                        color = Color.White,
+                        color = cardText,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Black,
                         modifier = Modifier.weight(1f),
@@ -992,7 +1021,7 @@ private fun TodayPage(
                             finished -> "享受生活吧！"
                             else -> "继续加油！"
                         },
-                        color = Color.White.copy(alpha = 0.8f),
+                        color = cardTextMuted,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -1003,7 +1032,7 @@ private fun TodayPage(
                 ) {
                     Box(
                         Modifier.size(110.dp).clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.16f))
+                            .background(cardIconBack)
                             .padding(20.dp),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -2032,10 +2061,13 @@ private fun MoreToggleRow(
 
 @Composable
 private fun MoreCard(title: String, subtitle: String, onClick: () -> Unit) {
+    val shape = hitaStyleCardShape(18.dp, 10.dp)
     Card(
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        shape = shape,
+        colors = hitaGlassCardColors(),
+        border = hitaGlassCardBorder(),
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+            .hitaGlassCardModifier(shape, 6.dp),
         onClick = onClick,
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp)) {
