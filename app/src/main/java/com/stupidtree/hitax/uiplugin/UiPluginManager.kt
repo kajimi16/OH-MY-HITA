@@ -39,25 +39,36 @@ class UiPluginManager(private val context: Context) {
         val spec: com.stupidtree.hita.api.MainTabSpec,
     )
 
-    /** 所有启用插件贡献的主界面 tab，按 order 排序。 */
-    fun mainTabs(): List<InstalledMainTab> = enabled()
-        .filter { compatibility(it).satisfied }
-        .flatMap { plugin ->
-            val tabs = plugin.mainTabs ?: if (
-                com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB in plugin.capabilities
-            ) {
-                listOf(
-                    com.stupidtree.hita.api.MainTabSpec(
-                        id = plugin.id,
-                        title = plugin.name,
+    /**
+     * 所有启用插件贡献的主界面 tab，按 order 排序。
+     *
+     * 只读取一次安装列表，并把同一快照传给每个插件的依赖检查；这样每个 APK
+     * 在一次主界面构建中最多校验一次，而不是每个插件再全量扫描一遍。
+     */
+    fun mainTabs(): List<InstalledMainTab> {
+        val installed = installed()
+        val installedById = installed.associateBy { it.id }
+        val safety = CompositionStore.killSwitches(context)
+        return installed
+            .filter { it.enabled && CompositionTarget(CompositionKind.UI, it.id) !in safety }
+            .filter { compatibility(it, installedById).satisfied }
+            .flatMap { plugin ->
+                val tabs = plugin.mainTabs ?: if (
+                    com.stupidtree.hita.api.RuntimeUiService.CAP_MAIN_TAB in plugin.capabilities
+                ) {
+                    listOf(
+                        com.stupidtree.hita.api.MainTabSpec(
+                            id = plugin.id,
+                            title = plugin.name,
+                        )
                     )
-                )
-            } else {
-                emptyList()
+                } else {
+                    emptyList()
+                }
+                tabs.map { InstalledMainTab(plugin, it) }
             }
-            tabs.map { InstalledMainTab(plugin, it) }
-        }
-        .sortedBy { it.spec.order }
+            .sortedBy { it.spec.order }
+    }
 
     /** 从插件 APK 的 assets 中读取主界面 tab 图标；失败回退 null。 */
     fun loadMainTabIcon(record: InstalledUiPlugin, assetPath: String?): android.graphics.drawable.Drawable? {
@@ -91,9 +102,11 @@ class UiPluginManager(private val context: Context) {
      * 校验 UI 插件的服务/插件/preset 依赖。缺 required 依赖时不参与路由；
      * optional 缺失或 preset 未验证时仍可运行，但标记 degraded。
      */
-    fun compatibility(record: InstalledUiPlugin): UiCompatibility {
+    fun compatibility(
+        record: InstalledUiPlugin,
+        installedById: Map<String, InstalledUiPlugin> = installed().associateBy { it.id },
+    ): UiCompatibility {
         val app = context.applicationContext as? com.stupidtree.hitax.HApplication
-        val installedById = installed().associateBy { it.id }
         val reasons = mutableListOf<String>()
         var optionalMissing = false
 
@@ -145,8 +158,17 @@ class UiPluginManager(private val context: Context) {
         )
     }
 
-    fun resolveForCapability(capability: String): InstalledUiPlugin? =
-        enabled().firstOrNull { capability in it.capabilities && compatibility(it).satisfied }
+    fun resolveForCapability(capability: String): InstalledUiPlugin? {
+        val installed = installed()
+        val installedById = installed.associateBy { it.id }
+        val safety = CompositionStore.killSwitches(context)
+        return installed.firstOrNull {
+            it.enabled &&
+                CompositionTarget(CompositionKind.UI, it.id) !in safety &&
+                capability in it.capabilities &&
+                compatibility(it, installedById).satisfied
+        }
+    }
 
     fun isUsable(record: InstalledUiPlugin): Boolean = runCatching {
         val apk = File(record.apkPath)
