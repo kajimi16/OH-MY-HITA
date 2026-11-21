@@ -494,22 +494,33 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val installedUi = uiPluginManager.installed().associateBy { it.id }
             val installedDex = installer.installed().associateBy { it.id }
             val builtins = builtin.rows().associateBy { it.id }
+            // 应用整合包是显式启用请求：目标里的必选插件即使当前被停用，也应由本次
+            // 对账重新启用。否则 HITA-L/CUTE 自动停用的旧 UI 会被误判成 USER 停用，
+            // 导致切回 HITA Android 时 requiredDisabled 直接中止。
+            val requiredRefs = preset.refs().filter { it.isRequired() }
+            fun requiredIds(kind: String): Set<String> = requiredRefs
+                .filter { it.normalizedKind() == kind }
+                .map { it.id }
+                .toSet()
+            val requiredUi = requiredIds("ui")
+            val requiredDex = requiredIds("dex")
+            val requiredBuiltin = requiredIds("builtin")
             val userDisabled = mapOf(
                 CompositionKind.UI to CompositionStore.effectiveUserDisabled(
                     ctx(),
                     CompositionKind.UI,
                     installedUi.values.filterNot { it.enabled }.map { it.id }.toSet(),
-                ),
+                ).filterNot { it in requiredUi }.toSet(),
                 CompositionKind.DEX to CompositionStore.effectiveUserDisabled(
                     ctx(),
                     CompositionKind.DEX,
                     installedDex.keys.filterNot { installer.isEnabled(it) }.toSet(),
-                ),
+                ).filterNot { it in requiredDex }.toSet(),
                 CompositionKind.BUILTIN to CompositionStore.effectiveUserDisabled(
                     ctx(),
                     CompositionKind.BUILTIN,
                     builtins.keys.filter { PluginPrefs.isDisabled(ctx(), it) }.toSet(),
-                ),
+                ).filterNot { it in requiredBuiltin }.toSet(),
             )
             val plan = CompositionResolver.resolve(
                 baseIds = builtins.keys,

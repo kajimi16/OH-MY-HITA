@@ -75,16 +75,20 @@ object CompositionStore {
      */
     fun presetDisabled(context: Context): Set<CompositionTarget> {
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        if (prefs.contains(KEY_PRESET_DISABLED)) {
-            return prefs.getStringSet(KEY_PRESET_DISABLED, emptySet())
+        val stored = if (prefs.contains(KEY_PRESET_DISABLED)) {
+            prefs.getStringSet(KEY_PRESET_DISABLED, emptySet())
                 .orEmpty()
                 .mapNotNull(::parseTarget)
                 .toSet()
+        } else {
+            emptySet()
         }
-        // 升级路径：旧版本没有单独记录自动停用集合，从 desired_entries 还原并落盘。
+        // 旧版本可能写入空集合，或只保存了部分自动停用目标；始终用 desired_entries
+        // 补齐，避免切回包含这些 UI 插件的整合包时把自动停用误判成用户停用。
         val derived = CompositionPlan(desiredEntries(context), emptyList()).automaticDisabledTargets()
-        savePresetDisabled(context, derived)
-        return derived
+        val all = stored + derived
+        if (all != stored) savePresetDisabled(context, all)
+        return all
     }
 
     private fun savePresetDisabled(context: Context, targets: Set<CompositionTarget>) {
