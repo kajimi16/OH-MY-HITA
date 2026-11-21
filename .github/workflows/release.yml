@@ -100,7 +100,8 @@ jobs:
 
       - name: Run release gates
         run: >
-          ./gradlew :verifyMarketIndex :verifyPluginBoundary :verifyApiAbi
+          ./gradlew --parallel --build-cache
+          :verifyMarketIndex :verifyPluginBoundary :verifyApiAbi
           :api:testDebugUnitTest :kernel:testDebugUnitTest :app:testDebugUnitTest
           :plugin-hita:testDebugUnitTest :plugin-eas:testDebugUnitTest
           :plugin-resource:testDebugUnitTest :theta:testDebugUnitTest
@@ -109,7 +110,7 @@ jobs:
 
       - name: Build APK
         run: |
-          ./gradlew :app:assembleRelease \
+          ./gradlew --parallel --build-cache :app:assembleRelease \
             -PappVersionName="${{ steps.ver.outputs.version }}" \
             -PappVersionCode=${{ steps.ver.outputs.code }} \
             -PpluginIndexUrl="https://raw.githubusercontent.com/oh-my-hita/registry/main/registry/index.json" \
