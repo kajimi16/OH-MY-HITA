@@ -707,21 +707,30 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
      */
     private fun ensureLegacyTimetableTabs(host: com.stupidtree.hita.kernel.PluginHost) {
         if (!isHitaLFamily()) return
+        val pluginId = "com.stupidtree.hitax.timetable"
         if (host.tabs.find("hita.timeline") != null) return
         Log.i("MainActivity", "legacy timetable tabs missing; loading builtin HitaPlugin")
-        runCatching {
-            host.uninstall("com.stupidtree.hitax.timetable")
+        // 先实例化再卸载：反射/构造失败时保留正在运行的 core 服务。
+        val plugin = runCatching {
             val clazz = Class.forName(
                 "com.stupidtree.hitax.plugin.HitaPlugin",
                 true,
                 javaClass.classLoader,
             )
-            val plugin = clazz.getConstructor(Application::class.java)
+            clazz.getConstructor(Application::class.java)
                 .newInstance(application) as com.stupidtree.hita.api.Plugin
-            host.install(plugin)
         }.onFailure {
-            Log.e("MainActivity", "legacy timetable fallback failed", it)
-        }
+            Log.e("MainActivity", "legacy timetable fallback load failed", it)
+        }.getOrElse { return }
+        host.uninstall(pluginId)
+        runCatching { host.install(plugin) }
+            .onFailure { Log.e("MainActivity", "legacy timetable fallback install failed", it) }
+        if (host.tabs.find("hita.timeline") != null) return
+        // 激活失败时恢复 headless core，至少保留 TimetableService。
+        runCatching {
+            com.stupidtree.hitax.market.PluginInstaller(applicationContext, host)
+                .setEnabled(pluginId, true)
+        }.onFailure { Log.e("MainActivity", "legacy timetable rollback failed", it) }
     }
 
     /**
