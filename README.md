@@ -9,14 +9,13 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 [旧版本（0.7.2 及更早，已归档）](https://github.com/kajimi16/OH-MY-HITA-legacy/releases) ·
 [文档索引](docs/README.md)
 
-当前发布：`0.9.0`（API 10）。
-0.8.1 为有问题的过渡版本，请升级到 0.9.0。
+当前发布：`0.10.0`（API 11）。
 包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
 0.7.2 及更早版本保留在已归档的旧仓库，仅供下载与追溯。
 
-### API 10 说明
+### API 11 说明
 
-API 10 在 0.9.0 正式引入并兼容 API 9；本版新增的 HITA_CUTE 外观能力由宿主提供，未新增插件接口。
+API 11 新增 `HostEnvironmentService`，运行时插件可在安装期获取 `applicationContext`。
 
 ### API 9 能力
 
