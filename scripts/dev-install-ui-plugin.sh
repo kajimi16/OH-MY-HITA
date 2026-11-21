@@ -42,7 +42,17 @@ $ADB shell am broadcast \
   --es sha256 "$SHA" >/dev/null
 
 sleep 2
-$ADB logcat -d -s DevUiPlugin:* | tail -3
+LOG=$($ADB logcat -d -s DevUiPlugin:*)
+printf '%s\n' "$LOG" | tail -3
+
+if printf '%s\n' "$LOG" | grep -q 'failed:'; then
+  echo "error: host rejected plugin $ID@$VERSION" >&2
+  exit 1
+fi
+if ! printf '%s\n' "$LOG" | grep -Fq "installed $ID@$VERSION"; then
+  echo "error: install not confirmed by host logs: $ID@$VERSION" >&2
+  exit 1
+fi
 
 # 冷启动，让市场与入口看到新版本
 $ADB shell am force-stop "$PKG"

@@ -52,7 +52,7 @@ plugin-ui-share         plugin-ui-training       plugin-ui-update
 ./scripts/dev-install-ui-plugin.sh /path/to/plugin-debug.apk
 ```
 
-脚本校验 APK 存在，从 `assets/plugin.json` 读取 `id/version/entryClass`，沿用现有广播安装与 sha256 校验。
+脚本校验 APK 存在，从 `assets/plugin.json` 读取 `id/version/entryClass`，沿用现有广播安装与 sha256 校验；广播后必须看到 `DevUiPlugin: installed <id>@<version>`，出现 `failed:` 或没有成功日志时以非零退出。
 
 ## 4. 并行切片
 
