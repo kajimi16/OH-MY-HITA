@@ -2,7 +2,10 @@ package com.stupidtree.hitax.legacy.lite
 
 import com.stupidtree.hita.api.EasAuthService
 import com.stupidtree.hita.api.EasService
+import com.stupidtree.hita.api.EmptyClassroomService
+import com.stupidtree.hita.api.ExamService
 import com.stupidtree.hita.api.ResourceUiService
+import com.stupidtree.hita.api.ScoreService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hita.api.TimetableUiService
 import com.stupidtree.hita.api.TeacherService
@@ -20,6 +23,9 @@ object LiteHostBridge {
     @Volatile var teacher: TeacherService? = null
     @Volatile var eas: EasService? = null
     @Volatile var easAuth: EasAuthService? = null
+    @Volatile var scores: ScoreService? = null
+    @Volatile var exams: ExamService? = null
+    @Volatile var classrooms: EmptyClassroomService? = null
     @Volatile var userProfile: UserProfileService? = null
     @Volatile var resourceUi: ResourceUiService? = null
     @Volatile var openAgreement: ((androidx.fragment.app.FragmentManager) -> Unit)? = null
@@ -40,6 +46,9 @@ object LiteHostBridge {
         teacher = null
         eas = null
         easAuth = null
+        scores = null
+        exams = null
+        classrooms = null
         userProfile = null
         resourceUi = null
         openAgreement = null

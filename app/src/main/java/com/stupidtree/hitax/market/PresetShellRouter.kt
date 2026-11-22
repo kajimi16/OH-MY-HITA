@@ -4,7 +4,10 @@ import android.content.Context
 import android.content.Intent
 import com.stupidtree.hita.api.EasAuthService
 import com.stupidtree.hita.api.EasService
+import com.stupidtree.hita.api.EmptyClassroomService
+import com.stupidtree.hita.api.ExamService
 import com.stupidtree.hita.api.ResourceUiService
+import com.stupidtree.hita.api.ScoreService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hita.api.TimetableUiService
 import com.stupidtree.hita.api.TeacherService
@@ -40,6 +43,9 @@ object PresetShellRouter {
         LiteHostBridge.teacher = host.service(TeacherService.KEY)
         LiteHostBridge.eas = host.service(EasService.KEY)
         LiteHostBridge.easAuth = host.service(EasAuthService.KEY)
+        LiteHostBridge.scores = host.service(ScoreService.KEY)
+        LiteHostBridge.exams = host.service(ExamService.KEY)
+        LiteHostBridge.classrooms = host.service(EmptyClassroomService.KEY)
         LiteHostBridge.userProfile = host.service(UserProfileService.KEY)
         LiteHostBridge.resourceUi = host.service(ResourceUiService.KEY)
         LiteHostBridge.openAbout = { activity ->
