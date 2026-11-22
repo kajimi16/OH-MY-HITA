@@ -16,9 +16,7 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.view.GravityCompat
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.drawerlayout.widget.DrawerLayout.GONE
@@ -29,7 +27,6 @@ import com.stupidtree.hita.api.NavEntry
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.databinding.ActivityMainBinding
-import com.stupidtree.hitax.market.MarketPreset
 import com.stupidtree.hitax.market.PluginMarketViewModel
 import com.stupidtree.hitax.ui.about.ActivityAbout
 import com.stupidtree.hitax.ui.about.UserAgreementDialog
@@ -107,24 +104,24 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
      */
     private val autoReimportIntervalMs = 12 * 60 * 60 * 1000L
     private var autoReimportAttempted = false
-    private var pendingUpdateCode: Long? = null
     private var drawerAvatar: ImageView? = null
     private var drawerNickname: TextView? = null
     private var drawerUsername: TextView? = null
     private var drawerHeader: ViewGroup? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState == null && redirectToActiveShell()) return
+        if (savedInstanceState == null && presetOnboardingSeen() && redirectToActiveShell()) return
         if (isHitaLFamily()) {
             window.navigationBarColor = Color.BLACK
             androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
                 .isAppearanceLightNavigationBars = false
         }
         setSupportActionBar(binding.toolbar)
-        maybeAskUsageConsent()
     }
 
     private fun maybeAskUsageConsent() {
+        // 引导未完成时不弹窗，避免盖住首次启动向导。
+        if (!presetOnboardingSeen()) return
         if (com.stupidtree.hitax.data.source.preference.UsageStatsStore.hasAsked(this)) return
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("匿名使用统计")
@@ -150,8 +147,10 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
 
     override fun onResume() {
         super.onResume()
+        if (!presetOnboardingSeen()) return
         if (redirectToActiveShell()) return
         applyCuteBackground()
+        maybeAskUsageConsent()
     }
 
     private fun isHitaLFamily(): Boolean =
@@ -314,9 +313,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                     0
                 ).versionCode.toLong()
             }
-            if (!presetOnboardingSeen()) {
-                pendingUpdateCode = code
-            } else {
+            if (presetOnboardingSeen()) {
                 if (System.currentTimeMillis() - lastCheckTs > 5 * 60 * 1000) checkedUpdate = false
                 if (!checkedUpdate) {
                     if (LocalUserRepository.getInstance(this).getLoggedInUser().isValid()) {
@@ -469,45 +466,15 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         getSharedPreferences("preset_onboarding", MODE_PRIVATE)
             .getBoolean(KEY_PRESET_PROMPT_SEEN, false)
 
-    private fun checkPendingUpdate() {
-        val code = pendingUpdateCode ?: return
-        pendingUpdateCode = null
-        if (System.currentTimeMillis() - lastCheckTs > 5 * 60 * 1000) checkedUpdate = false
-        if (!checkedUpdate) {
-            if (LocalUserRepository.getInstance(this).getLoggedInUser().isValid()) {
-                checkedUpdate = true
-                lastCheckTs = System.currentTimeMillis()
-            }
-            viewModel.checkForUpdate(code)
-        }
-    }
-
     /**
-     * 首次启动直接选择整合包；选择后应用并记录当前组合。
-     * 只提示一次，之后可在市场切换。
+     * 首次启动进入引导向导；seen 由向导在完成时写入，这里不写入，
+     * 以便用户从介绍页返回后下次启动仍能看到。
+     * 已有活动壳时 onCreate 已重定向，不会走到这里。
      */
     private fun maybeShowPresetOnboarding() {
-        val prefs = getSharedPreferences("preset_onboarding", MODE_PRIVATE)
-        if (prefs.getBoolean(KEY_PRESET_PROMPT_SEEN, false)) return
+        if (presetOnboardingSeen()) return
         if (isFinishing || supportFragmentManager.isStateSaved) return
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("欢迎使用 OH-MY-HITA")
-            .setMessage(
-                "选择一个整合包开始：\n\n" +
-                    "· HITA-L：经典轻量组合\n" +
-                    "· HITA_Android 3.1.2：完整组合\n\n" +
-                    "也可以先从零开始，之后在插件市场随时切换。"
-            )
-            .setPositiveButton("选择整合包") { _, _ ->
-                prefs.edit().putBoolean(KEY_PRESET_PROMPT_SEEN, true).apply()
-                showPresetChooser()
-            }
-            .setNegativeButton("从零开始") { _, _ ->
-                prefs.edit().putBoolean(KEY_PRESET_PROMPT_SEEN, true).apply()
-                checkPendingUpdate()
-            }
-            .setNeutralButton("稍后", null)
-            .show()
+        startActivity(Intent(this, com.stupidtree.hitax.onboarding.PresetOnboardingActivity::class.java))
     }
 
     /**
@@ -527,128 +494,6 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 presetBackfillRecreated = true
                 vm.consumeReloadUi()
                 recreate()
-            }
-        }
-    }
-
-    /** 读取市场索引并弹出整合包列表；失败时回退到插件市场。 */
-    private fun showPresetChooser() {
-        val vm = ViewModelProvider(this)[PluginMarketViewModel::class.java]
-        var applying: androidx.appcompat.app.AlertDialog? = null
-        var applyStarted = false
-        var finished = false
-        var fellBack = false
-        var recreationRequested = false
-        lateinit var presetsObserver: Observer<List<MarketPreset>>
-        lateinit var statusObserver: Observer<String?>
-        lateinit var loadedObserver: Observer<Boolean>
-        lateinit var loading: androidx.appcompat.app.AlertDialog
-
-        fun finishOnboarding(checkUpdate: Boolean = true) {
-            if (finished) return
-            finished = true
-            if (checkUpdate) checkPendingUpdate()
-        }
-
-        fun recreateOnce() {
-            if (recreationRequested || isFinishing) return
-            recreationRequested = true
-            recreate()
-        }
-
-        fun fallback(message: String) {
-            if (fellBack) return
-            fellBack = true
-            vm.presets.removeObserver(presetsObserver)
-            vm.status.removeObserver(statusObserver)
-            vm.presetsLoaded.removeObserver(loadedObserver)
-            loading.dismiss()
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-            finishOnboarding(checkUpdate = false)
-            openPluginMarket()
-        }
-
-        fun cancelLoading() {
-            vm.presets.removeObserver(presetsObserver)
-            vm.status.removeObserver(statusObserver)
-            vm.presetsLoaded.removeObserver(loadedObserver)
-            loading.dismiss()
-            finishOnboarding()
-        }
-
-        loading = androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("整合包")
-            .setMessage("正在读取市场索引…")
-            .setNegativeButton(android.R.string.cancel) { _, _ -> cancelLoading() }
-            .show()
-
-        presetsObserver = Observer { presets ->
-            if (presets.isNullOrEmpty()) return@Observer
-            vm.presets.removeObserver(presetsObserver)
-            vm.status.removeObserver(statusObserver)
-            vm.presetsLoaded.removeObserver(loadedObserver)
-            loading.dismiss()
-            var checked = 0
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("选择整合包")
-                .setSingleChoiceItems(
-                    presets.map { "${it.name}（${it.refs().size} 个插件）" }.toTypedArray(),
-                    checked,
-                ) { _, which -> checked = which }
-                .setPositiveButton("应用") { _, _ ->
-                    val preset = presets.getOrNull(checked) ?: return@setPositiveButton
-                    applyStarted = true
-                    applying = androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setTitle("正在应用")
-                        .setMessage("正在安装「${preset.name}」，请稍候…")
-                        .setCancelable(false)
-                        .show()
-                    vm.applyPreset(preset)
-                }
-                .setNegativeButton("稍后", null)
-                .setOnDismissListener { if (!applyStarted) finishOnboarding() }
-                .show()
-        }
-        statusObserver = Observer { text ->
-            if (text?.startsWith("读取索引失败") == true) {
-                fallback("读取市场失败，请到插件市场重试")
-            }
-        }
-        loadedObserver = Observer { loaded ->
-            if (loaded && vm.presets.value.isNullOrEmpty()) {
-                fallback("市场暂无整合包，已打开插件市场")
-            }
-        }
-        vm.presets.observe(this, presetsObserver)
-        vm.status.observe(this, statusObserver)
-        vm.presetsLoaded.observe(this, loadedObserver)
-        vm.activePresetId.observe(this) { id ->
-            if (applyStarted && id != null) recreateOnce()
-        }
-        vm.message.observe(this) { text ->
-            if (text == null) return@observe
-            applying?.dismiss()
-            applying = null
-            Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
-            vm.consumeMessage()
-            if (applyStarted) finishOnboarding()
-        }
-        vm.reloadUi.observe(this) { reload ->
-            if (reload) {
-                vm.consumeReloadUi()
-                val shell = com.stupidtree.hitax.market.PresetStateStore.activeShell(this)
-                if (!shell.isNullOrBlank()) {
-                    startActivity(
-                        Intent(this, com.stupidtree.hitax.shell.PresetShellActivity::class.java)
-                            .putExtra(
-                                com.stupidtree.hitax.shell.PresetShellActivity.EXTRA_SHELL_ID,
-                                shell,
-                            )
-                    )
-                    finish()
-                } else {
-                    recreateOnce()
-                }
             }
         }
     }
