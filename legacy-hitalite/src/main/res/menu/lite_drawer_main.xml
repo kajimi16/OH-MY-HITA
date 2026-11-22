@@ -5,6 +5,10 @@
         android:icon="@drawable/lite_ic_info"
         android:title="@string/lite_drawer_agreement" />
     <item
+        android:id="@+id/lite_drawer_nav_market"
+        android:icon="@drawable/lite_ic_nav_plugin"
+        android:title="@string/lite_drawer_market" />
+    <item
         android:id="@+id/lite_drawer_nav_about"
         android:icon="@drawable/lite_logo"
         android:title="@string/lite_drawer_about" />

@@ -95,6 +95,10 @@ class HitaLiteActivity : AppCompatActivity(), TimetablePageController, TimelineP
                     LiteHostBridge.openAgreement?.invoke(supportFragmentManager)
                     true
                 }
+                R.id.lite_drawer_nav_market -> {
+                    LiteHostBridge.openMarket?.invoke(this)
+                    true
+                }
                 R.id.lite_drawer_nav_about -> {
                     LiteHostBridge.openAbout?.invoke(this)
                     true

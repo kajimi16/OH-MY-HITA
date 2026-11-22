@@ -39,6 +39,7 @@ object LiteHostBridge {
     @Volatile var openScores: ((android.app.Activity) -> Unit)? = null
     @Volatile var openExams: ((android.app.Activity) -> Unit)? = null
     @Volatile var openLogin: ((android.app.Activity) -> Unit)? = null
+    @Volatile var openMarket: ((android.app.Activity) -> Unit)? = null
 
     fun clear() {
         timetable = null
@@ -62,5 +63,6 @@ object LiteHostBridge {
         openScores = null
         openExams = null
         openLogin = null
+        openMarket = null
     }
 }

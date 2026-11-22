@@ -68,6 +68,14 @@ object PresetShellRouter {
                 )
             )
         }
+        LiteHostBridge.openMarket = { activity ->
+            activity.startActivity(
+                Intent(
+                    activity,
+                    com.stupidtree.hitax.market.PluginMarketActivity::class.java,
+                )
+            )
+        }
         LiteHostBridge.openAddEvent = { activity ->
             host.service(com.stupidtree.hita.api.HostUiService.KEY)
                 ?.openAddEvent(activity, null)
