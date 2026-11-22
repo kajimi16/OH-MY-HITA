@@ -7,6 +7,7 @@ import com.stupidtree.hita.api.EasService
 import com.stupidtree.hita.api.ResourceUiService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hita.api.TimetableUiService
+import com.stupidtree.hita.api.TeacherService
 import com.stupidtree.hita.api.UserProfileService
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.legacy.lite.HitaLiteActivity
@@ -36,6 +37,7 @@ object PresetShellRouter {
         val host = (context.applicationContext as? HApplication)?.pluginHost ?: return
         LiteHostBridge.timetable = host.service(TimetableService.KEY)
         LiteHostBridge.timetableUi = host.service(TimetableUiService.KEY)
+        LiteHostBridge.teacher = host.service(TeacherService.KEY)
         LiteHostBridge.eas = host.service(EasService.KEY)
         LiteHostBridge.easAuth = host.service(EasAuthService.KEY)
         LiteHostBridge.userProfile = host.service(UserProfileService.KEY)
@@ -65,7 +67,10 @@ object PresetShellRouter {
         }
         LiteHostBridge.openSearch = { activity ->
             activity.startActivity(
-                Intent(activity, com.stupidtree.hitax.ui.search.SearchActivity::class.java)
+                Intent(
+                    activity,
+                    com.stupidtree.hitax.legacy.lite.ui.search.LiteSearchActivity::class.java,
+                )
             )
         }
     }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lite_search_tab_teacher">教师</string>
+    <string name="lite_search_teacher_total">共 %1$d 位教师</string>
+    <string name="lite_search_nothing_found">没有找到结果</string>
+    <string name="lite_search_fail">搜索失败</string>
+</resources>

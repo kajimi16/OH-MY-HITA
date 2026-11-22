@@ -5,6 +5,7 @@ import com.stupidtree.hita.api.EasService
 import com.stupidtree.hita.api.ResourceUiService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hita.api.TimetableUiService
+import com.stupidtree.hita.api.TeacherService
 import com.stupidtree.hita.api.UserProfileService
 
 /**
@@ -16,6 +17,7 @@ import com.stupidtree.hita.api.UserProfileService
 object LiteHostBridge {
     @Volatile var timetable: TimetableService? = null
     @Volatile var timetableUi: TimetableUiService? = null
+    @Volatile var teacher: TeacherService? = null
     @Volatile var eas: EasService? = null
     @Volatile var easAuth: EasAuthService? = null
     @Volatile var userProfile: UserProfileService? = null
@@ -35,6 +37,7 @@ object LiteHostBridge {
     fun clear() {
         timetable = null
         timetableUi = null
+        teacher = null
         eas = null
         easAuth = null
         userProfile = null

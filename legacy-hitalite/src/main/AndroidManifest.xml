@@ -10,5 +10,9 @@
             android:name=".ui.timetable.manager.LiteTimetableManagerActivity"
             android:exported="false"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ui.search.LiteSearchActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
     </application>
 </manifest>
