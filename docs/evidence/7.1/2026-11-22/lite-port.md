@@ -46,3 +46,15 @@ unverified pending a host seam decision.
 | Import entry, no timetable | opened; no crash |
 
 Unit tests: `:app:testDebugUnitTest` BUILD SUCCESSFUL.
+
+## Preset switch
+
+Manually wrote preset_state to `hita-l-1.5.3` (active_shell removed), cold-started:
+HITA-L shell appeared. Restored `hita-lite-2.0` + `active_shell=hita-lite-2.0`,
+cold-started: Lite shell returned. No preset keys were dropped during the round trip.
+
+## Smoke entries
+
+Score, exam, empty classroom, import, search, about and drawer were opened on the
+debug host without a fatal exception. Profile/news pages are compiled and registered
+but have no visible Lite entry in the current shell, so they remain unverified.
