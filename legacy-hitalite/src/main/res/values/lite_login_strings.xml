@@ -15,4 +15,5 @@
     <string name="lite_login_loading">登录中…</string>
     <string name="lite_login_error_network">网络超时，请检查校园网或 VPN 后重试</string>
     <string name="lite_login_error_default">登录失败，请检查账号密码</string>
+    <string name="lite_login_unavailable">EAS 插件未安装</string>
 </resources>

@@ -113,8 +113,16 @@ class LiteNavigationFragment :
                 LiteEasLoginDialog().show(parentFragmentManager, TAG_EAS_LOGIN)
             }
         } else {
-            LiteHostBridge.openLogin?.invoke(activity)
-                ?: LiteHostBridge.eas?.openAccount(activity)
+            val eas = LiteHostBridge.eas
+            if (eas != null) {
+                eas.openAccount(activity)
+            } else {
+                android.widget.Toast.makeText(
+                    activity,
+                    R.string.lite_login_unavailable,
+                    android.widget.Toast.LENGTH_SHORT,
+                ).show()
+            }
         }
     }
 
