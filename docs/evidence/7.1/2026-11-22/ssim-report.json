@@ -1,0 +1,28 @@
+{
+  "device": "1080x2400 API 36",
+  "theme": "light, Chinese, animations disabled by harness",
+  "crop": "y=120..2280",
+  "scores": {
+    "today": 0.997225,
+    "navigation": 0.996267,
+    "drawer": 0.985328,
+    "search_empty": 0.997225,
+    "about": 1.0,
+    "timetable_empty": 0.967311,
+    "manager_empty": 0.996312
+  },
+  "unverified": [
+    "timetable fixed-data baseline",
+    "detail / event SSIM",
+    "score / exam / classroom / import SSIM",
+    "news / profile no visible Lite entry",
+    "Today and Slim widget launcher pixels"
+  ],
+  "diff_images": [
+    "diffs/timetable.png",
+    "diffs/manager.png",
+    "diffs/today.png",
+    "diffs/navigation.png",
+    "diffs/about.png"
+  ]
+}
