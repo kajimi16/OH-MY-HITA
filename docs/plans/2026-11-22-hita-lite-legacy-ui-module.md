@@ -172,3 +172,9 @@ Lite Score/Exam/Classroom/Import UI
 - 宿主 style 与 Lite 旧 style 版本不同，主题层需要适配，不复制旧 style 单例。
 - SSIM 0.98 对字体/系统渲染敏感；必须固定设备、主题、字体缩放和动画。
 - 原版 APK 当前下载不稳定；baseline 不可用时按 Stop condition 停止并上报。
+
+## Widget exception (2026-11-22)
+
+User explicitly authorized new Lite Widget receivers for the widget slice,
+overriding the earlier no-new-receiver boundary. Widgets still must read host
+services and must not add a Lite Room/EAS database.

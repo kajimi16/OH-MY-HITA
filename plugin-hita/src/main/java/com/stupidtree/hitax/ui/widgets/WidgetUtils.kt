@@ -15,5 +15,19 @@ object WidgetUtils {
             btIntent.setClass(context, wid)
             context.sendBroadcast(btIntent)
         }
+        // Lite widgets live in the bundled legacy UI module; refresh them explicitly
+        // because they are not part of this plugin's class list.
+        for (name in LITE_WIDGETS) {
+            runCatching {
+                context.sendBroadcast(
+                    Intent(EVENT_REFRESH).setClassName(context.packageName, name)
+                )
+            }
+        }
     }
+
+    private val LITE_WIDGETS = listOf(
+        "com.stupidtree.hitax.legacy.lite.ui.widgets.today.LiteTodayWidget",
+        "com.stupidtree.hitax.legacy.lite.ui.widgets.today.LiteTodayWidgetSlim",
+    )
 }

@@ -297,6 +297,9 @@ class HApplication : Application() {
         // 内置插件的 enable/disable 会退化成 no-op。启动期只对账，不下载。
         runCatching { replayActivePreset() }
             .onFailure { Log.e(TAG, "startup composition replay failed", it) }
+        // Lite widgets can be updated by the launcher before any Lite Activity starts.
+        runCatching { com.stupidtree.hitax.market.PresetShellRouter.bindLiteServices(this) }
+            .onFailure { Log.e(TAG, "lite service binding failed", it) }
 
         // 宿主不再认识任何具体数据表：只按 key 查 SyncCodec 并转发。
         StupidSync.init(this, object : StupidSync.PushDelegate {

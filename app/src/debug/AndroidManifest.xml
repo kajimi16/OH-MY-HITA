@@ -25,5 +25,12 @@
                 <action android:name="com.stupidtree.hitax.DEV_ENABLE_DEX" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".debug.DevLiteSeedReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.stupidtree.hitax.DEV_IMPORT_ICS" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

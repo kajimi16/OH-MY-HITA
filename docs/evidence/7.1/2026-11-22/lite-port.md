@@ -58,3 +58,27 @@ cold-started: Lite shell returned. No preset keys were dropped during the round 
 Score, exam, empty classroom, import, search, about and drawer were opened on the
 debug host without a fatal exception. Profile/news pages are compiled and registered
 but have no visible Lite entry in the current shell, so they remain unverified.
+
+## Detail/event
+
+LiteTimetableDetailActivity, subject/teacher adapters and Lite event add/info
+dialogs were migrated against TimetableService/TimetableUiService. Build passes.
+They are not screenshot-verified because no fixed timetable data was seeded yet.
+
+`:app:testDebugUnitTest` passes after this slice. Legacy module audit finds no
+Room/Retrofit/AppDatabase/old repositories or AppWidgetProvider declarations.
+
+## Fixed data
+
+Debug receiver imports docs fixture `fixtures_week12_multi.ics` via TimetableService.
+Host rendered 1 timetable and 9 imported events. Fixed-data screenshots were taken
+for today, timetable, navigation, manager and detail; detail/manager opened without
+crash. Original Lite fixed-data baseline was not seeded, so SSIM for fixed states
+remains unverified.
+
+## Widgets
+
+LiteTodayWidget, LiteTodayWidgetSlim and LiteListWidgetService are registered; the
+system provider list shows both receivers. Lite services now bind in
+HApplication.onCreate, and WidgetUtils refreshes Lite widget classes. No launcher
+instance was placed, so widget pixels remain unverified.

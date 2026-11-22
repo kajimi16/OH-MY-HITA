@@ -36,7 +36,7 @@ object PresetShellRouter {
                 .putExtra(PresetShellActivity.EXTRA_SHELL_ID, shell)
         }
 
-    private fun bindLiteServices(context: Context) {
+    fun bindLiteServices(context: Context) {
         val host = (context.applicationContext as? HApplication)?.pluginHost ?: return
         LiteHostBridge.timetable = host.service(TimetableService.KEY)
         LiteHostBridge.timetableUi = host.service(TimetableUiService.KEY)

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="lite_widget_primary">#304FFE</color>
+    <color name="lite_widget_title_light">#202020</color>
+    <color name="lite_widget_title_dark">#ECF2FF</color>
+    <color name="lite_widget_empty_light">#20303030</color>
+    <color name="lite_widget_empty_dark">#9EADC7</color>
+    <color name="lite_widget_item_name_light">#202020</color>
+    <color name="lite_widget_item_name_dark">#EDF3FF</color>
+    <color name="lite_widget_item_time_light">#66202020</color>
+    <color name="lite_widget_item_time_dark">#9AA9C2</color>
+    <color name="lite_widget_item_place_light">#2F4CFE</color>
+    <color name="lite_widget_item_place_dark">#AFCBFF</color>
+
+    <string name="lite_widget_title_loading">加载中</string>
+    <string name="lite_widget_loading">组件加载中...</string>
+    <string name="lite_widget_empty_today">今日空闲</string>
+    <string name="lite_widget_unknown_location">未知</string>
+</resources>
