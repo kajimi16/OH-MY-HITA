@@ -82,3 +82,24 @@ LiteTodayWidget, LiteTodayWidgetSlim and LiteListWidgetService are registered; t
 system provider list shows both receivers. Lite services now bind in
 HApplication.onCreate, and WidgetUtils refreshes Lite widget classes. No launcher
 instance was placed, so widget pixels remain unverified.
+
+## Verification matrix (current)
+
+| Page | Empty/entry | Fixed data | SSIM |
+|---|---|---|---|
+| Today | captured | captured | 0.997225 (empty baseline) |
+| Timetable | captured | captured | 0.967311 (empty baseline) |
+| Navigation | captured | captured | 0.996267 |
+| Drawer | captured | n/a | 0.985328 |
+| Search | captured | n/a | 0.997225 |
+| About | captured | n/a | 1.000000 |
+| Manager | captured | captured | 0.966595 (empty baseline) |
+| Detail | not reachable empty | captured | not baseline-verified |
+| Score/Exam/Classroom/Import | opened unlogged | login blocked | not baseline-verified |
+| News/Profile | compiled | no Lite entry | not baseline-verified |
+| Today widget | provider registered | not placed | unverified |
+| Slim widget | provider registered | not placed | unverified |
+
+Original Lite fixed-data baseline could not be produced: the release APK is not
+debuggable, has no local ICS import entry, and EAS import requires login. Per stop
+conditions this is reported instead of fabricated.
