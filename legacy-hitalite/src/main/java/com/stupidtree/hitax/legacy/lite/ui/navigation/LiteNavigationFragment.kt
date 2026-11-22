@@ -108,6 +108,11 @@ class LiteNavigationFragment :
 
     private fun openAccount() {
         val activity = requireActivity()
-        LiteHostBridge.eas?.openAccount(activity)
+        val login = LiteHostBridge.openLogin
+        if (login != null) {
+            login(activity)
+        } else {
+            LiteHostBridge.eas?.openAccount(activity)
+        }
     }
 }

@@ -60,6 +60,14 @@ object PresetShellRouter {
             com.stupidtree.hitax.legacy.lite.ui.about.LiteUserAgreementDialog()
                 .show(fm, "lite_about_agreement")
         }
+        LiteHostBridge.openLogin = { activity ->
+            activity.startActivity(
+                Intent(
+                    activity,
+                    com.stupidtree.hitax.shell.ShellEasWebLoginActivity::class.java,
+                )
+            )
+        }
         LiteHostBridge.openAddEvent = { activity ->
             host.service(com.stupidtree.hita.api.HostUiService.KEY)
                 ?.openAddEvent(activity, null)
