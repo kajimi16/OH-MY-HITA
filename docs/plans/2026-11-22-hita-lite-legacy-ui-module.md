@@ -1,5 +1,14 @@
 # HITA_Lite legacy UI 模块设计
 
+## 0. 目标形态确认（2026-11-22）
+
+用户确认采用**构建期合并的 UI 模块**，不是运行时市场 APK 插件：
+
+- `:legacy-hitalite` 作为 Android Library 合并进宿主 APK。
+- 保留 Lite 的 XML、Activity、Fragment、View 与资源前缀，以像素还原为优先。
+- 不满足“运行时独立 APK 插件”的能力边界；这是用户明确选择的目标形态。
+- 不新增第二套登录、EAS、Room 或 Widget receiver。
+
 ## 1. 决策
 
 不用运行时 UI 插件 APK，也不整包热插 HITA_Lite 单体。
