@@ -103,3 +103,9 @@ instance was placed, so widget pixels remain unverified.
 Original Lite fixed-data baseline could not be produced: the release APK is not
 debuggable, has no local ICS import entry, and EAS import requires login. Per stop
 conditions this is reported instead of fabricated.
+
+## Manager remeasure
+
+After restoring the local timetable plugin dex and clearing presets, the empty
+manager page was recaptured. The 24dp top inset moved the title to the baseline
+position. SSIM = 0.996312 (passes 0.98).
