@@ -4,7 +4,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.widget.Toast
-import androidx.lifecycle.ViewModel
 import com.stupidtree.hitax.legacy.lite.R
 import com.stupidtree.hitax.legacy.lite.databinding.LiteAboutActivityBinding
 import com.stupidtree.style.base.BaseActivity
@@ -21,7 +20,7 @@ import com.stupidtree.style.base.BaseActivity
  * - 不变式：不创建 Room、Retrofit、登录单例或任何网络请求。
  * - 违约处理：包信息不可读时版本行只显示前缀，不崩溃。
  */
-class LiteAboutActivity : BaseActivity<ViewModel, LiteAboutActivityBinding>() {
+class LiteAboutActivity : BaseActivity<LiteAboutViewModel, LiteAboutActivityBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,12 +30,13 @@ class LiteAboutActivity : BaseActivity<ViewModel, LiteAboutActivityBinding>() {
     override fun initViewBinding(): LiteAboutActivityBinding =
         LiteAboutActivityBinding.inflate(layoutInflater)
 
-    override fun getViewModelClass(): Class<ViewModel> = ViewModel::class.java
+    override fun getViewModelClass(): Class<LiteAboutViewModel> =
+        LiteAboutViewModel::class.java
 
     override fun initViews() {
         binding.liteAboutAppName.text = applicationInfo.loadLabel(packageManager)
         binding.liteAboutVersion.text = getString(R.string.lite_about_version) + versionName()
-        binding.liteAboutAboutInfo.text = getString(R.string.lite_about_content)
+        binding.liteAboutAboutInfo.text = ""
         binding.liteAboutPrivacyProtocol.setOnClickListener {
             if (supportFragmentManager.findFragmentByTag(TAG_AGREEMENT) == null) {
                 LiteUserAgreementDialog().show(supportFragmentManager, TAG_AGREEMENT)

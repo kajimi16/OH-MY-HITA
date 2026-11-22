@@ -1,7 +1,6 @@
 package com.stupidtree.hitax.legacy.lite.ui.navigation
 
 import android.view.View
-import androidx.fragment.app.FragmentActivity
 import com.stupidtree.hitax.legacy.lite.LiteHostBridge
 import com.stupidtree.hitax.legacy.lite.R
 import com.stupidtree.hitax.legacy.lite.databinding.LiteFragmentNavigationBinding
@@ -51,16 +50,16 @@ class LiteNavigationFragment :
             }
         }
         binding?.cardImport?.setOnClickListener {
-            ensureLogin { LiteHostBridge.openImport?.invoke(it) }
+            LiteHostBridge.openImport?.invoke(requireActivity())
         }
         binding?.cardEmptyClassroom?.setOnClickListener {
-            ensureLogin { LiteHostBridge.openClassroom?.invoke(it) }
+            LiteHostBridge.openClassroom?.invoke(requireActivity())
         }
         binding?.cardScores?.setOnClickListener {
-            ensureLogin { LiteHostBridge.openScores?.invoke(it) }
+            LiteHostBridge.openScores?.invoke(requireActivity())
         }
         binding?.cardSubjects?.setOnClickListener {
-            ensureLogin { LiteHostBridge.openExams?.invoke(it) }
+            LiteHostBridge.openExams?.invoke(requireActivity())
         }
         binding?.search?.setOnClickListener {
             LiteHostBridge.openSearch?.invoke(requireActivity())
@@ -75,20 +74,6 @@ class LiteNavigationFragment :
     override fun onResume() {
         super.onResume()
         refreshAccountEntry()
-    }
-
-    private fun ensureLogin(action: (FragmentActivity) -> Unit) {
-        val activity = requireActivity()
-        val eas = LiteHostBridge.eas
-        if (eas?.isLogin() == true) {
-            action(activity)
-        } else {
-            eas?.ensureLogin(
-                activity,
-                onSuccess = { action(activity) },
-                onFailed = {},
-            )
-        }
     }
 
     private fun refreshAccountEntry() {

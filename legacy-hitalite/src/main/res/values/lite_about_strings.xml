@@ -4,6 +4,7 @@
     <string name="lite_about_version">版本：</string>
     <string name="lite_about_agreement_entry">用户与隐私协议</string>
     <string name="lite_about_check_update">检查更新</string>
+    <string name="lite_about_export_diagnostics">导出诊断</string>
     <string name="lite_about_local_build_notice">当前为本地构建版本 %1$s，未接入在线更新。</string>
     <string name="lite_about_user_agreement_tab">用户协议</string>
     <string name="lite_about_privacy_agreement_tab">隐私协议</string>

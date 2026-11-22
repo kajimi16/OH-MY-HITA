@@ -33,3 +33,16 @@ Lite widget layouts differ from plugin-hita layouts. The existing widget receive
 belong to plugin-hita; adding Lite receivers would violate the objective. Current
 Lite preset reuses the host widget path, so Lite-specific widget pixels remain
 unverified pending a host seam decision.
+
+## Additional pages
+
+| Page | SSIM / result |
+|---|---|
+| About | 1.000000 |
+| Search (empty) | 0.997225 |
+| Score entry, unlogged | opened; no crash |
+| Exam entry, unlogged | opened; no crash |
+| Classroom entry, unlogged | opened; no crash |
+| Import entry, no timetable | opened; no crash |
+
+Unit tests: `:app:testDebugUnitTest` BUILD SUCCESSFUL.
