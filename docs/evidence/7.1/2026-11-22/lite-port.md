@@ -26,3 +26,10 @@ Target decision: build-time legacy-hitalite UI module merged into the host APK, 
 ## Status
 
 Today, navigation, drawer, and search meet the 0.98 threshold. Timetable stopped after three attempts. Manager has had one attempt. Remaining pages are in migration.
+
+## Widget boundary
+
+Lite widget layouts differ from plugin-hita layouts. The existing widget receivers
+belong to plugin-hita; adding Lite receivers would violate the objective. Current
+Lite preset reuses the host widget path, so Lite-specific widget pixels remain
+unverified pending a host seam decision.

@@ -51,16 +51,16 @@ class LiteNavigationFragment :
             }
         }
         binding?.cardImport?.setOnClickListener {
-            ensureLogin { activity -> LiteHostBridge.eas?.openImportTimetable(activity) }
+            ensureLogin { LiteHostBridge.openImport?.invoke(it) }
         }
         binding?.cardEmptyClassroom?.setOnClickListener {
-            ensureLogin { activity -> LiteHostBridge.eas?.openClassroom(activity) }
+            ensureLogin { LiteHostBridge.openClassroom?.invoke(it) }
         }
         binding?.cardScores?.setOnClickListener {
-            ensureLogin { activity -> LiteHostBridge.eas?.openScores(activity) }
+            ensureLogin { LiteHostBridge.openScores?.invoke(it) }
         }
         binding?.cardSubjects?.setOnClickListener {
-            ensureLogin { activity -> LiteHostBridge.eas?.openExam(activity) }
+            ensureLogin { LiteHostBridge.openExams?.invoke(it) }
         }
         binding?.search?.setOnClickListener {
             LiteHostBridge.openSearch?.invoke(requireActivity())

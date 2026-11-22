@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/backgroundColorBottom">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#00000000"
+        android:fitsSystemWindows="true"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapse"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            app:contentScrim="?attr/backgroundColorBottom"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:statusBarScrim="#00000000"
+            app:toolbarId="@id/toolbar">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                app:contentInsetStart="0dp"
+                app:contentInsetStartWithNavigation="0dp"
+                app:layout_collapseMode="pin" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_gravity="bottom"
+                android:layout_marginTop="24dp"
+                android:orientation="horizontal"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp">
+
+                <TextView
+                    android:id="@+id/timetable_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center|start"
+                    android:maxEms="6"
+                    android:singleLine="true"
+                    android:text="@string/lite_import_no_timetable"
+                    android:textColor="?attr/textColorPrimary"
+                    android:textSize="32sp" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <br.com.simplepass.loadingbutton.customViews.CircularProgressButton
+                    android:id="@+id/button_import"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center|end"
+                    android:background="@drawable/lite_element_rounded_button_bg_primary"
+                    android:text="@string/lite_import_button"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    app:finalCornerAngle="16dp"
+                    app:initialCornerAngle="16dp"
+                    app:spinning_bar_color="@android:color/white"
+                    app:spinning_bar_padding="5dp"
+                    app:spinning_bar_width="4dp" />
+            </LinearLayout>
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                    <com.stupidtree.hitax.ui.widgets.SelectableIconCardView
+                        android:id="@+id/card_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="144dp"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:layout_weight="1"
+                        app:cardCheckable="false"
+                        app:cardHapticFeedback="false"
+                        app:cardIcon="@drawable/lite_ic_new_timetable"
+                        app:cardIconColor="?attr/colorAccent"
+                        app:cardIconGravity="start"
+                        app:cardIconPadding="14dp"
+                        app:cardSubtitleText="@string/lite_import_timetable_name" />
+
+                    <com.stupidtree.hitax.ui.widgets.SelectableIconCardView
+                        android:id="@+id/card_date"
+                        android:layout_width="match_parent"
+                        android:layout_height="144dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
+                        app:cardHapticFeedback="false"
+                        app:cardIcon="@drawable/lite_import_ic_calendar"
+                        app:cardIconColor="?attr/colorAccent"
+                        app:cardIconGravity="start"
+                        app:cardIconPadding="10dp"
+                        app:cardSubtitleText="@string/lite_import_start_date" />
+
+                </LinearLayout>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="16dp"
+                    app:cardBackgroundColor="?attr/backgroundColorSecond"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingStart="16dp"
+                            android:paddingTop="16dp"
+                            android:paddingBottom="8dp"
+                            android:text="@string/lite_import_structure"
+                            android:textColor="?attr/textColorPrimary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/schedule_structure"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:overScrollMode="never"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lite_score_label">成绩查询</string>
+    <string name="lite_score_no_info">无信息</string>
+    <string name="lite_score_no_term">无学期数据</string>
+    <string name="lite_score_load_failed">加载失败</string>
+    <string name="lite_score_credit">课程学分</string>
+    <string name="lite_score_score">成绩</string>
+    <string name="lite_score_term">学期</string>
+    <string name="lite_score_pick_term">选择查询学期</string>
+    <string name="lite_score_pick_type">成绩类型</string>
+    <string name="lite_score_type_all">全部</string>
+    <string name="lite_score_type_normal">正考</string>
+</resources>

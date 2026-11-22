@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lite_profile_username">账号</string>
+    <string name="lite_profile_logout">退出登录</string>
+    <string name="lite_profile_logout_hint">确定退出？</string>
+    <string name="lite_profile_edit">编辑资料</string>
+    <string name="lite_profile_follow">关注</string>
+    <string name="lite_profile_following">关注</string>
+    <string name="lite_profile_fans">粉丝</string>
+    <string name="lite_profile_posts">TA的发帖</string>
+    <string name="lite_profile_more_services">更多服务</string>
+    <string name="lite_profile_no_signature">这个人很佛系，啥都没写</string>
+    <string name="lite_profile_not_logged_in">未登录</string>
+    <string name="lite_profile_edit_unavailable">宿主未提供资料编辑服务</string>
+    <string name="lite_profile_follow_unavailable">宿主未提供关注服务</string>
+    <string name="lite_profile_lookup_unavailable">宿主未提供其他用户资料接口</string>
+</resources>

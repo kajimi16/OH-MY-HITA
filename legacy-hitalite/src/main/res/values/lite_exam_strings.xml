@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lite_exam_label">考试查询</string>
+    <string name="lite_exam_no_info">无信息</string>
+    <string name="lite_exam_time">时间</string>
+    <string name="lite_exam_location">地点</string>
+    <string name="lite_exam_campus">学校</string>
+    <string name="lite_exam_type">类型</string>
+    <string name="lite_exam_term">学期</string>
+</resources>

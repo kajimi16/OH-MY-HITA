@@ -14,5 +14,33 @@
             android:name=".ui.search.LiteSearchActivity"
             android:exported="false"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ui.about.LiteAboutActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ui.news.LiteNewsDetailActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ui.profile.LiteProfileActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ui.eas.score.LiteScoreInquiryActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ui.eas.exam.LiteExamActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ui.eas.classroom.LiteEmptyClassroomActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ui.eas.imp.LiteImportTimetableActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
     </application>
 </manifest>

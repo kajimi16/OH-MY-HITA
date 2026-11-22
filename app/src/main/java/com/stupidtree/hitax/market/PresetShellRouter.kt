@@ -50,11 +50,15 @@ object PresetShellRouter {
         LiteHostBridge.resourceUi = host.service(ResourceUiService.KEY)
         LiteHostBridge.openAbout = { activity ->
             activity.startActivity(
-                Intent(activity, com.stupidtree.hitax.ui.about.ActivityAbout::class.java)
+                Intent(
+                    activity,
+                    com.stupidtree.hitax.legacy.lite.ui.about.LiteAboutActivity::class.java,
+                )
             )
         }
         LiteHostBridge.openAgreement = { fm ->
-            com.stupidtree.hitax.ui.about.UserAgreementDialog().show(fm, "ua")
+            com.stupidtree.hitax.legacy.lite.ui.about.LiteUserAgreementDialog()
+                .show(fm, "lite_about_agreement")
         }
         LiteHostBridge.openAddEvent = { activity ->
             host.service(com.stupidtree.hita.api.HostUiService.KEY)
@@ -76,6 +80,38 @@ object PresetShellRouter {
                 Intent(
                     activity,
                     com.stupidtree.hitax.legacy.lite.ui.search.LiteSearchActivity::class.java,
+                )
+            )
+        }
+        LiteHostBridge.openImport = { activity ->
+            activity.startActivity(
+                Intent(
+                    activity,
+                    com.stupidtree.hitax.legacy.lite.ui.eas.imp.LiteImportTimetableActivity::class.java,
+                )
+            )
+        }
+        LiteHostBridge.openClassroom = { activity ->
+            activity.startActivity(
+                Intent(
+                    activity,
+                    com.stupidtree.hitax.legacy.lite.ui.eas.classroom.LiteEmptyClassroomActivity::class.java,
+                )
+            )
+        }
+        LiteHostBridge.openScores = { activity ->
+            activity.startActivity(
+                Intent(
+                    activity,
+                    com.stupidtree.hitax.legacy.lite.ui.eas.score.LiteScoreInquiryActivity::class.java,
+                )
+            )
+        }
+        LiteHostBridge.openExams = { activity ->
+            activity.startActivity(
+                Intent(
+                    activity,
+                    com.stupidtree.hitax.legacy.lite.ui.eas.exam.LiteExamActivity::class.java,
                 )
             )
         }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lite_room_title">空教室查询</string>
+    <string name="lite_room_state_free">空闲</string>
+    <string name="lite_room_state_soon">将占</string>
+    <string name="lite_room_state_occupied">被占</string>
+    <string name="lite_room_state_unknown">未知</string>
+    <string name="lite_room_detail_free">空</string>
+    <string name="lite_room_detail_occupied">占</string>
+</resources>

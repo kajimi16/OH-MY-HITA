@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lite_import_title">导入课表</string>
+    <string name="lite_import_button">导入</string>
+    <string name="lite_import_timetable_name">课表名称</string>
+    <string name="lite_import_start_date">课表开始时间</string>
+    <string name="lite_import_structure">课表结构</string>
+    <string name="lite_import_no_timetable">无课表</string>
+    <string name="lite_import_no_date">请设置开始日期</string>
+</resources>
