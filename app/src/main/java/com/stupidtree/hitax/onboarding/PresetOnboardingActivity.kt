@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModelProvider
 
 /**
@@ -43,7 +44,7 @@ class PresetOnboardingActivity : AppCompatActivity() {
         viewModel = ViewModelProvider(this)[PresetOnboardingViewModel::class.java]
         setContent {
             MaterialTheme(
-                colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme(),
+                colorScheme = if (isSystemInDarkTheme()) OnboardingDarkColors else OnboardingLightColors,
             ) {
                 val state by viewModel.state.collectAsState()
                 var page by rememberSaveable { mutableIntStateOf(PAGE_INTRO) }
@@ -102,3 +103,33 @@ class PresetOnboardingActivity : AppCompatActivity() {
         const val PAGE_CHOICE = 1
     }
 }
+
+private val OnboardingLightColors = lightColorScheme(
+    primary = Color(0xFF4F6EF7),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFDDE5FF),
+    onPrimaryContainer = Color(0xFF16224E),
+    secondaryContainer = Color(0xFFE9EDF9),
+    onSecondaryContainer = Color(0xFF2A3147),
+    background = Color(0xFFF7F8FC),
+    onBackground = Color(0xFF171A24),
+    surface = Color.White,
+    onSurface = Color(0xFF171A24),
+    surfaceVariant = Color(0xFFF0F2F8),
+    onSurfaceVariant = Color(0xFF5C6275),
+)
+
+private val OnboardingDarkColors = darkColorScheme(
+    primary = Color(0xFF9FB4FF),
+    onPrimary = Color(0xFF0E1B3D),
+    primaryContainer = Color(0xFF2B3A66),
+    onPrimaryContainer = Color(0xFFDDE5FF),
+    secondaryContainer = Color(0xFF2A3040),
+    onSecondaryContainer = Color(0xFFDDE2F2),
+    background = Color(0xFF10131A),
+    onBackground = Color(0xFFE8EAF2),
+    surface = Color(0xFF171B24),
+    onSurface = Color(0xFFE8EAF2),
+    surfaceVariant = Color(0xFF242A36),
+    onSurfaceVariant = Color(0xFFAEB5C6),
+)
