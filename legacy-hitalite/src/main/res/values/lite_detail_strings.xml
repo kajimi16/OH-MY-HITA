@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lite_detail_title">课表详情</string>
+    <string name="lite_detail_export">导出</string>
+    <string name="lite_detail_start_date">课表开始时间</string>
+    <string name="lite_detail_timetable_name">课表名称</string>
+    <string name="lite_detail_structure">课表结构</string>
+    <string name="lite_detail_title_subjects">科目</string>
+    <string name="lite_detail_title_teachers">教师</string>
+    <string name="lite_detail_unknown_department">未知部门</string>
+    <string name="lite_detail_set_timetable_name">设置课表名称</string>
+    <string name="lite_detail_pick_time_period">选择时间段</string>
+    <string name="lite_detail_random_allocate">是否随机生成各科目颜色？</string>
+    <string name="lite_detail_delete_confirm">确定删除吗？</string>
+    <string name="lite_detail_export_success">已导出为ICS文件</string>
+    <string name="lite_detail_export_failed">导出失败</string>
+    <string name="lite_detail_share">分享</string>
+</resources>

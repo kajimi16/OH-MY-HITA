@@ -42,5 +42,9 @@
             android:name=".ui.eas.imp.LiteImportTimetableActivity"
             android:exported="false"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ui.timetable.detail.LiteTimetableDetailActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
     </application>
 </manifest>

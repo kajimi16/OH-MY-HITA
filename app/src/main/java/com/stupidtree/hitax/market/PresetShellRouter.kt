@@ -73,7 +73,15 @@ object PresetShellRouter {
             )
         }
         LiteHostBridge.openTimetableDetail = { activity, id ->
-            LiteHostBridge.timetableUi?.openDetail(activity, id)
+            activity.startActivity(
+                Intent(
+                    activity,
+                    com.stupidtree.hitax.legacy.lite.ui.timetable.detail.LiteTimetableDetailActivity::class.java,
+                ).putExtra(
+                    com.stupidtree.hitax.legacy.lite.ui.timetable.detail.LiteTimetableDetailActivity.EXTRA_TIMETABLE_ID,
+                    id,
+                )
+            )
         }
         LiteHostBridge.openSearch = { activity ->
             activity.startActivity(
