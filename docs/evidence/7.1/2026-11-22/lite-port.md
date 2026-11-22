@@ -109,3 +109,12 @@ conditions this is reported instead of fabricated.
 After restoring the local timetable plugin dex and clearing presets, the empty
 manager page was recaptured. The 24dp top inset moved the title to the baseline
 position. SSIM = 0.996312 (passes 0.98).
+
+## Drawer and login
+
+Lite drawer is end-gravity, 260dp, opened by the top-right menu button. Original
+Lite uses the same geometry; the top-left title is not a drawer trigger.
+
+Login card previously called only EasService.openAccount. When EAS was absent the
+call was a silent no-op. PresetShellRouter now injects openLogin to
+ShellEasWebLoginActivity; tapping the login card opens the host web login.
