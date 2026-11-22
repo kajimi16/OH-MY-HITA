@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lite_login_title">教务认证</string>
+    <string name="lite_login_subtitle">请登录教务账号以继续</string>
+    <string name="lite_login_campus_shenzhen">深圳</string>
+    <string name="lite_login_campus_main">本部</string>
+    <string name="lite_login_campus_weihai">威海</string>
+    <string name="lite_login_campus_unsupported">当前宿主仅支持深圳 API 登录，请使用网页登录</string>
+    <string name="lite_login_username">学号 / 用户名</string>
+    <string name="lite_login_password">密码</string>
+    <string name="lite_login_api">API 登录</string>
+    <string name="lite_login_web">使用统一身份认证网页登录</string>
+    <string name="lite_login_agreement">登录即表示同意用户协议与隐私政策</string>
+    <string name="lite_login_later">稍后</string>
+    <string name="lite_login_loading">登录中…</string>
+    <string name="lite_login_error_network">网络超时，请检查校园网或 VPN 后重试</string>
+    <string name="lite_login_error_default">登录失败，请检查账号密码</string>
+</resources>

@@ -108,11 +108,17 @@ class LiteNavigationFragment :
 
     private fun openAccount() {
         val activity = requireActivity()
-        val login = LiteHostBridge.openLogin
-        if (login != null) {
-            login(activity)
+        if (LiteHostBridge.easAuth != null) {
+            if (parentFragmentManager.findFragmentByTag(TAG_EAS_LOGIN) == null) {
+                LiteEasLoginDialog().show(parentFragmentManager, TAG_EAS_LOGIN)
+            }
         } else {
-            LiteHostBridge.eas?.openAccount(activity)
+            LiteHostBridge.openLogin?.invoke(activity)
+                ?: LiteHostBridge.eas?.openAccount(activity)
         }
+    }
+
+    private companion object {
+        const val TAG_EAS_LOGIN = "lite_eas_login"
     }
 }
