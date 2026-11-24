@@ -63,20 +63,20 @@ class EasServiceImpl(private val application: Application) : EasService {
             activity.startActivity(
                 Intent(activity, ImportTimetableActivity::class.java).putExtra("autoImport", autoImport)
             )
-        })
+        }, onFailed = {})
     }
 
     override fun openScores(activity: FragmentActivity) =
-        ensureLogin(activity, onSuccess = { activity.startActivity(Intent(activity, ScoreInquiryActivity::class.java)) })
+        ensureLogin(activity, onSuccess = { activity.startActivity(Intent(activity, ScoreInquiryActivity::class.java)) }, onFailed = {})
 
     override fun openClassroom(activity: FragmentActivity) =
-        ensureLogin(activity, onSuccess = { activity.startActivity(Intent(activity, EmptyClassroomActivity::class.java)) })
+        ensureLogin(activity, onSuccess = { activity.startActivity(Intent(activity, EmptyClassroomActivity::class.java)) }, onFailed = {})
 
     override fun openExam(activity: FragmentActivity) =
-        ensureLogin(activity, onSuccess = { activity.startActivity(Intent(activity, ExamActivity::class.java)) })
+        ensureLogin(activity, onSuccess = { activity.startActivity(Intent(activity, ExamActivity::class.java)) }, onFailed = {})
 
 
-    override fun openAccount(activity: FragmentActivity) = ensureLogin(activity, onSuccess = {})
+    override fun openAccount(activity: FragmentActivity) = ensureLogin(activity, onSuccess = {}, onFailed = {})
 
     override fun autoReimportIfDue() {
         if (!settings.isAutoReimportEnabled()) return

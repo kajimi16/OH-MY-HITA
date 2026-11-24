@@ -171,7 +171,12 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
             path.contains("user/me") || path.contains("xszykb") || path.contains("xsxk")
         val session = !cookies["SESSION"].isNullOrBlank() ||
             (!cookies["JSESSIONID"].isNullOrBlank() && !cookies["route"].isNullOrBlank())
-        return academic && session
+        // aTrust 登录成功后可能停在 jw-hitsz 根路径；此时 SESSION/sdp_user_token 已存在，
+        // 直接交给 loginWithWebSession 校验，失败会留在页面。
+        val rootAfterSso = (path.isEmpty() || path == "/") &&
+            !cookies["SESSION"].isNullOrBlank() &&
+            !cookies["sdp_user_token"].isNullOrBlank()
+        return (academic || rootAfterSso) && session
     }
 
     private fun collectCookies(): Map<String, String> {

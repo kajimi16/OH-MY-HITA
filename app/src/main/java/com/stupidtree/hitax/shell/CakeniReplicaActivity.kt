@@ -36,8 +36,31 @@ class CakeniReplicaActivity : AppCompatActivity() {
                 easService = easService,
                 onOpenMarket = { startActivity(Intent(this, PluginMarketActivity::class.java)) },
                 onImport = {
-                    easService?.openImportTimetable(this, autoImport = true)
-                        ?: hostUi?.openImportTimetable(this)
+                    val service = easService
+                    if (service == null) {
+                        android.widget.Toast.makeText(
+                            this,
+                            "教务插件未安装，无法导入",
+                            android.widget.Toast.LENGTH_SHORT,
+                        ).show()
+                    } else {
+                        android.widget.Toast.makeText(
+                            this,
+                            "正在导入本学期课表…",
+                            android.widget.Toast.LENGTH_SHORT,
+                        ).show()
+                        // 数据导入走 EasService，不启动插件 Activity（运行时 dex 无法注册 Activity）。
+                        service.startAutoReimport { ok ->
+                            runOnUiThread {
+                                android.widget.Toast.makeText(
+                                    this,
+                                    if (ok) "课表导入完成" else "课表导入失败",
+                                    android.widget.Toast.LENGTH_SHORT,
+                                ).show()
+                                if (ok) recreate()
+                            }
+                        }
+                    }
                 },
                 onWebLogin = {
                     webLogin.launch(Intent(this, ShellEasWebLoginActivity::class.java))
