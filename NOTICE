@@ -19,3 +19,14 @@ See LICENSE in the repository root.
 
 Additional attribution for the HITA1 share protocol is in
 licenses/hita1-share/NOTICE and licenses/hita1-share/LICENSE_HITA_ANDROID.
+
+cakeni/CourseSchedule (晴课表)
+------------------------------
+The `replica-cakeni` shell is an independent Compose rewrite of the
+cakeni/CourseSchedule UI, written from the upstream design and source.
+- https://github.com/cakeni/CourseSchedule
+- Copyright (c) 2026 CourseSchedule contributors
+- MIT License: see licenses/cakeni/LICENSE
+
+This repository does not copy cakeni's `course_duck.riv`, screenshots,
+academic school directory, launcher artwork, or brand graphics.
