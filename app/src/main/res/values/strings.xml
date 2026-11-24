@@ -957,6 +957,8 @@
     <string name="market_detail_author">作者 %1$s</string>
     <string name="market_detail_updated">更新于 %1$s</string>
     <string name="market_detail_version">v%1$s</string>
+    <string name="market_detail_version_choose">选择版本</string>
+    <string name="market_action_install_version">安装 v%1$s</string>
     <string name="market_kind_preset">整合包</string>
     <string name="market_kind_ui">界面插件</string>
     <string name="market_kind_dex">逻辑插件</string>

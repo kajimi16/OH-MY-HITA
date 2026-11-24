@@ -1211,6 +1211,33 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
     val eventsState by eventsLive.observeAsState(initial = null)
     val events = eventsState.orEmpty()
     val context = LocalContext.current
+    val historyScope = androidx.compose.runtime.rememberCoroutineScope()
+    val historyStore = remember(context) { TimetableHistoryStore(context) }
+    val historyEnabled = remember(context) {
+        com.stupidtree.hitax.market.PresetStateStore.activeId(context)
+            ?.startsWith("hita-android-3.3.") == true
+    }
+    var historyVersions by remember { mutableStateOf<List<TimetableVersionRecord>>(emptyList()) }
+    var historyEvents by remember { mutableStateOf<List<EventItem>>(emptyList()) }
+    var showHistory by remember { mutableStateOf(false) }
+    LaunchedEffect(timetable?.id, eventsState, historyEnabled) {
+        val current = timetable
+        if (!historyEnabled || current == null || eventsState == null || service == null) return@LaunchedEffect
+        val result = withContext(Dispatchers.IO) {
+            val all = TimetableHistoryDiff.eventsFor(
+                current.id,
+                service.getEventsDuringSync(
+                    current.startTime.time,
+                    current.endTime.time.coerceAtLeast(current.startTime.time + 20L * 7 * 24 * 3600 * 1000),
+                ),
+            )
+            val reason = if (historyStore.versions(current.id).isEmpty()) "INITIAL" else "MANUAL"
+            historyStore.record(current.id, all, reason)
+            all to historyStore.versions(current.id)
+        }
+        historyEvents = result.first
+        historyVersions = result.second
+    }
     val snapshotStore = remember(context) { ShellTimetableSnapshotStore(context) }
     val snapshotKey = "${timetable?.id ?: "none"}:$week"
     var baseline by remember(snapshotKey) { mutableStateOf(snapshotStore.load(snapshotKey)) }
@@ -1264,6 +1291,27 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
                     .padding(horizontal = 6.dp, vertical = 3.dp),
             )
             Spacer(Modifier.weight(1f))
+            if (historyEnabled) {
+                IconButton(
+                    onClick = {
+                        showHistory = true
+                        timetable?.id?.let { id ->
+                            historyScope.launch {
+                                historyVersions = withContext(Dispatchers.IO) {
+                                    historyStore.versions(id)
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier.size(56.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_history_24),
+                        contentDescription = "教务版本",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             IconButton(
                 onClick = {
                     val body = buildString {
@@ -1493,6 +1541,40 @@ private fun TimetablePage(service: TimetableService?, motionTokens: MotionTokens
         }
         }
     }
+    if (showHistory && historyEnabled) {
+        TimetableHistoryDialog(
+            versions = historyVersions,
+            currentEvents = historyEvents,
+            onDismiss = { showHistory = false },
+            onRestore = { version ->
+                historyScope.launch {
+                    val current = timetable ?: return@launch
+                    val svc = service ?: return@launch
+                    val all = withContext(Dispatchers.IO) {
+                        TimetableHistoryDiff.eventsFor(
+                            current.id,
+                            svc.getEventsDuringSync(
+                                current.startTime.time,
+                                current.endTime.time.coerceAtLeast(
+                                    current.startTime.time + 20L * 7 * 24 * 3600 * 1000,
+                                ),
+                            ),
+                        )
+                    }
+                    val versions = withContext(Dispatchers.IO) {
+                        historyStore.record(current.id, all, "RESTORE_BACKUP")
+                        historyStore.record(current.id, version.events, "RESTORE")
+                        svc.actionDeleteEvents(all)
+                        svc.actionAddEvents(version.events)
+                        historyStore.versions(current.id)
+                    }
+                    historyEvents = version.events
+                    historyVersions = versions
+                    showHistory = false
+                }
+            },
+        )
+    }
 }
 
 @Composable
@@ -1639,7 +1721,7 @@ private fun MorePage(
             else -> android.widget.Toast.makeText(context, "EAS 插件未安装", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
-    fun openPlugin(id: String) {
+    fun openPlugin(id: String, args: android.os.Bundle? = null) {
         val installed = runCatching {
             com.stupidtree.hitax.uiplugin.UiPluginManager(context).enabled().any { it.id == id }
         }.getOrDefault(false)
@@ -1651,6 +1733,7 @@ private fun MorePage(
             context.startActivity(
                 android.content.Intent(context, com.stupidtree.hitax.uiplugin.PluginUiActivity::class.java)
                     .putExtra(com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_PLUGIN_ID, id)
+                    .putExtra(com.stupidtree.hitax.uiplugin.PluginUiActivity.EXTRA_ARGUMENTS, args)
                     .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
             )
         }
@@ -1659,6 +1742,11 @@ private fun MorePage(
         com.stupidtree.hitax.data.source.preference.CourseReminderStore.getInstance(context)
     }
     var reminderEnabled by remember { mutableStateOf(reminderStore.isEnabled()) }
+    var endReminderEnabled by remember { mutableStateOf(reminderStore.isEndReminderEnabled()) }
+    val android33 = remember(context) {
+        com.stupidtree.hitax.market.PresetStateStore.activeId(context)
+            ?.startsWith("hita-android-3.3.") == true
+    }
     var liveEnabled by remember {
         mutableStateOf(com.stupidtree.hitax.livecourse.LiveCourseSettings.isEnabled(context))
     }
@@ -1671,6 +1759,7 @@ private fun MorePage(
         if (granted) {
             reminderStore.setEnabled(true)
             com.stupidtree.hitax.data.work.CourseReminderScheduler.autoSchedule(context)
+            com.stupidtree.hitax.data.work.ExamReminderScheduler.autoSchedule(context)
             reminderEnabled = true
             android.widget.Toast.makeText(context, "课程提醒已开启（上课前15分钟提醒）", android.widget.Toast.LENGTH_SHORT).show()
         } else {
@@ -1688,12 +1777,106 @@ private fun MorePage(
         }
         reminderStore.setEnabled(enabled)
         com.stupidtree.hitax.data.work.CourseReminderScheduler.autoSchedule(context)
+        com.stupidtree.hitax.data.work.ExamReminderScheduler.autoSchedule(context)
         reminderEnabled = enabled
         android.widget.Toast.makeText(
             context,
             if (enabled) "课程提醒已开启（上课前15分钟提醒）" else "课程提醒已关闭",
             android.widget.Toast.LENGTH_SHORT,
         ).show()
+    }
+    val endReminderLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            reminderStore.setEndReminderEnabled(true)
+            com.stupidtree.hitax.data.work.CourseReminderScheduler.autoSchedule(context)
+            com.stupidtree.hitax.data.work.ExamReminderScheduler.autoSchedule(context)
+            endReminderEnabled = true
+            android.widget.Toast.makeText(context, "下课前提醒已开启（默认提前5分钟）", android.widget.Toast.LENGTH_SHORT).show()
+        } else {
+            endReminderEnabled = false
+            android.widget.Toast.makeText(context, "需要通知权限才能发送下课前提醒", android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+    fun setEndReminder(enabled: Boolean) {
+        if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            endReminderLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            return
+        }
+        reminderStore.setEndReminderEnabled(enabled)
+        com.stupidtree.hitax.data.work.CourseReminderScheduler.autoSchedule(context)
+        com.stupidtree.hitax.data.work.ExamReminderScheduler.autoSchedule(context)
+        endReminderEnabled = enabled
+        android.widget.Toast.makeText(
+            context,
+            if (enabled) "下课前提醒已开启（默认提前5分钟）" else "下课前提醒已关闭",
+            android.widget.Toast.LENGTH_SHORT,
+        ).show()
+    }
+    val calendarScope = androidx.compose.runtime.rememberCoroutineScope()
+    val syncTimetableService = remember { com.stupidtree.hitax.HitaServices.timetable(context) }
+    val syncTimetable by (
+        remember {
+            syncTimetableService?.getRecentTimetable()
+                ?: androidx.lifecycle.MutableLiveData(null)
+        }
+    ).observeAsState(null)
+    fun runCalendarSync() {
+        val service = syncTimetableService
+        val timetable = syncTimetable
+        if (service == null || timetable == null) {
+            android.widget.Toast.makeText(context, "还没有可同步的课表", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        calendarScope.launch {
+            val events = withContext(Dispatchers.IO) {
+                service.getEventsDuringSync(
+                    timetable.startTime.time,
+                    timetable.endTime.time.coerceAtLeast(
+                        timetable.startTime.time + 20L * 7 * 24 * 3600 * 1000,
+                    ),
+                )
+            }
+            val result = withContext(Dispatchers.IO) {
+                com.stupidtree.hitax.calendar.CalendarSyncRepository(context)
+                    .sync(timetable.id, timetable.name, events)
+            }
+            val message = when (result) {
+                is com.stupidtree.hitax.calendar.CalendarSyncRepository.Result.Success ->
+                    "已同步到系统日历：新增 ${result.inserted}，更新 ${result.updated}，删除 ${result.deleted}"
+                com.stupidtree.hitax.calendar.CalendarSyncRepository.Result.PermissionDenied ->
+                    "需要日历读写权限"
+                com.stupidtree.hitax.calendar.CalendarSyncRepository.Result.NoWritableCalendar ->
+                    "本机没有可写日历账户，请先在系统日历里添加账户"
+                is com.stupidtree.hitax.calendar.CalendarSyncRepository.Result.Failed ->
+                    "同步失败：${result.message}"
+            }
+            android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+    val calendarPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { grants ->
+        if (grants.values.all { it }) runCalendarSync()
+        else android.widget.Toast.makeText(context, "需要日历读写权限才能同步", android.widget.Toast.LENGTH_LONG).show()
+    }
+    fun requestCalendarSync() {
+        val permissions = arrayOf(
+            Manifest.permission.READ_CALENDAR,
+            Manifest.permission.WRITE_CALENDAR,
+        )
+        if (permissions.all {
+                ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+            }
+        ) {
+            runCalendarSync()
+        } else {
+            calendarPermissionLauncher.launch(permissions)
+        }
     }
     Column(Modifier.fillMaxSize().verticalScroll(androidx.compose.foundation.rememberScrollState())
         .padding(horizontal = 16.dp, vertical = 14.dp)) {
@@ -1833,6 +2016,44 @@ private fun MorePage(
                 R.drawable.ic_baseline_access_alarm_24,
                 reminderEnabled,
             ) { setReminder(it) }
+            if (android33) {
+                MoreToggleRow(
+                    "下课前提醒",
+                    "下课前5分钟提醒（3.3.x）",
+                    R.drawable.ic_baseline_settings_backup_restore_24,
+                    endReminderEnabled,
+                ) { setEndReminder(it) }
+                MoreRow(
+                    "同步到系统日历",
+                    "将教务课程写入本机日历（3.3.x）",
+                    R.drawable.ic_baseline_date_range_24,
+                ) { requestCalendarSync() }
+                MoreRow(
+                    "待办聚合",
+                    "Grader 与 GeniusTA 合并待办（3.3.x）",
+                    R.drawable.ic_baseline_check_24,
+                ) { openPlugin("com.stupidtree.hita.ui.todo") }
+                MoreRow(
+                    "校园卡",
+                    "余额与消费流水（3.3.x）",
+                    R.drawable.ic_bx_credit,
+                ) { openPlugin("com.stupidtree.hita.ui.campus", android.os.Bundle().apply { putString("target", "card"); putString("title", "校园卡") }) }
+                MoreRow(
+                    "静音仓",
+                    "空间与预约（3.3.x）",
+                    R.drawable.ic_baseline_access_time_24,
+                ) { openPlugin("com.stupidtree.hita.ui.campus", android.os.Bundle().apply { putString("target", "pod"); putString("title", "静音仓") }) }
+                MoreRow(
+                    "图书馆",
+                    "智慧墙与研习间（3.3.x）",
+                    R.drawable.ic_baseline_search_24,
+                ) { openPlugin("com.stupidtree.hita.ui.campus", android.os.Bundle().apply { putString("target", "library"); putString("title", "大学城图书馆") }) }
+                MoreRow(
+                    "实验中心",
+                    "实验课进度（3.3.x）",
+                    R.drawable.ic_circle_done,
+                ) { openPlugin("com.stupidtree.hita.ui.campus", android.os.Bundle().apply { putString("target", "lab"); putString("title", "实验中心") }) }
+            }
             MoreToggleRow(
                 "实时课程",
                 "上课前10分钟显示课程状态",

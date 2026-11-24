@@ -1,0 +1,11 @@
+{
+  "id": "com.stupidtree.hita.ui.todo",
+  "name": "待办",
+  "version": "0.1.0",
+  "entryClass": "com.stupidtree.hita.plugin.todoui.TodoUiPlugin",
+  "apiVersion": 11,
+  "composeVersion": "1.9.4",
+  "capabilities": [
+    "hita.ui.todo"
+  ]
+}

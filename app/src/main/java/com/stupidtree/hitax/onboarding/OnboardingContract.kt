@@ -12,6 +12,8 @@ data class OnboardingPresetUi(
     val pluginCount: Int,
     val recommended: Boolean,
     val active: Boolean,
+    val family: String = id,
+    val version: String = "",
 )
 
 data class OnboardingUiState(

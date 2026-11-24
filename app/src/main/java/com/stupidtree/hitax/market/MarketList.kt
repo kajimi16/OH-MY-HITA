@@ -161,9 +161,19 @@ object MarketListBuilder {
 
         val showUpdates = updates.isNotEmpty() && f.status in setOf(MarketStatus.ALL, MarketStatus.UPDATES)
         val presetRows = if (f.kind in setOf(MarketKind.ALL, MarketKind.PRESET)) {
-            s.presets.filter { preset ->
-                matchesPreset(q, preset) && presetMatchesStatus(preset, s.activePresetId, f.status)
-            }.map { MarketItem.Preset(it, it.id == s.activePresetId) }
+            s.presets
+                .filter { preset ->
+                    matchesPreset(q, preset) && presetMatchesStatus(preset, s.activePresetId, f.status)
+                }
+                .groupBy { it.familyId() }
+                .values
+                .map { versions ->
+                    val active = versions.firstOrNull { it.id == s.activePresetId }
+                    val representative = active ?: versions.reduce { best, candidate ->
+                        if (PluginVersion.isNewer(candidate.version, best.version)) candidate else best
+                    }
+                    MarketItem.Preset(representative, active != null)
+                }
         } else {
             emptyList()
         }

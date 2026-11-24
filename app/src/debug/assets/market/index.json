@@ -90,6 +90,44 @@
         "official",
         "T1"
       ]
+    },
+    {
+      "id": "com.stupidtree.hita.plugin.campus",
+      "name": "校园服务",
+      "version": "0.1.0",
+      "apiVersion": 12,
+      "url": "plugin-campus.dex",
+      "sha256": "7995b6301d0a2396c0deec3d122c56db5e2fbdea731446a1a4c9f5698a6a8cff",
+      "size": 319608,
+      "entryClass": "com.stupidtree.hita.plugin.campus.CampusPlugin",
+      "minHostApi": 12,
+      "description": "T1 校园服务：校园卡、静音仓、图书馆智慧墙、实验中心。",
+      "author": "OH-MY-HITA",
+      "tags": [
+        "HITA",
+        "official",
+        "T1",
+        "campus"
+      ]
+    },
+    {
+      "id": "com.stupidtree.hita.plugin.todo",
+      "name": "待办聚合",
+      "version": "0.1.0",
+      "apiVersion": 12,
+      "url": "plugin-todo.dex",
+      "sha256": "66f90a0247775f7652573b6062066c7a3b2ef27a1b71ecca43fbe60f09ad27b6",
+      "size": 266792,
+      "entryClass": "com.stupidtree.hita.plugin.todo.TodoPlugin",
+      "minHostApi": 12,
+      "description": "T1 待办聚合：Grader 作业与 GeniusTA 导入。",
+      "author": "OH-MY-HITA",
+      "tags": [
+        "HITA",
+        "official",
+        "T1",
+        "todo"
+      ]
     }
   ],
   "uiPlugins": [
@@ -588,6 +626,46 @@
         }
       ],
       "composeVersion": "1.9.4"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.todo",
+      "name": "待办聚合",
+      "version": "0.1.0",
+      "url": "plugin-todo-ui.apk",
+      "sha256": "e6591fa8f70e7530a5f0c887200b5c836489c6b950fd4cb143a076dae1846604",
+      "size": 1022818,
+      "minHostApi": 12,
+      "description": "Grader 与 GeniusTA 合并待办（3.3.x）",
+      "author": "OH-MY-HITA",
+      "tags": [
+        "HITA",
+        "official",
+        "todo"
+      ],
+      "capabilities": [
+        "hita.ui.todo"
+      ],
+      "composeVersion": "1.9.4"
+    },
+    {
+      "id": "com.stupidtree.hita.ui.campus",
+      "name": "校园",
+      "version": "0.1.0",
+      "url": "plugin-campus-ui.apk",
+      "sha256": "cc655e36086f0850b4d501d1f1d4d878649089c5076d574837767d699697ed16",
+      "size": 1179070,
+      "minHostApi": 12,
+      "description": "校园卡、静音仓、图书馆与实验中心（3.3.x）",
+      "author": "OH-MY-HITA",
+      "tags": [
+        "HITA",
+        "official",
+        "campus"
+      ],
+      "capabilities": [
+        "hita.ui.campus"
+      ],
+      "composeVersion": "1.9.4"
     }
   ],
   "presets": [
@@ -721,7 +799,7 @@
     {
       "id": "hita-android-3.1.2",
       "name": "HITA Android 3.1.2",
-      "version": "0.1",
+      "version": "3.1.2",
       "source": "HITA_Android v3.1.2",
       "minHostApi": 11,
       "description": "按市场插件还原 HITA_Android v3.1.2；底栏按上游固定为 待办/今日/时间表/助手/资讯/更多。资讯位用 HOA 资讯源（θ 社区后端当前不可用）；不采集用量统计。",
@@ -880,7 +958,8 @@
           "order": 5,
           "iconAsset": "builtin:navigation"
         }
-      ]
+      ],
+      "family": "hita-android"
     },
     {
       "id": "hita-lite-2.0",
@@ -896,6 +975,192 @@
         {"id":"com.stupidtree.hitax.eas","kind":"dex","required":true},
         {"id":"com.stupidtree.hitax.user","kind":"dex","required":true}
       ]
+    },
+    {
+      "id": "hita-android-3.3.1",
+      "name": "HITA Android 3.3.1",
+      "version": "3.3.1",
+      "source": "HITA_Android v3.3.1",
+      "minHostApi": 11,
+      "description": "HITA_Android v3.3.1 兼容整合包；已接入 AI 写操作确认，其余 3.3.x 功能逐步接入。",
+      "plugins": [
+        {
+          "id": "com.stupidtree.hitax.timetable",
+          "kind": "dex",
+          "required": true
+        },
+        {
+          "id": "com.stupidtree.hita.ui.timetable",
+          "kind": "ui",
+          "required": true
+        },
+        {
+          "id": "com.stupidtree.hitax.eas",
+          "kind": "dex",
+          "required": true
+        },
+        {
+          "id": "com.stupidtree.hita.ui.eas",
+          "kind": "ui",
+          "required": true
+        },
+        {
+          "id": "com.stupidtree.hitax.resource",
+          "kind": "dex",
+          "required": true
+        },
+        {
+          "id": "com.stupidtree.hita.ui.resource",
+          "kind": "ui",
+          "required": true
+        },
+        {
+          "id": "com.stupidtree.hitax.user",
+          "kind": "dex",
+          "required": true
+        },
+        {
+          "id": "com.stupidtree.hita.ui.user",
+          "kind": "ui",
+          "required": true
+        },
+        {
+          "id": "com.stupidtree.hita.ui.homework",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.reminder",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.news",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.links",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.appearance",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.ai",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.credit",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.share",
+          "kind": "ui",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hita.ui.score",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.training",
+          "kind": "ui",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hita.ui.compare",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.group",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.live",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.update",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.notice",
+          "kind": "ui"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.announcement",
+          "kind": "ui",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hita.ui.community",
+          "kind": "ui",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hita.plugin.campus",
+          "kind": "dex",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hita.plugin.todo",
+          "kind": "dex",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hita.ui.todo",
+          "kind": "ui",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hita.ui.campus",
+          "kind": "ui",
+          "required": false
+        }
+      ],
+      "migration": [
+        "timetable.ics"
+      ],
+      "repo": "https://github.com/HIT-A/HITA_Android",
+      "tabs": [
+        {
+          "id": "com.stupidtree.hita.ui.homework",
+          "title": "待办",
+          "order": 0,
+          "iconAsset": "builtin:check"
+        },
+        {
+          "id": "hita.timeline",
+          "title": "今日",
+          "order": 1,
+          "iconAsset": "builtin:today"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.timetable",
+          "title": "时间表",
+          "order": 2,
+          "iconAsset": "builtin:timetable"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.ai",
+          "title": "助手",
+          "order": 3,
+          "iconAsset": "builtin:toys"
+        },
+        {
+          "id": "com.stupidtree.hita.ui.news",
+          "title": "资讯",
+          "order": 4,
+          "iconAsset": "builtin:blog"
+        },
+        {
+          "id": "hita.more",
+          "title": "更多",
+          "order": 5,
+          "iconAsset": "builtin:navigation"
+        }
+      ],
+      "family": "hita-android",
+      "shell": "hita-android-3.3.1"
     }
   ]
 }

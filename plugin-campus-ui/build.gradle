@@ -1,0 +1,36 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+android {
+    namespace 'com.stupidtree.hita.plugin.campusui'
+    defaultConfig {
+        applicationId "com.stupidtree.hita.plugin.campusui"
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 36
+        versionCode 1
+        versionName "0.1.0"
+    }
+    buildFeatures {
+        compose = true
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions { jvmTarget = '1.8' }
+}
+
+// 运行时界面插件：API 与 Compose 全部 compileOnly，由宿主提供运行时。
+dependencies {
+    compileOnly project(':api')
+    compileOnly "androidx.compose.runtime:runtime:1.9.4"
+    compileOnly "androidx.compose.ui:ui:1.9.4"
+    compileOnly "androidx.compose.foundation:foundation:1.9.4"
+    compileOnly "androidx.compose.material3:material3:1.4.0"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+}

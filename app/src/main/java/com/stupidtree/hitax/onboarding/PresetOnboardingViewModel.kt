@@ -131,6 +131,8 @@ class PresetOnboardingViewModel(application: Application) : AndroidViewModel(app
                 pluginCount = preset.refs().size,
                 recommended = preset.id == RECOMMENDED_PRESET_ID,
                 active = preset.id == activePresetId,
+                family = preset.familyId(),
+                version = preset.version,
             )
         }
         val resolvedSelection = selectedId

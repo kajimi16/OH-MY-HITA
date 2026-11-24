@@ -26,6 +26,26 @@ class AddActivityTool : SuspendingReActTool {
         val timetableId = input.timetableId
             ?: service.getRecentTimetable().value?.id
             ?: return "当前没有可写入的课表"
+        val label = SimpleDateFormat("M月d日 HH:mm", Locale.CHINA).format(fromMs)
+        val endLabel = SimpleDateFormat("HH:mm", Locale.CHINA).format(toMs)
+        val decision = if (input.requireWriteConfirmation) {
+            WriteConfirmation.decide(
+                gate = input.confirmationGate,
+                request = ConfirmationRequest(
+                    title = "确认添加活动",
+                    detailLines = buildList {
+                        add("活动：$name")
+                        add("时间：$label - $endLabel")
+                        parsed.place.takeIf { it.isNotBlank() }?.let { add("地点：$it") }
+                    },
+                ),
+                pendingText = "添加活动需要用户确认；本次尚未写入。",
+                cancelledText = "用户已取消，本次未写入活动。",
+            )
+        } else {
+            WriteConfirmation.Decision.Proceed
+        }
+        if (decision is WriteConfirmation.Decision.Halt) return decision.text
         val event = EventItem().apply {
             this.name = name
             this.place = parsed.place
@@ -35,7 +55,6 @@ class AddActivityTool : SuspendingReActTool {
             this.to = Timestamp(toMs)
         }
         service.actionAddEvents(listOf(event))
-        val label = SimpleDateFormat("M月d日 HH:mm", Locale.CHINA).format(fromMs)
         return "已添加活动：$name，$label"
     }
 

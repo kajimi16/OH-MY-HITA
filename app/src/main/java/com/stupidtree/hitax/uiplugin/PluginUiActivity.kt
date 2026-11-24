@@ -59,7 +59,8 @@ class PluginUiActivity : AppCompatActivity() {
             )
             val content = instance.createView(this, host)
             val toolbar = Toolbar(this).apply {
-                title = record.name.ifBlank { instance.displayName }
+                title = args.getString("title")?.takeIf { it.isNotBlank() }
+                    ?: record.name.ifBlank { instance.displayName }
                 setTitleTextColor(
                     MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, Color.DKGRAY)
                 )

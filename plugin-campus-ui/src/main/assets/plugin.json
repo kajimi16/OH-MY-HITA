@@ -1,0 +1,16 @@
+{
+  "id": "com.stupidtree.hita.ui.campus",
+  "name": "校园",
+  "version": "0.1.0",
+  "entryClass": "com.stupidtree.hita.plugin.campusui.CampusUiPlugin",
+  "apiVersion": 11,
+  "composeVersion": "1.9.4",
+  "capabilities": [
+    "hita.ui.campus"
+  ],
+  "requires": {
+    "services": [
+      "hita.campus"
+    ]
+  }
+}

@@ -32,5 +32,19 @@
                 <action android:name="com.stupidtree.hitax.DEV_IMPORT_ICS" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".debug.DevTimetableMutationReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.stupidtree.hitax.DEV_MUTATE_TIMETABLE" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".debug.DevClassEndingReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.stupidtree.hitax.DEV_CLASS_ENDING" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

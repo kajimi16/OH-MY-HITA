@@ -9,7 +9,7 @@ HITA 课表的插件化重构：微内核 + 插件，万物皆插件。
 [旧版本（0.7.2 及更早，已归档）](https://github.com/kajimi16/OH-MY-HITA-legacy/releases) ·
 [文档索引](docs/README.md)
 
-当前发布：`0.10.2`（API 11）。
+当前发布：`0.10.3`（API 12）。
 包名 `io.github.kajimi16.ohmyhita`，与原版 HITA 可共存安装。
 0.7.2 及更早版本保留在已归档的旧仓库，仅供下载与追溯。
 
@@ -51,6 +51,10 @@ API 11 新增 `HostEnvironmentService`，运行时插件可在安装期获取 `a
 - `hita-l-1.5.3`：经典轻量组合
 - `hita-cute-1.6.0`：HITA_L 外观分支，20 套主题色与课表配色
 - `hita-android-3.1.2`：HITA_Android v3.1.2，21 个插件（含可选公告/深圳课程）
+- `hita-android-3.3.1`：HITA_Android v3.3.1 接入包；已接入 AI 写操作确认、教务课表版本对比/恢复、下课前提醒、课表同步系统日历、考试提醒、待办聚合、校园服务
+
+3.1.2 与 3.3.1 共用 `hita-android` family，首启与市场聚合为一张卡片，用版本选择器切换；
+插件详情也支持选择版本后安装。
 
 市场卡片显示「使用中」，支持切换；切换会安装缺失插件，并停用旧组合独有的 UI/内置插件。
 所有已安装 UI 插件也会出现在「功能中心 → 已安装插件」，不必从市场卡片进入。
@@ -95,6 +99,10 @@ API 11 新增 `HostEnvironmentService`，运行时插件可在安装期获取 `a
     "sha256":"...","description":"...","minHostApi":3}]
 }
 ```
+
+整合包与插件都可以声明 `family` 和 `versions`：`family` 相同的整合包会在市场/首启聚合为一个卡片，
+版本由详情里的版本选择器切换；插件条目声明 `versions` 后，详情页允许选择任一版本安装。
+`versions` 里的 `apiVersion`、`entryClass` 缺省时沿用顶层字段。
 
 限制（Android 硬边界，不是实现取舍）：运行时逻辑插件不能声明四大组件、不能携带资源，
 且与宿主同进程共享权限；界面插件同样不注册组件、不合并资源，只能通过宿主容器渲染。

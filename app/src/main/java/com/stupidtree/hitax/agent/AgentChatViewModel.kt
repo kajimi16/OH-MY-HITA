@@ -37,6 +37,7 @@ data class AgentMessage(
 
 class AgentChatViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = ChatSessionRepository.get(application)
+    val confirmationGate = ChatConfirmationGate()
     val messages = mutableStateListOf<AgentMessage>()
     val sessions: LiveData<List<ChatSession>> get() = repository.sessions
     var currentSessionId by mutableStateOf<String?>(null)
@@ -85,7 +86,17 @@ class AgentChatViewModel(application: Application) : AndroidViewModel(applicatio
                 val history = messages
                     .filter { it.role == "user" || it.role == "assistant" }
                     .map { ChatMessage(role = it.role, content = it.text) }
-                when (val result = ShellChatService.chat(history, getApplication(), timetableId)) {
+                val requireConfirmation =
+                    AgentWriteConfirmationPolicy.isEnabled(getApplication())
+                when (
+                    val result = ShellChatService.chat(
+                        history = history,
+                        application = getApplication(),
+                        timetableId = timetableId,
+                        confirmationGate = confirmationGate,
+                        requireWriteConfirmation = requireConfirmation,
+                    )
+                ) {
                     is LlmChatResult.Success -> {
                         append(sessionId, ChatMessageRecord.Role.ASSISTANT, result.text, result.cards)
                         messages += AgentMessage("assistant", result.text, cards = result.cards)
@@ -202,5 +213,10 @@ class AgentChatViewModel(application: Application) : AndroidViewModel(applicatio
                 }
             }
         }
+    }
+
+    override fun onCleared() {
+        confirmationGate.cancelAll()
+        super.onCleared()
     }
 }

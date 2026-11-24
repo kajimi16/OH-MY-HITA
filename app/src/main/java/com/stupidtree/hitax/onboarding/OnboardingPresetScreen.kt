@@ -116,8 +116,10 @@ private fun ScreenHeader(onBack: () -> Unit) {
 @Composable
 private fun PresetList(state: OnboardingUiState, onSelect: (String) -> Unit) {
     val listState = rememberLazyListState()
+    val groups = state.presets.groupBy { it.family }.values.toList()
     LaunchedEffect(state.selectedId, state.presets) {
-        val index = state.presets.indexOfFirst { it.id == state.selectedId }
+        val family = state.presets.firstOrNull { it.id == state.selectedId }?.family
+        val index = groups.indexOfFirst { it.first().family == family }
         if (index >= 0 && listState.layoutInfo.visibleItemsInfo.none { it.index == index }) {
             listState.scrollToItem(index)
         }
@@ -128,12 +130,23 @@ private fun PresetList(state: OnboardingUiState, onSelect: (String) -> Unit) {
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        items(state.presets, key = { it.id }) { preset ->
+        items(groups, key = { it.first().family }) { versions ->
+            val shown = versions.firstOrNull { it.id == state.selectedId }
+                ?: versions.reduce { best, candidate ->
+                    if (com.stupidtree.hitax.market.PluginVersion.isNewer(candidate.version, best.version)) {
+                        candidate
+                    } else {
+                        best
+                    }
+                }
             PresetCard(
-                preset = preset,
-                selected = preset.id == state.selectedId,
+                preset = shown,
+                versions = versions,
+                selectedId = state.selectedId,
+                selected = versions.any { it.id == state.selectedId },
                 enabled = !state.applying,
-                onClick = { onSelect(preset.id) },
+                onClick = { onSelect(shown.id) },
+                onSelectVersion = onSelect,
             )
         }
     }
@@ -142,9 +155,12 @@ private fun PresetList(state: OnboardingUiState, onSelect: (String) -> Unit) {
 @Composable
 private fun PresetCard(
     preset: OnboardingPresetUi,
+    versions: List<OnboardingPresetUi>,
+    selectedId: String?,
     selected: Boolean,
     enabled: Boolean,
     onClick: () -> Unit,
+    onSelectVersion: (String) -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(22.dp)
@@ -195,6 +211,28 @@ private fun PresetCard(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
+                    }
+                    if (versions.size > 1) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            versions.forEach { version ->
+                                val chosen = version.id == selectedId
+                                Surface(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable(enabled = enabled) { onSelectVersion(version.id) },
+                                    color = if (chosen) scheme.primaryContainer else scheme.surfaceVariant,
+                                    shape = RoundedCornerShape(8.dp),
+                                ) {
+                                    Text(
+                                        "v${version.version}",
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (chosen) scheme.onPrimaryContainer else scheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
                 if (selected) {

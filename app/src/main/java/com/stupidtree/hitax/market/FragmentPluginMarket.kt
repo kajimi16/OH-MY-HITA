@@ -361,8 +361,17 @@ class FragmentPluginMarket :
     private fun showUiDetail(item: MarketItem.Ui) {
         val plugin = item.plugin
         val installed = item.installed
-        val update = item.update
+        val sameVersion = installed?.version == plugin.version
+        val update = installed != null && !sameVersion && PluginVersion.isNewer(plugin.version, installed.version)
         val verified = viewModel.isVerified(plugin.id)
+        val family = plugin.family ?: plugin.id
+        val alternatives = if (plugin.versionOptions().size > 1) {
+            plugin.versionOptions().map { plugin.forVersion(it) }
+        } else {
+            latestUiAvailable
+                .filter { (it.family ?: it.id) == family }
+                .ifEmpty { listOf(plugin) }
+        }
         val secondary = buildList {
             if (installed != null) {
                 add(MarketDetailAction(getString(R.string.market_action_uninstall)) { confirmUninstallUi(installed) })
@@ -376,8 +385,12 @@ class FragmentPluginMarket :
             }
         }
         val primary = when {
-            installed == null -> MarketDetailAction(getString(R.string.market_action_install)) { installUi(plugin) }
-            update -> MarketDetailAction(getString(R.string.market_action_update)) { installUi(plugin) }
+            installed == null -> MarketDetailAction(
+                getString(R.string.market_action_install_version, plugin.version),
+            ) { installUi(plugin) }
+            !sameVersion -> MarketDetailAction(
+                getString(R.string.market_action_install_version, plugin.version),
+            ) { installUi(plugin) }
             installed.enabled -> MarketDetailAction(getString(R.string.market_action_open)) { openUiPlugin(installed) }
             else -> null
         }
@@ -390,7 +403,8 @@ class FragmentPluginMarket :
                 add("已安装 v${installed.version}")
             }
         }
-        MarketDetailSheet(
+        lateinit var sheet: MarketDetailSheet
+        sheet = MarketDetailSheet(
             requireContext(),
             MarketDetailModel(
                 title = plugin.name,
@@ -412,26 +426,58 @@ class FragmentPluginMarket :
                 primaryLabel = primary?.label,
                 primary = primary?.onClick,
                 secondary = secondary,
+                versionOptions = alternatives.map { it.version },
+                selectedVersion = plugin.version,
+                onVersionSelected = { version ->
+                    alternatives.firstOrNull { it.version == version }?.let {
+                        sheet.dismiss()
+                        showUiDetail(item.copy(plugin = it))
+                    }
+                },
             ),
-        ).show()
+        )
+        sheet.show()
     }
 
     private fun showDexDetail(item: MarketItem.Dex) {
         val entry = item.item.entry
+        val family = entry.family ?: entry.id
+        val alternatives = if (entry.versionOptions().size > 1) {
+            entry.versionOptions().map { entry.forVersion(it) }
+        } else {
+            latestDex
+                .map { it.entry }
+                .filter { (it.family ?: it.id) == family }
+                .ifEmpty { listOf(entry) }
+        }
+        val latestVersion = alternatives.maxWithOrNull { a, b ->
+            PluginVersion.compare(a.version, b.version)
+        }?.version
         val verified = viewModel.isVerified(entry.id)
         val secondary = buildList {
             if (item.item.installed) {
                 add(MarketDetailAction(getString(R.string.market_action_uninstall)) { confirmUninstallDex(entry) })
             }
         }
-        val primary = when {
-            !item.item.installed -> MarketDetailAction(getString(R.string.market_action_install)) {
+        val primary = when (
+            MarketVersionAction.resolve(
+                installed = item.item.installed,
+                selectedVersion = entry.version,
+                latestVersion = latestVersion,
+                updateAvailable = item.item.update,
+            )
+        ) {
+            MarketVersionAction.Kind.INSTALL -> MarketDetailAction(
+                getString(R.string.market_action_install_version, entry.version),
+            ) {
                 installDex(entry)
             }
-            item.item.update -> MarketDetailAction(getString(R.string.market_action_update)) {
+            MarketVersionAction.Kind.UPDATE -> MarketDetailAction(
+                getString(R.string.market_action_update),
+            ) {
                 installDex(entry)
             }
-            else -> null
+            MarketVersionAction.Kind.NONE -> null
         }
         val meta = buildList {
             add("API ${entry.apiVersion}")
@@ -440,7 +486,8 @@ class FragmentPluginMarket :
             entry.author?.takeIf { it.isNotBlank() }?.let { add(getString(R.string.market_detail_author, it)) }
             entry.updatedAt?.takeIf { it.isNotBlank() }?.let { add(getString(R.string.market_detail_updated, it)) }
         }
-        MarketDetailSheet(
+        lateinit var sheet: MarketDetailSheet
+        sheet = MarketDetailSheet(
             requireContext(),
             MarketDetailModel(
                 title = entry.name,
@@ -462,12 +509,25 @@ class FragmentPluginMarket :
                 primaryLabel = primary?.label,
                 primary = primary?.onClick,
                 secondary = secondary,
+                versionOptions = alternatives.map { it.version },
+                selectedVersion = entry.version,
+                onVersionSelected = { version ->
+                    alternatives.firstOrNull { it.version == version }?.let {
+                        sheet.dismiss()
+                        showDexDetail(item.copy(item = item.item.copy(entry = it)))
+                    }
+                },
             ),
-        ).show()
+        )
+        sheet.show()
     }
 
     private fun showPresetDetail(item: MarketItem.Preset) {
         val preset = item.preset
+        val family = preset.familyId()
+        val alternatives = latestPresets
+            .filter { it.familyId() == family }
+            .ifEmpty { listOf(preset) }
         val builtin = latestBuiltin.associateBy { it.id }
         val uiInstalled = latestUiInstalled.associateBy { it.id }
         val uiAvailable = latestUiAvailable.associateBy { it.id }
@@ -522,7 +582,8 @@ class FragmentPluginMarket :
                 ),
             ) { viewModel.applyPreset(preset) }
         }
-        MarketDetailSheet(
+        lateinit var sheet: MarketDetailSheet
+        sheet = MarketDetailSheet(
             requireContext(),
             MarketDetailModel(
                 title = preset.name,
@@ -538,8 +599,22 @@ class FragmentPluginMarket :
                 primaryLabel = primary?.label,
                 primary = primary?.onClick,
                 secondary = secondary,
+                versionOptions = alternatives.map { it.version },
+                selectedVersion = preset.version,
+                onVersionSelected = { version ->
+                    alternatives.firstOrNull { it.version == version }?.let {
+                        sheet.dismiss()
+                        showPresetDetail(
+                            item.copy(
+                                preset = it,
+                                active = it.id == latestActivePresetId,
+                            ),
+                        )
+                    }
+                },
             ),
-        ).show()
+        )
+        sheet.show()
     }
 
     private fun showBuiltinDetail(item: MarketItem.Builtin) {

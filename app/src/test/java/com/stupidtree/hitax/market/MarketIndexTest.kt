@@ -111,6 +111,38 @@ class MarketIndexTest {
     }
 
     @Test
+    fun parsesFamilyAndPluginVersions() {
+        val index = gson.fromJson(
+            """
+            {"plugins":[{
+              "id":"a","name":"A","version":"1.1","apiVersion":7,
+              "url":"new.dex","sha256":"new","entryClass":"A",
+              "family":"a",
+              "versions":[
+                {"version":"1.0","url":"old.dex","sha256":"old","apiVersion":7,
+                 "entryClass":"A"},
+                {"version":"1.1","url":"new.dex","sha256":"new","apiVersion":8,
+                 "entryClass":"A8"}
+              ]
+            }],
+            "presets":[{
+              "id":"p.331","name":"P","version":"3.3.1",
+              "family":"p","plugins":[]
+            }]}
+            """.trimIndent(),
+            MarketIndex::class.java,
+        )
+
+        val plugin = index.plugins.single()
+        assertEquals("a", plugin.family)
+        assertEquals(2, plugin.versionOptions().size)
+        val old = plugin.forVersion(plugin.versionOptions().first())
+        assertEquals("old.dex", old.url)
+        assertEquals(7, old.apiVersion)
+        assertEquals("p", index.presets!!.single().familyId())
+    }
+
+    @Test
     fun emptyObjectYieldsNoPlugins() {
         val index = gson.fromJson("{}", MarketIndex::class.java)
 

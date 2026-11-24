@@ -505,7 +505,7 @@ class ReActToolRegistry {
                         ToolParam("author_name", description = "作者名，默认匿名"),
                     ),
                     timeoutMs = 30_000,
-                    tool = SubmitReviewTool().asSuspending(),
+                    tool = SubmitReviewTool(),
                 ),
             )
         }

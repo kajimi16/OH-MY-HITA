@@ -93,6 +93,9 @@ object ShellChatService {
         history: List<ChatMessage>,
         application: Application,
         timetableId: String?,
+        confirmationGate: com.stupidtree.hitax.agent.tools.ConfirmationGate =
+            com.stupidtree.hitax.agent.tools.ConfirmationGate.unavailable,
+        requireWriteConfirmation: Boolean = false,
         onTrace: (AgentTraceEvent) -> Unit = {},
     ): LlmChatResult = withContext(Dispatchers.IO) {
         val userMessage = history.lastOrNull { it.role == "user" }?.content.orEmpty()
@@ -131,6 +134,8 @@ object ShellChatService {
                 application = application,
                 timetableId = timetableId,
                 onTrace = onTrace,
+                confirmationGate = confirmationGate,
+                requireWriteConfirmation = requireWriteConfirmation,
             )
             val execution = toolRegistry.execute(parsed.action, toolInput, onTrace)
             if (!execution.error) cards += execution.cards

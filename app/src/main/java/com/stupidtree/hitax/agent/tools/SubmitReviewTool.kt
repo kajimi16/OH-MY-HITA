@@ -6,8 +6,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class SubmitReviewTool : ReActTool {
-    override fun execute(input: ReActToolInput): String {
+class SubmitReviewTool : SuspendingReActTool {
+    override suspend fun execute(input: ReActToolInput): String {
         val courseCode = input.arguments.stringArg("course_code").orEmpty()
         val content = input.arguments.stringArg("content").orEmpty()
         val authorName = input.arguments.stringArg("author_name").orEmpty().ifBlank { "匿名" }
@@ -57,6 +57,25 @@ class SubmitReviewTool : ReActTool {
 
         val preview = PrServerClient.previewSync(courseCode, ops)
         if (!preview.ok) return "评价预览失败：${preview.error?.message ?: "未知错误"}"
+        val decision = if (input.requireWriteConfirmation) {
+            WriteConfirmation.decide(
+                gate = input.confirmationGate,
+                request = ConfirmationRequest(
+                    title = "确认提交课程评价",
+                    detailLines = buildList {
+                        add("课程代码：$courseCode")
+                        add("类型：$reviewType")
+                        add("内容：${content.take(160)}")
+                    },
+                    confirmLabel = "提交",
+                ),
+                pendingText = "提交评价需要用户确认；本次尚未提交。",
+                cancelledText = "用户已取消，本次未提交评价。",
+            )
+        } else {
+            WriteConfirmation.Decision.Proceed
+        }
+        if (decision is WriteConfirmation.Decision.Halt) return decision.text
         val result = PrServerClient.submitSync(courseCode, ops)
         if (result.ok) {
             val url = result.data?.pr?.url

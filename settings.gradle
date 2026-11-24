@@ -8,6 +8,7 @@ include ':model'
 include ':plugin-hita'
 include ':sample-plugin'
 include ':plugin-eas',':plugin-resource',':plugin-user'
+include ':plugin-todo'
 include ':plugin-apk-sample',':plugin-ui-sample'
 include ':legacy-hitalite'
 dependencyResolutionManagement {
@@ -21,3 +22,9 @@ dependencyResolutionManagement {
         maven { url = uri("https://repo.grails.org/grails/core") }
     }
 }
+
+include ':plugin-campus'
+
+include ':plugin-todo-ui'
+
+include ':plugin-campus-ui'

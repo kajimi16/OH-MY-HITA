@@ -1,0 +1,35 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
+
+android {
+    defaultConfig {
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 35
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions { jvmTarget = '1.8' }
+    namespace 'com.stupidtree.hita.plugin.campus'
+}
+
+// 校园扩展数据层：四个门户的网络取数与解析。
+// 只编译在 :api 上；运行时由宿主提供 api/model 与 AndroidX/协程/OkHttp。
+dependencies {
+    compileOnly project(':api')
+    compileOnly project(':model')
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation project(':api')
+    // Android 的 org.json 在 JVM 单测里是空桩；这里提供可执行的实现。
+    testImplementation 'org.json:json:20240303'
+}
+
+apply from: rootProject.file('gradle/runtime-plugin-dex.gradle')

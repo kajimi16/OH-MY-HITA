@@ -341,6 +341,8 @@ class HApplication : Application() {
         
         // 初始化课程提醒（根据用户设置自动调度或取消）
         CourseReminderScheduler.autoSchedule(this)
+        // 考试提醒跟随课程提醒总开关；3.3.x 的考试数据来自 ExamService。
+        com.stupidtree.hitax.data.work.ExamReminderScheduler.autoSchedule(this)
     }
 
     /**

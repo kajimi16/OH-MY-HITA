@@ -25,30 +25,48 @@ class CourseReminderWorker(appContext: Context, params: WorkerParameters) : Work
 
     override fun doWork(): Result {
         val store = CourseReminderStore.getInstance(applicationContext)
-        if (!store.isEnabled()) return Result.success()
+        val startEnabled = store.isEnabled()
+        val endEnabled = store.isEndReminderEnabled()
+        if (!startEnabled && !endEnabled) return Result.success()
 
         val minutes = store.getReminderMinutes()
         val app = applicationContext as? Application ?: return Result.success()
         val timetableRepo = HitaServices.timetable(app)
 
         val now = System.currentTimeMillis()
-        val windowEnd = now + minutes * 60 * 1000
+        val checkEnd = now + 15L * 60 * 1000
 
         // 获取今天的事件
         val todayEvents = timetableRepo.getTodayEventsSync()
-        val upcomingEvents = todayEvents.filter { event ->
-            // 找到在提醒窗口内且尚未开始的课程
-            event.from.time in (now + 1) until windowEnd
-        }
 
         // 获取已发送提醒的课程 ID（使用 SharedPreferences 简单存储）
         val sentReminders = getSentReminders()
-        val newEvents = upcomingEvents.filter { it.id !in sentReminders }
+        val newEvents = if (startEnabled) {
+            CourseReminderSchedule.startDue(todayEvents, now, minutes, sentReminders)
+        } else {
+            emptyList()
+        }
 
-        if (newEvents.isNotEmpty()) {
+        val endingEvents = if (endEnabled) {
+            CourseReminderSchedule.endDue(
+                events = todayEvents,
+                now = now,
+                leadMinutes = store.getEndReminderMinutes(),
+                windowEnd = checkEnd,
+                sent = sentReminders,
+            )
+        } else {
+            emptyList()
+        }
+
+        if (newEvents.isNotEmpty() || endingEvents.isNotEmpty()) {
             newEvents.forEach { sendNotification(it) }
-            // 记录已发送提醒
-            saveSentReminders(sentReminders + newEvents.map { it.id })
+            endingEvents.forEach { sendEndNotification(it, store.getEndReminderMinutes()) }
+            saveSentReminders(
+                sentReminders +
+                    CourseReminderSchedule.startKeys(newEvents) +
+                    CourseReminderSchedule.endKeys(endingEvents),
+            )
         }
 
         return Result.success()
@@ -93,6 +111,41 @@ class CourseReminderWorker(appContext: Context, params: WorkerParameters) : Work
         manager.notify(event.id.hashCode(), notification)
     }
 
+    private fun sendEndNotification(
+        event: com.stupidtree.hitax.data.model.timetable.EventItem,
+        minutes: Int,
+    ) {
+        val manager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        ensureChannel(manager)
+
+        val intent = Intent(applicationContext, MainActivity::class.java).apply {
+            flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val requestCode = ("end:" + event.id).hashCode()
+        val pendingIntent = PendingIntent.getActivity(
+            applicationContext,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        val content = buildString {
+            append(event.name)
+            if (!event.place.isNullOrBlank()) append(" @ ${event.place}")
+            append(" 将在 ${minutes}分钟后结束")
+        }
+        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_nav_today)
+            .setContentTitle("⏰ 即将下课")
+            .setContentText(content)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .build()
+        manager.notify(requestCode, notification)
+    }
+
     private fun ensureChannel(manager: NotificationManager) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -100,7 +153,7 @@ class CourseReminderWorker(appContext: Context, params: WorkerParameters) : Work
                 "课程提醒",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "在课程开始前提醒"
+                description = "在课程开始前或结束前提醒"
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 500, 200, 500)
             }

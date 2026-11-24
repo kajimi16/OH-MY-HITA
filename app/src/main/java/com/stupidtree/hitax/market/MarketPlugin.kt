@@ -1,5 +1,21 @@
 package com.stupidtree.hitax.market
 
+data class MarketVersion(
+    val version: String,
+    val url: String = "",
+    val sha256: String = "",
+    val size: Long = 0L,
+    val minHostApi: Int? = null,
+    val maxHostApi: Int? = null,
+    val apiAbi: String? = null,
+    val changelog: String? = null,
+    val apiVersion: Int? = null,
+    val entryClass: String? = null,
+    val minSdk: Int? = null,
+    val requires: Set<String>? = null,
+    val provides: Set<String>? = null,
+)
+
 /**
  * 市场索引里的一条插件记录。
  *
@@ -39,7 +55,47 @@ data class MarketPlugin(
     val updatedAt: String? = null,
     val downloads: Long? = null,
     val activeUsers: Long? = null,
-)
+    /** 同一插件的发行族；缺省等于 id。 */
+    val family: String? = null,
+    /** 可安装版本；缺省时只有顶层版本。 */
+    val versions: List<MarketVersion>? = null,
+) {
+    fun versionOptions(): List<MarketVersion> =
+        versions?.takeIf { it.isNotEmpty() }
+            ?: listOf(
+                MarketVersion(
+                    version = version,
+                    url = url,
+                    sha256 = sha256,
+                    size = size,
+                    minHostApi = minHostApi,
+                    maxHostApi = maxHostApi,
+                    apiAbi = apiAbi,
+                    changelog = changelog,
+                    apiVersion = apiVersion,
+                    entryClass = entryClass,
+                    minSdk = minSdk,
+                    requires = requires,
+                    provides = provides,
+                ),
+            )
+
+    fun forVersion(selected: MarketVersion): MarketPlugin = copy(
+        version = selected.version,
+        url = selected.url,
+        sha256 = selected.sha256,
+        size = selected.size,
+        minHostApi = selected.minHostApi,
+        maxHostApi = selected.maxHostApi,
+        apiAbi = selected.apiAbi,
+        changelog = selected.changelog ?: changelog,
+        apiVersion = selected.apiVersion ?: apiVersion,
+        entryClass = selected.entryClass ?: entryClass,
+        minSdk = selected.minSdk ?: minSdk,
+        requires = selected.requires ?: requires ?: emptySet(),
+        provides = selected.provides ?: provides ?: emptySet(),
+    )
+}
 
 /** 市场里的运行时界面插件（独立 APK + Compose 容器）。 */
 data class UiMarketPlugin(
@@ -60,7 +116,31 @@ data class UiMarketPlugin(
     val updatedAt: String? = null,
     val downloads: Long? = null,
     val activeUsers: Long? = null,
-)
+    val family: String? = null,
+    val versions: List<MarketVersion>? = null,
+) {
+    fun versionOptions(): List<MarketVersion> =
+        versions?.takeIf { it.isNotEmpty() }
+            ?: listOf(
+                MarketVersion(
+                    version = version,
+                    url = url,
+                    sha256 = sha256,
+                    size = size,
+                    minHostApi = minHostApi,
+                    changelog = changelog,
+                ),
+            )
+
+    fun forVersion(selected: MarketVersion): UiMarketPlugin = copy(
+        version = selected.version,
+        url = selected.url,
+        sha256 = selected.sha256,
+        size = selected.size,
+        minHostApi = selected.minHostApi,
+        changelog = selected.changelog ?: changelog,
+    )
+}
 
 /** 服务端聚合的插件人数。 */
 data class MarketStat(val downloads: Long = 0, val activeUsers: Long = 0)
@@ -124,8 +204,11 @@ data class MarketPreset(
     val migration: List<String>? = null,
     val tags: List<String>? = null,
     val author: String? = null,
+    /** 同一发行版的多个版本共用 family；缺省等于 id。 */
+    val family: String? = null,
 ) {
     fun refs(): List<PresetPluginRef> = plugins.orEmpty()
+    fun familyId(): String = family?.takeIf { it.isNotBlank() } ?: id
 }
 
 data class MarketIndex(

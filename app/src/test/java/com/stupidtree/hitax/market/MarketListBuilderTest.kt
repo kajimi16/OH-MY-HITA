@@ -114,4 +114,50 @@ class MarketListBuilderTest {
         assertEquals(MarketKind.ALL, installed.kind)
         assertEquals(MarketStatus.ALL, installed.status)
     }
+
+    @Test
+    fun presetsInOneFamilyRenderOnceAndPreferActiveVersion() {
+        val older = preset.copy(id = "p.312", version = "3.1.2", family = "hita-android")
+        val newer = preset.copy(id = "p.331", version = "3.3.1", family = "hita-android")
+        val state = MarketState(
+            presets = listOf(older, newer),
+            activePresetId = "p.312",
+        )
+
+        val rows = MarketListBuilder.build(MarketTab.EXPLORE, MarketFilters(), "", state)
+
+        val rowsPreset = rows.filterIsInstance<MarketItem.Preset>()
+        assertEquals(1, rowsPreset.size)
+        assertEquals("p.312", rowsPreset.single().preset.id)
+        assertEquals(true, rowsPreset.single().active)
+
+        val noActive = MarketListBuilder.build(
+            MarketTab.EXPLORE,
+            MarketFilters(),
+            "",
+            state.copy(activePresetId = null),
+        )
+        assertEquals(
+            "p.331",
+            noActive.filterIsInstance<MarketItem.Preset>().single().preset.id,
+        )
+    }
+
+    @Test
+    fun pluginVersionSelectionKeepsArtifactAndDisplayFields() {
+        val plugin = uiAvailable.copy(
+            family = "ui.course",
+            versions = listOf(
+                MarketVersion("1.0.0", "old.apk", "1".repeat(64), size = 10),
+                MarketVersion("1.1.0", "new.apk", "2".repeat(64), size = 20, changelog = "修复"),
+            ),
+        )
+        val old = plugin.forVersion(plugin.versionOptions().first())
+
+        assertEquals("1.0.0", old.version)
+        assertEquals("old.apk", old.url)
+        assertEquals("1".repeat(64), old.sha256)
+        assertEquals("课程资源", old.name)
+        assertEquals(2, plugin.versionOptions().size)
+    }
 }

@@ -79,6 +79,8 @@ class MarketAdapter(
         binding.presetName.text = preset.name
         binding.presetMeta.text = buildString {
             append(binding.root.context.getString(R.string.market_kind_preset))
+            append(" · v")
+            append(preset.version)
             append(" · ")
             append(preset.refs().size)
             append(" 个插件")

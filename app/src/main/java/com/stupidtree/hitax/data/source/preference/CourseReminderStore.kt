@@ -38,11 +38,29 @@ class CourseReminderStore(private val context: Context) {
         preference.edit().putInt(KEY_MINUTES, minutes).apply()
     }
 
+    /** 3.3.x 下课前提醒；旧版本默认关闭，保持原行为。 */
+    fun isEndReminderEnabled(): Boolean =
+        preference.getBoolean(KEY_END_ENABLED, false)
+
+    fun setEndReminderEnabled(enabled: Boolean) {
+        preference.edit().putBoolean(KEY_END_ENABLED, enabled).apply()
+    }
+
+    fun getEndReminderMinutes(): Int =
+        preference.getInt(KEY_END_MINUTES, DEFAULT_END_MINUTES)
+
+    fun setEndReminderMinutes(minutes: Int) {
+        preference.edit().putInt(KEY_END_MINUTES, minutes.coerceIn(1, 60)).apply()
+    }
+
     companion object {
         private const val SP_NAME = "course_reminder"
         private const val KEY_ENABLED = "enabled"
         private const val KEY_MINUTES = "minutes"
+        private const val KEY_END_ENABLED = "end_enabled"
+        private const val KEY_END_MINUTES = "end_minutes"
         private const val DEFAULT_MINUTES = 10
+        private const val DEFAULT_END_MINUTES = 5
 
         @Volatile
         private var instance: CourseReminderStore? = null

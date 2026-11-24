@@ -1,0 +1,37 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+android {
+    namespace 'com.stupidtree.hita.plugin.todoui'
+    defaultConfig {
+        applicationId "com.stupidtree.hita.plugin.todoui"
+        minSdkVersion 23
+        targetSdk 33
+        compileSdk 36
+        versionCode 1
+        versionName "0.1.0"
+    }
+    buildFeatures {
+        compose = true
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions { jvmTarget = '1.8' }
+}
+
+// 运行时界面插件：类与 Compose 全部由宿主提供，插件只带自己的字节码与 plugin.json。
+dependencies {
+    compileOnly project(':api')
+    compileOnly "androidx.compose.runtime:runtime:1.9.4"
+    compileOnly "androidx.compose.ui:ui:1.9.4"
+    compileOnly "androidx.compose.foundation:foundation:1.9.4"
+    compileOnly "androidx.compose.material3:material3:1.4.0"
+    compileOnly "androidx.compose.runtime:runtime-livedata:1.9.4"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+}

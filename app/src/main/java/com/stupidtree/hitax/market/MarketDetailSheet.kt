@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -36,6 +37,9 @@ data class MarketDetailModel(
     val primaryEnabled: Boolean = true,
     val primary: (() -> Unit)? = null,
     val secondary: List<MarketDetailAction> = emptyList(),
+    val versionOptions: List<String> = emptyList(),
+    val selectedVersion: String? = null,
+    val onVersionSelected: ((String) -> Unit)? = null,
 )
 
 /**
@@ -69,6 +73,47 @@ class MarketDetailSheet(
         binding.detailKind.text = model.kind
         binding.detailTrust.text = model.trustLabel.orEmpty()
         binding.detailTrust.visibility = if (model.trustLabel.isNullOrBlank()) View.GONE else View.VISIBLE
+
+        val versionOptions = model.versionOptions.distinct()
+        binding.detailVersionSelector.visibility =
+            if (versionOptions.size > 1 && model.onVersionSelected != null) View.VISIBLE else View.GONE
+        binding.detailVersionOptions.removeAllViews()
+        versionOptions.forEach { version ->
+            val selected = version == model.selectedVersion
+            val chip = TextView(context).apply {
+                text = context.getString(R.string.market_detail_version, version)
+                textSize = 13f
+                gravity = android.view.Gravity.CENTER
+                setPadding(dp(12), dp(7), dp(12), dp(7))
+                setTextColor(
+                    MaterialColors.getColor(
+                        this,
+                        if (selected) R.attr.textColorPrimary else R.attr.colorAccent,
+                    ),
+                )
+                background = if (selected) {
+                    val accent = MaterialColors.getColor(this, R.attr.colorAccent)
+                    android.graphics.drawable.GradientDrawable().apply {
+                        cornerRadius = dp(8).toFloat()
+                        setColor(
+                            androidx.core.graphics.ColorUtils.setAlphaComponent(accent, 0x33),
+                        )
+                    }
+                } else {
+                    ContextCompat.getDrawable(context, R.drawable.bg_market_chip)
+                }
+                isClickable = true
+                isFocusable = true
+                setOnClickListener {
+                    if (!selected) model.onVersionSelected?.invoke(version)
+                }
+            }
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { marginEnd = dp(8) }
+            binding.detailVersionOptions.addView(chip, params)
+        }
 
         MarketLogoBinder.bind(
             binding.detailLogo,
