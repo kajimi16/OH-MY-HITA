@@ -26,6 +26,10 @@ class EasCorePlugin : Plugin {
         ctx.provide(EasAuthService.KEY, EasAuthImpl(app))
     }
 
+    override fun uninstall(ctx: PluginContext) {
+        // 服务注册由内核统一回滚；这里没有额外资源需要手动释放。
+    }
+
     override fun purgeData() = Unit
 }
 
