@@ -153,28 +153,20 @@ replica-cakeni/
 - `plugin-hita` 已有 `TimetableEventDedupe`，键包含 name/place/teacher/from/to/fromNumber/lastNumber。
 - 复刻 UI 不做二次去重。当前 fixture 仍会出现两张同名卡，来源(导入/时间戳差异)尚未确认;不在 UI 层掩盖。
 
-## 短信验证码无头 WebView 方案评估
+## 短信验证码 WebView 方案评估
 
 目标：隐藏 WebView 加载统一认证页，用外部 Compose 输入框填写账号/密码/短信码，再通过 JS 注入完成点击与提交，最后捕获 cookie 建立 T1 会话。
 
-调研结论：**暂不可行，未实现**。
+结论：**外部输入桥未实现；当前采用可见 WebView。**
 
-证据（模拟器，未输入凭据）：
-- `https://trust.hitsz.edu.cn/portal/...` 页面 DOM 返回 `inputs=[]`、`buttons=[1 个空 A]`、`iframes=[]`、`title="Loading..."`。
-- 页面脚本反复探测 `localhost.sangfor.com.cn:54631/54642/54653` 与 `127.0.0.1:54630/54641/54652`，均失败；疑似 aTrust 客户端检测未通过。
-- WebView 无法进入账号表单，外部输入无 DOM 目标可填，无头套壳无法完成短信步骤。
+证据：
+- 可见 WebView 能加载 aTrust 页面，并可导航到学校统一身份认证账号表单。
+- 但“隐藏 WebView + 外部输入转接”没有在设备上跑通；aTrust 的客户端检测和页面状态仍需真实环境验证。
+- 没有提交账号、密码、验证码，没有消耗登录机会。
 
-设计保留（未来若页面暴露标准表单）：
-- 可见/离屏 WebView + 外部输入字段。
-- 只注入 `input`/`change`/`click`,不读取密码；不写日志、不落盘。
-- 通过 DOM 状态机识别“账号 → 短信 → 成功”，每一步只在用户显式点击后提交。
-- 成功后 `EasAuthService.loginWithWebSession(cookies, base)`。
-- 必须有本地 mock 页面测试，再对真实门户验证；禁止自动点击发送验证码/提交。
-
-### 无头桥接的安全约束（若未来实现）
-
-- 只做 fill-only relay：外部输入后只填字段/点“发送验证码”，不自动提交；页面提交只由用户显式点击触发。
-- 密码与验证码通过 `JSONObject.quote` 作为参数传入 JS，不拼字符串、不写日志、不落盘。
-- DOM 探测只读取结构字段（tag/type/name/id/placeholder），禁止读取或记录 `value`。
-- 选择器必须用真实页面实时确认；先可见 WebView 验证，再考虑离屏/无头。
-- 不复制其他项目的注入脚本；脚本按本站点 DOM 编写，并有本地 mock 页面测试。
+设计约束（未来若实现）：
+- 只做 fill-only relay：外部输入后只填字段/点“发送验证码”，不自动提交。
+- 密码与验证码不写日志、不落盘；传参必须转义。
+- 先可见 WebView 验证，再考虑离屏/无头。
+- 选择器按真实页面确认，并有本地 mock 页面测试。
+- 不复制其他项目的注入脚本。
