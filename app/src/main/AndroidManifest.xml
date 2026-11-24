@@ -128,6 +128,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".shell.CakeniReplicaActivity"
+            android:exported="false"
+            android:theme="@style/AppTheme" />
+        <activity
             android:name=".market.PluginMarketActivity"
             android:exported="false"
             android:theme="@style/AppTheme" />

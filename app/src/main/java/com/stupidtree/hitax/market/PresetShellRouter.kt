@@ -26,14 +26,22 @@ import com.stupidtree.hitax.shell.PresetShellActivity
 object PresetShellRouter {
 
     const val HITA_LITE_SHELL = "hita-lite-2.0"
+    const val CAKENI_REPLICA_SHELL = "hita-replica-cakeni"
 
     fun intent(context: Context, shell: String): Intent =
-        if (shell == HITA_LITE_SHELL) {
-            bindLiteServices(context)
-            Intent(context, HitaLiteActivity::class.java)
-        } else {
-            Intent(context, PresetShellActivity::class.java)
-                .putExtra(PresetShellActivity.EXTRA_SHELL_ID, shell)
+        when (shell) {
+            HITA_LITE_SHELL -> {
+                bindLiteServices(context)
+                Intent(context, HitaLiteActivity::class.java)
+            }
+            CAKENI_REPLICA_SHELL -> Intent(
+                context,
+                com.stupidtree.hitax.shell.CakeniReplicaActivity::class.java,
+            )
+            else -> {
+                Intent(context, PresetShellActivity::class.java)
+                    .putExtra(PresetShellActivity.EXTRA_SHELL_ID, shell)
+            }
         }
 
     fun bindLiteServices(context: Context) {

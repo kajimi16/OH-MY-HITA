@@ -107,6 +107,7 @@ jobs:
           :plugin-resource:testDebugUnitTest :theta:testDebugUnitTest
           :plugin-campus:testDebugUnitTest :plugin-todo:testDebugUnitTest
           :plugin-campus-ui:testDebugUnitTest :plugin-todo-ui:testDebugUnitTest
+          :replica-cakeni:testDebugUnitTest
           :component:testDebugUnitTest :style:testDebugUnitTest :user:testDebugUnitTest
           :app:lintDebug
 

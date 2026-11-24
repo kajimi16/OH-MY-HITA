@@ -28,3 +28,6 @@ include ':plugin-campus'
 include ':plugin-todo-ui'
 
 include ':plugin-campus-ui'
+
+
+include ':replica-cakeni'
