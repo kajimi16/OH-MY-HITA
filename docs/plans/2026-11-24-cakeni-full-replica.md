@@ -40,9 +40,10 @@ cakeni/CourseSchedule 为 MIT。允许参考和改写其代码，但必须保留
 - 不新增待办（HITA 的 TodoService 没有创建接口）。
 
 ### 导入
-- 复用 `HostUiService.openImportTimetable`。
-- 提供教务导入、ICS 导入、插件市场入口。
-- 不重写解析器。
+- 页面顶部是「教务账号」卡：未登录显示「登录教务」主按钮，导入按钮禁用；已登录显示账号、主按钮「导入课表」和「重新登录」。
+- 「登录教务」打开 cakeni 风格 `ModalBottomSheet`，使用 `EasAuthService.login(username, password)`；密码只保存在 `remember`，不进 SavedState、不写 SharedPreferences。
+- 「导入课表」调用 `EasService.openImportTimetable(activity, autoImport = true)`，不重写解析器。
+- ICS/文件导入继续走宿主导入入口；插件市场入口保留。
 
 ### 设置
 - 深色/浅色/跟随系统。

@@ -9,24 +9,45 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Login
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,19 +55,37 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import com.stupidtree.component.data.DataState
+import com.stupidtree.hita.api.EasAuthService
+import com.stupidtree.hita.api.EasService
 import com.stupidtree.hitax.replica.cakeni.CakeniDimens
 
 /**
- * 导入页：教务系统导入主入口、文件导入说明、插件市场入口。
+ * 导入页：教务账号、API 登录、导入课表、文件导入说明、插件市场。
  *
- * 前置条件：无。两张回调均由宿主 Shell 提供。
- * 后置条件：主卡片触发 [onImport]；市场卡片触发 [onOpenMarket]；文件卡片只做说明，不可点击。
- * 不变式：本页不发起网络请求，不写入课表数据。
+ * 前置条件：easAuth/easService 可为空；回调由宿主 Shell 提供。
+ * 后置条件：登录只调用 EasAuthService，不保存密码；导入调用宿主 EasService。
+ * 不变式：本页不直接发网络请求，不写课表数据库。
  */
 @Composable
-fun ImportScreen(onImport: () -> Unit, onOpenMarket: () -> Unit) {
+fun ImportScreen(
+    easAuth: EasAuthService?,
+    easService: EasService?,
+    onImport: () -> Unit,
+    onOpenMarket: () -> Unit,
+) {
+    var loggedIn by remember(easAuth) { mutableStateOf(easAuth?.isLogin() == true) }
+    var accountName by remember(easAuth) { mutableStateOf(easAuth?.accountName()) }
+    var accountSubtitle by remember(easAuth) { mutableStateOf(easAuth?.accountSubtitle()) }
+    var showLogin by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -60,72 +99,248 @@ fun ImportScreen(onImport: () -> Unit, onOpenMarket: () -> Unit) {
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
         )
-        Spacer(Modifier.size(6.dp))
+        Spacer(Modifier.height(6.dp))
         Text(
-            text = "把教务系统或课表文件里的课程并入当前课表。",
+            text = "先登录教务账号，再从教务系统导入本学期课表。",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(Modifier.size(20.dp))
+        Spacer(Modifier.height(20.dp))
 
-        AcademicImportCard(onImport = onImport)
+        AcademicAccountCard(
+            loggedIn = loggedIn,
+            accountName = accountName,
+            accountSubtitle = accountSubtitle,
+            canLogin = easAuth != null,
+            canImport = easService != null && loggedIn,
+            onLogin = { showLogin = true },
+            onImport = onImport,
+        )
 
-        Spacer(Modifier.size(22.dp))
+        Spacer(Modifier.height(22.dp))
         SectionLabel("其他导入方式")
-        Spacer(Modifier.size(10.dp))
+        Spacer(Modifier.height(10.dp))
         FileImportCard()
 
-        Spacer(Modifier.size(22.dp))
+        Spacer(Modifier.height(22.dp))
         SectionLabel("扩展")
-        Spacer(Modifier.size(10.dp))
+        Spacer(Modifier.height(10.dp))
         MarketEntryCard(onOpenMarket = onOpenMarket)
 
-        Spacer(Modifier.size(22.dp))
+        Spacer(Modifier.height(22.dp))
         ImportTipCard()
+    }
+
+    if (showLogin) {
+        AcademicLoginSheet(
+            auth = easAuth,
+            onDismiss = { showLogin = false },
+            onSuccess = {
+                loggedIn = easAuth?.isLogin() == true
+                accountName = easAuth?.accountName()
+                accountSubtitle = easAuth?.accountSubtitle()
+                showLogin = false
+            },
+        )
     }
 }
 
 @Composable
-private fun AcademicImportCard(onImport: () -> Unit) {
+private fun AcademicAccountCard(
+    loggedIn: Boolean,
+    accountName: String?,
+    accountSubtitle: String?,
+    canLogin: Boolean,
+    canImport: Boolean,
+    onLogin: () -> Unit,
+    onImport: () -> Unit,
+) {
     Surface(
-        onClick = onImport,
-        modifier = Modifier.fillMaxWidth().heightIn(min = 128.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 170.dp),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.primaryContainer,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)),
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconBadge(
-                icon = Icons.Outlined.School,
-                container = MaterialTheme.colorScheme.primary,
-                tint = MaterialTheme.colorScheme.onPrimary,
-                size = 58.dp,
-                iconSize = 30.dp,
-            )
-            Column(
-                modifier = Modifier.weight(1f).padding(start = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                Text(
-                    text = "教务系统导入",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+        Column(Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconBadge(
+                    icon = if (loggedIn) Icons.Outlined.CheckCircle else Icons.Outlined.School,
+                    container = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    size = 56.dp,
+                    iconSize = 28.dp,
                 )
+                Column(Modifier.weight(1f).padding(start = 14.dp)) {
+                    Text(
+                        text = "教务账号",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = when {
+                            !canLogin -> "教务服务未安装"
+                            loggedIn -> accountName?.takeIf { it.isNotBlank() } ?: "已登录"
+                            else -> "API 登录后可直接导入课表"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.76f),
+                    )
+                    accountSubtitle?.takeIf { it.isNotBlank() }?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                        )
+                    }
+                }
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = if (loggedIn) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+                    contentColor = if (loggedIn) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.onPrimaryContainer,
+                ) {
+                    Text(
+                        text = if (loggedIn) "已登录" else "未登录",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (loggedIn) {
+                    Button(
+                        onClick = onImport,
+                        enabled = canImport,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                    ) {
+                        Icon(Icons.Outlined.CloudDownload, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.size(7.dp))
+                        Text("导入课表")
+                    }
+                    OutlinedButton(
+                        onClick = onLogin,
+                        enabled = canLogin,
+                        shape = RoundedCornerShape(14.dp),
+                    ) { Text("重新登录") }
+                } else {
+                    Button(
+                        onClick = onLogin,
+                        enabled = canLogin,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(14.dp),
+                    ) {
+                        Icon(Icons.Outlined.Login, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.size(7.dp))
+                        Text("登录教务")
+                    }
+                    OutlinedButton(
+                        onClick = onImport,
+                        enabled = canImport,
+                        shape = RoundedCornerShape(14.dp),
+                    ) { Text("导入课表") }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AcademicLoginSheet(
+    auth: EasAuthService?,
+    onDismiss: () -> Unit,
+    onSuccess: () -> Unit,
+) {
+    var username by rememberSaveable { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var call by remember { mutableStateOf<LiveData<DataState<Boolean>>?>(null) }
+    val empty = remember { MutableLiveData<DataState<Boolean>>() }
+    val state by (call ?: empty).observeAsState()
+    val busy = call != null && (state == null || state?.state == DataState.STATE.NOTHING)
+
+    LaunchedEffect(state) {
+        if (state?.state == DataState.STATE.SUCCESS && state?.data == true) {
+            password = ""
+            onSuccess()
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = "登录教务",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = "使用学校教务账号登录。密码只用于本次 API 登录，不会保存到本页。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            OutlinedTextField(
+                value = username,
+                onValueChange = { username = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text("学号 / 账号") },
+                leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = null) },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                shape = RoundedCornerShape(14.dp),
+            )
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text("密码") },
+                leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done,
+                ),
+                shape = RoundedCornerShape(14.dp),
+            )
+            state?.takeIf { it.state == DataState.STATE.FETCH_FAILED }?.message?.let {
                 Text(
-                    text = "从学校教务系统抓取本学期课程，自动合并到当前课表。",
+                    text = it,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
-            Spacer(Modifier.size(8.dp))
-            Icon(
-                imageVector = Icons.Outlined.ChevronRight,
-                contentDescription = null,
-                modifier = Modifier.size(22.dp),
-            )
+            Button(
+                onClick = {
+                    if (auth != null && username.isNotBlank() && password.isNotBlank()) {
+                        call = auth.login(username.trim(), password)
+                    }
+                },
+                enabled = auth != null && !busy && username.isNotBlank() && password.isNotBlank(),
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(14.dp),
+            ) {
+                if (busy) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                    Spacer(Modifier.size(8.dp))
+                }
+                Text(if (busy) "登录中…" else "登录")
+            }
+            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                Text("取消")
+            }
         }
     }
 }
@@ -254,7 +469,7 @@ private fun ImportTipCard() {
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Text(
-                    text = "教务系统导入由宿主解析并写入，完成后回到课表即可查看。",
+                    text = "登录成功后点“导入课表”，由宿主解析并写入；完成后回到课表查看。",
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Text(

@@ -46,6 +46,8 @@ import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import androidx.lifecycle.MutableLiveData
+import com.stupidtree.hita.api.EasAuthService
+import com.stupidtree.hita.api.EasService
 import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hita.api.TodoService
@@ -76,6 +78,8 @@ fun CakeniReplicaRoot(
     timetableService: TimetableService?,
     todoService: TodoService?,
     hostUi: HostUiService?,
+    easAuth: EasAuthService?,
+    easService: EasService?,
     onOpenMarket: () -> Unit,
     onImport: () -> Unit,
     onAddCourse: (Timetable?) -> Unit,
@@ -132,7 +136,12 @@ fun CakeniReplicaRoot(
                             onOpenMarket = onOpenMarket,
                         )
                         CakeniTab.Todo -> TodoScreen(todoService, onOpenMarket)
-                        CakeniTab.Import -> ImportScreen(onImport = onImport, onOpenMarket = onOpenMarket)
+                        CakeniTab.Import -> ImportScreen(
+                            easAuth = easAuth,
+                            easService = easService,
+                            onImport = onImport,
+                            onOpenMarket = onOpenMarket,
+                        )
                         CakeniTab.Settings -> SettingsScreen(
                             darkTheme = darkTheme,
                             onDarkThemeChange = {

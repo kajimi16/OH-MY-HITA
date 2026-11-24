@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import com.stupidtree.hita.api.EasAuthService
+import com.stupidtree.hita.api.EasService
 import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hita.api.TodoService
@@ -18,13 +20,20 @@ class CakeniReplicaActivity : AppCompatActivity() {
         val timetable = host?.service(TimetableService.KEY)
         val todo = host?.service(TodoService.KEY)
         val hostUi = host?.service(HostUiService.KEY)
+        val easAuth = host?.service(EasAuthService.KEY)
+        val easService = host?.service(EasService.KEY)
         setContent {
             CakeniReplicaRoot(
                 timetableService = timetable,
                 todoService = todo,
                 hostUi = hostUi,
+                easAuth = easAuth,
+                easService = easService,
                 onOpenMarket = { startActivity(Intent(this, PluginMarketActivity::class.java)) },
-                onImport = { hostUi?.openImportTimetable(this) },
+                onImport = {
+                    easService?.openImportTimetable(this, autoImport = true)
+                        ?: hostUi?.openImportTimetable(this)
+                },
                 onAddCourse = { table -> hostUi?.openAddEvent(this, table) },
                 onClose = { finish() },
             )
