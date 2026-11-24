@@ -1,6 +1,8 @@
 package com.stupidtree.hitax.market
 
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 
 /** 组合条目的种类；id 只在同一种类内唯一。 */
 enum class CompositionKind { BUILTIN, DEX, UI }
@@ -309,25 +311,37 @@ internal fun materializeInstalls(
     actions: List<CompositionAction>,
     materializer: CompositionMaterializer,
 ): PreparedComposition {
-    val artifacts = linkedMapOf<CompositionTarget, PreparedArtifact>()
-    val failures = linkedMapOf<CompositionTarget, String>()
+    val installs = actions.filterIsInstance<CompositionAction.Install>()
+        .filter { it.kind != CompositionKind.BUILTIN }
+    val artifacts = ConcurrentHashMap<CompositionTarget, PreparedArtifact>()
+    val failures = ConcurrentHashMap<CompositionTarget, String>()
+    if (installs.isNotEmpty()) {
+        // 下载是网络瓶颈；每个 target 有独立 staging，最多 3 路并发即可显著缩短首次安装。
+        val pool = Executors.newFixedThreadPool(minOf(3, installs.size))
+        try {
+            installs.map { action ->
+                pool.submit {
+                    val target = CompositionTarget(action.kind, action.id)
+                    try {
+                        materializer.prepare(action.kind, action.id).fold(
+                            onSuccess = { artifacts[target] = it },
+                            onFailure = { error -> failures[target] = error.message ?: "准备失败" },
+                        )
+                    } catch (t: Throwable) {
+                        failures[target] = t.message ?: "准备失败"
+                    }
+                }
+            }.forEach { it.get() }
+        } finally {
+            pool.shutdownNow()
+        }
+    }
     val requiredFailures = mutableListOf<String>()
     val optionalFailures = mutableListOf<String>()
-
-    for (action in actions) {
-        if (action !is CompositionAction.Install) continue
-        if (action.kind == CompositionKind.BUILTIN) continue
-        val target = CompositionTarget(action.kind, action.id)
-        materializer.prepare(action.kind, action.id).fold(
-            onSuccess = { artifacts[target] = it },
-            onFailure = { error ->
-                val reason = error.message ?: "准备失败"
-                failures[target] = reason
-                val text = "${action.id}：$reason"
-                if (action.required) requiredFailures += text else optionalFailures += text
-            },
-        )
-        if (requiredFailures.isNotEmpty()) break
+    for (action in installs) {
+        val reason = failures[CompositionTarget(action.kind, action.id)] ?: continue
+        val text = "${action.id}：$reason"
+        if (action.required) requiredFailures += text else optionalFailures += text
     }
     return PreparedComposition(artifacts, failures, requiredFailures, optionalFailures)
 }

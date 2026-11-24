@@ -17,6 +17,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * 插件市场的状态与操作。Fragment 只负责渲染。
@@ -591,15 +592,15 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
             val prepareTotal = CompositionReconciler.actions(plan, state)
                 .filterIsInstance<CompositionAction.Install>()
                 .count { it.kind != CompositionKind.BUILTIN }
-            var prepareIndex = 0
+            val prepareIndex = AtomicInteger(0)
             val materializer = object : CompositionMaterializer {
                 override fun prepare(
                     kind: CompositionKind,
                     id: String,
                 ): Result<PreparedArtifact> = runCatching {
-                    prepareIndex += 1
+                    val index = prepareIndex.incrementAndGet()
                     applyProgress.postValue(
-                        SwitchProgress(35, "正在下载/校验插件 $prepareIndex/$prepareTotal：$id…"),
+                        SwitchProgress(35, "正在下载/校验插件 $index/$prepareTotal：$id…"),
                     )
                     when (kind) {
                         CompositionKind.UI -> {

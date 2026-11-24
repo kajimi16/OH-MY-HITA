@@ -12,11 +12,16 @@ object PluginFetch {
     private const val TOTAL_TIMEOUT_MS = 90_000L
     private const val MAX_ATTEMPTS = 3
 
-    fun download(rawUrl: String, indexBase: String?, target: File) {
+    fun download(
+        rawUrl: String,
+        indexBase: String?,
+        target: File,
+        totalTimeoutMs: Long = TOTAL_TIMEOUT_MS,
+    ) {
         val absolute = PluginUrls.resolve(rawUrl, indexBase)
         if (PluginUrls.isRemote(absolute)) {
             var last: Throwable? = null
-            val deadline = System.nanoTime() + TOTAL_TIMEOUT_MS * 1_000_000L
+            val deadline = System.nanoTime() + totalTimeoutMs * 1_000_000L
             for (attempt in 0 until MAX_ATTEMPTS) {
                 if (deadline <= System.nanoTime()) break
                 val remainingMs = ((deadline - System.nanoTime()) / 1_000_000L)
