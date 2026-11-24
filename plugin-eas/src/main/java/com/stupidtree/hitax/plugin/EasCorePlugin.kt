@@ -17,7 +17,7 @@ import com.stupidtree.hitax.eas.EasPlugin
 class EasCorePlugin : Plugin {
     override val id = "com.stupidtree.hitax.eas"
     override val displayName = "教务核心"
-    override val requiresApi = 11
+    override val requiresApi = 13
 
     override fun install(ctx: PluginContext) {
         val app = (ctx.service(HostEnvironmentService.KEY)?.applicationContext as? Application)
