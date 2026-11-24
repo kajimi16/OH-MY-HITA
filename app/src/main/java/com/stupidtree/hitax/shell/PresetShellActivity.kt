@@ -1726,15 +1726,21 @@ private fun MorePage(
             com.stupidtree.hitax.uiplugin.UiPluginManager(context).enabled().any { it.id == id }
         }.getOrDefault(false)
         if (!installed) {
+            val record = com.stupidtree.hitax.uiplugin.UiPluginStore.find(context, id)
+            val disabled = record != null &&
+                com.stupidtree.hitax.uiplugin.UiPluginStore.isDisabled(context, id)
             com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
-                .setTitle("插件未安装")
-                .setMessage("$id\n是否前往插件市场安装？")
-                .setPositiveButton("安装") { _, _ ->
+                .setTitle(if (disabled) "插件已停用" else "插件未安装")
+                .setMessage(
+                    if (disabled) "$id\n是否前往插件市场启用？"
+                    else "$id\n是否前往插件市场安装？",
+                )
+                .setPositiveButton(if (disabled) "启用" else "安装") { _, _ ->
                     context.startActivity(
                         com.stupidtree.hitax.market.PluginMarketActivity.intent(
                             context,
                             id,
-                            autoInstall = true,
+                            autoInstall = !disabled,
                         ),
                     )
                 }

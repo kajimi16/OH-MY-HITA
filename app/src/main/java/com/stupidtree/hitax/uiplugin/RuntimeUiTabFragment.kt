@@ -82,14 +82,15 @@ class RuntimeUiTabFragment : Fragment() {
         layout.addView(TextView(context).apply { this.text = text })
         val id = pluginId
         if (id != null) {
+            val installed = UiPluginStore.find(context, id) != null
             layout.addView(android.widget.Button(context).apply {
-                setText("安装插件")
+                setText(if (installed) "打开插件市场" else "安装插件")
                 setOnClickListener {
                     context.startActivity(
                         com.stupidtree.hitax.market.PluginMarketActivity.intent(
                             context,
                             id,
-                            autoInstall = true,
+                            autoInstall = !installed,
                         ),
                     )
                 }
