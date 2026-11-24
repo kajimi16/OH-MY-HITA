@@ -1176,7 +1176,7 @@
     },
     {
       "id": "hita-replica-cakeni",
-      "name": "晴课表复刻（预览）",
+      "name": "晴课表",
       "version": "0.1",
       "source": "cakeni/CourseSchedule",
       "minHostApi": 13,
