@@ -1173,6 +1173,49 @@
       ],
       "family": "hita-android",
       "shell": "hita-android-3.3.1"
+    },
+    {
+      "id": "hita-replica-cakeni",
+      "name": "晴课表复刻（预览）",
+      "version": "0.1",
+      "source": "cakeni/CourseSchedule",
+      "minHostApi": 13,
+      "description": "完整 cakeni 风格 Shell：课表/待办/导入/设置；Compose 重写，数据复用 HITA 服务。",
+      "shell": "hita-replica-cakeni",
+      "plugins": [
+        {
+          "id": "com.stupidtree.hitax.timetable",
+          "kind": "dex",
+          "required": true
+        },
+        {
+          "id": "com.stupidtree.hita.plugin.todo",
+          "kind": "dex",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hitax.eas",
+          "kind": "dex",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hitax.resource",
+          "kind": "dex",
+          "required": false
+        },
+        {
+          "id": "com.stupidtree.hitax.user",
+          "kind": "dex",
+          "required": false
+        }
+      ],
+      "tags": [
+        "replica",
+        "cakeni",
+        "timetable",
+        "preview"
+      ],
+      "author": "OH-MY-HITA"
     }
   ]
 }

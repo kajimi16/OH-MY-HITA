@@ -3,6 +3,7 @@ package com.stupidtree.hitax.shell
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.stupidtree.hita.api.EasAuthService
 import com.stupidtree.hita.api.EasService
@@ -14,6 +15,10 @@ import com.stupidtree.hitax.market.PluginMarketActivity
 import com.stupidtree.hitax.replica.cakeni.CakeniReplicaRoot
 
 class CakeniReplicaActivity : AppCompatActivity() {
+    private val webLogin = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == RESULT_OK) recreate()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val host = (application as? HApplication)?.pluginHost
@@ -33,6 +38,9 @@ class CakeniReplicaActivity : AppCompatActivity() {
                 onImport = {
                     easService?.openImportTimetable(this, autoImport = true)
                         ?: hostUi?.openImportTimetable(this)
+                },
+                onWebLogin = {
+                    webLogin.launch(Intent(this, ShellEasWebLoginActivity::class.java))
                 },
                 onAddCourse = { table -> hostUi?.openAddEvent(this, table) },
                 onClose = { finish() },

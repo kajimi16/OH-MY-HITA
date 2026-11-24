@@ -82,6 +82,7 @@ fun CakeniReplicaRoot(
     easService: EasService?,
     onOpenMarket: () -> Unit,
     onImport: () -> Unit,
+    onWebLogin: () -> Unit,
     onAddCourse: (Timetable?) -> Unit,
     onClose: () -> Unit,
 ) {
@@ -140,6 +141,7 @@ fun CakeniReplicaRoot(
                             easAuth = easAuth,
                             easService = easService,
                             onImport = onImport,
+                            onWebLogin = onWebLogin,
                             onOpenMarket = onOpenMarket,
                         )
                         CakeniTab.Settings -> SettingsScreen(

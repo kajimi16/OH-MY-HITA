@@ -33,7 +33,6 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
     private var finished = false
     private var validating = false
     private var attempts = 0
-    private var lastUrl: String? = null
 
     private val auth: EasAuthService?
         get() = (application as? HApplication)?.pluginHost?.service(EasAuthService.KEY)
@@ -47,10 +46,6 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
             if (isAuthenticated(url, cookies) && !validating) {
                 submit(cookies)
                 return
-            }
-            if (lastUrl != url || attempts % 4 == 0) {
-                lastUrl = url
-                webView.evaluateJavascript(CLICK_SCRIPT, null)
             }
             if (++attempts >= MAX_ATTEMPTS) {
                 status.text = "仍未检测到教务 Web 会话，可返回后重试"
@@ -83,7 +78,6 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     status.text = "请在页面完成登录，成功后会自动返回"
-                    lastUrl = null
                     attempts = 0
                     view?.evaluateJavascript(
                         "document.documentElement.style.zoom='0.6';document.body.style.zoom='0.6';",

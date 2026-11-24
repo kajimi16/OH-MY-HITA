@@ -79,6 +79,7 @@ fun ImportScreen(
     easAuth: EasAuthService?,
     easService: EasService?,
     onImport: () -> Unit,
+    onWebLogin: () -> Unit,
     onOpenMarket: () -> Unit,
 ) {
     var loggedIn by remember(easAuth) { mutableStateOf(easAuth?.isLogin() == true) }
@@ -115,6 +116,7 @@ fun ImportScreen(
             canImport = easService != null && loggedIn,
             onLogin = { showLogin = true },
             onImport = onImport,
+            onWebLogin = onWebLogin,
         )
 
         Spacer(Modifier.height(22.dp))
@@ -135,6 +137,10 @@ fun ImportScreen(
         AcademicLoginSheet(
             auth = easAuth,
             onDismiss = { showLogin = false },
+            onWebLogin = {
+                showLogin = false
+                onWebLogin()
+            },
             onSuccess = {
                 loggedIn = easAuth?.isLogin() == true
                 accountName = easAuth?.accountName()
@@ -154,6 +160,7 @@ private fun AcademicAccountCard(
     canImport: Boolean,
     onLogin: () -> Unit,
     onImport: () -> Unit,
+    onWebLogin: () -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth().heightIn(min = 170.dp),
@@ -244,6 +251,11 @@ private fun AcademicAccountCard(
                     ) { Text("导入课表") }
                 }
             }
+            TextButton(
+                onClick = onWebLogin,
+                modifier = Modifier.align(Alignment.End),
+            ) { Text("使用网页登录（短信验证码）") }
+            // keep the account card's action row closed; the text button is the fallback path.
         }
     }
 }
@@ -253,6 +265,7 @@ private fun AcademicAccountCard(
 private fun AcademicLoginSheet(
     auth: EasAuthService?,
     onDismiss: () -> Unit,
+    onWebLogin: () -> Unit,
     onSuccess: () -> Unit,
 ) {
     var username by rememberSaveable { mutableStateOf("") }
@@ -338,6 +351,10 @@ private fun AcademicLoginSheet(
                 }
                 Text(if (busy) "登录中…" else "登录")
             }
+            TextButton(
+                onClick = onWebLogin,
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text("使用网页登录（短信验证码）") }
             TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
                 Text("取消")
             }

@@ -1179,7 +1179,7 @@
       "name": "晴课表复刻（预览）",
       "version": "0.1",
       "source": "cakeni/CourseSchedule",
-      "minHostApi": 12,
+      "minHostApi": 13,
       "description": "完整 cakeni 风格 Shell：课表/待办/导入/设置；Compose 重写，数据复用 HITA 服务。",
       "shell": "hita-replica-cakeni",
       "plugins": [
