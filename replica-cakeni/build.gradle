@@ -30,5 +30,6 @@ dependencies {
     implementation 'androidx.compose.runtime:runtime-livedata'
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.8.4'
     implementation 'androidx.activity:activity-compose:1.9.1'
+    implementation 'dev.chrisbanes.haze:haze:0.7.3'
     testImplementation 'junit:junit:4.13.2'
 }

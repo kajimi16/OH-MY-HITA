@@ -54,7 +54,7 @@ cakeni/CourseSchedule 为 MIT。允许参考和改写其代码，但必须保留
 - 背景：很浅的冷灰蓝。
 - 卡片：白色，16dp 圆角，轻阴影。
 - 主色：蓝色；课程色：珊瑚、紫、青、蓝、粉、绿。
-- 底栏：半透明玻璃感，4 个 tab，选中蓝色胶囊。
+- 底栏：`Haze` 背景模糊（API 31+），低版本半透明+边框降级；4 个 tab，选中蓝色胶囊。
 - 大日期 40sp+，标题半粗。
 
 ## 数据契约
@@ -144,3 +144,8 @@ replica-cakeni/
 - UI 层不做事件去重。重复事件若来自导入/数据层,应在 `plugin-hita` 的 `TimetableEventDedupe` 修复;`CakeniModels` 只按服务返回的原始事件渲染。
 - 同一时段的不同课程会分栏;不按课名/节次合并,避免误删真实冲突。
 - `market/index.json` 是本地/构建输入索引,不打进 APK;debug 使用 `app/src/debug/assets/market/index.json`;release fallback `app/src/main/assets/market/index.json` 不包含预览 preset。公开 registry 也未发布。
+
+## 重复事件说明
+
+- `plugin-hita` 已有 `TimetableEventDedupe`，键包含 name/place/teacher/from/to/fromNumber/lastNumber。
+- 复刻 UI 不做二次去重。当前 fixture 仍会出现两张同名卡，来源(导入/时间戳差异)尚未确认;不在 UI 层掩盖。

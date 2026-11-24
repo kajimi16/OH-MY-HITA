@@ -41,6 +41,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeChild
 import androidx.lifecycle.MutableLiveData
 import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.TimetableService
@@ -106,9 +110,15 @@ fun CakeniReplicaRoot(
             tab = CakeniTab.Schedule
         }
 
+        val hazeState = remember { HazeState() }
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            Column(Modifier.fillMaxSize().statusBarsPadding()) {
-                Box(Modifier.weight(1f)) {
+            Box(Modifier.fillMaxSize().statusBarsPadding()) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .haze(hazeState)
+                        .padding(bottom = 86.dp),
+                ) {
                     when (tab) {
                         CakeniTab.Schedule -> ScheduleScreen(
                             week = weekData,
@@ -148,7 +158,12 @@ fun CakeniReplicaRoot(
                         )
                     }
                 }
-                CakeniBottomBar(tab) { tab = it }
+                CakeniBottomBar(
+                    current = tab,
+                    onSelect = { tab = it },
+                    hazeState = hazeState,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
             }
         }
         selected?.let { course ->
@@ -162,13 +177,31 @@ fun CakeniReplicaRoot(
 }
 
 @Composable
-private fun CakeniBottomBar(current: CakeniTab, onSelect: (CakeniTab) -> Unit) {
+private fun CakeniBottomBar(
+    current: CakeniTab,
+    onSelect: (CakeniTab) -> Unit,
+    hazeState: HazeState,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
     Surface(
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+        // API 31+ 由 haze 提供背景模糊；低版本保留半透明+边框的降级。
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
         tonalElevation = 0.dp,
         shadowElevation = 10.dp,
-        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
-        modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+        shape = shape,
+        modifier = modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .hazeChild(
+                state = hazeState,
+                shape = shape,
+                style = HazeStyle(
+                    tint = MaterialTheme.colorScheme.surface.copy(alpha = 0.55f),
+                    blurRadius = 26.dp,
+                    noiseFactor = 0.04f,
+                ),
+            ),
     ) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
