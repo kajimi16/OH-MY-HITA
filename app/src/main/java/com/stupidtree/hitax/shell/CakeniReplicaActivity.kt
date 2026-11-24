@@ -51,6 +51,7 @@ class CakeniReplicaActivity : AppCompatActivity() {
                         ).show()
                         // 数据导入走 EasService，不启动插件 Activity（运行时 dex 无法注册 Activity）。
                         service.startAutoReimport { ok ->
+                            android.util.Log.i("CakeniImport", "startAutoReimport result=$ok")
                             runOnUiThread {
                                 android.widget.Toast.makeText(
                                     this,
@@ -65,6 +66,7 @@ class CakeniReplicaActivity : AppCompatActivity() {
                 onWebLogin = {
                     webLogin.launch(Intent(this, ShellEasWebLoginActivity::class.java))
                 },
+                onApiLoginSuccess = { recreate() },
                 onAddCourse = { table -> hostUi?.openAddEvent(this, table) },
                 onClose = { finish() },
             )

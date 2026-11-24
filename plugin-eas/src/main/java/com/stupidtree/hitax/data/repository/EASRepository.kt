@@ -1,5 +1,6 @@
 package com.stupidtree.hitax.data.repository
 
+import android.util.Log
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
@@ -505,19 +506,24 @@ class EASRepository internal constructor(application: Application) {
         }
         Thread {
             val termsState = awaitLiveData(easService.getAllTerms(token), 6)
+            Log.i("EASImport", "terms state=${termsState.state} msg=${termsState.message} count=${termsState.data?.size}")
             val term = termsState.data?.firstOrNull { it.isCurrent } ?: termsState.data?.firstOrNull()
             if (term == null) {
+                Log.i("EASImport", "no term")
                 onResult?.invoke(false)
                 return@Thread
             }
             val startState = awaitLiveData(easService.getStartDate(token, term), 6)
             val startDate = startState.data
+            Log.i("EASImport", "start state=${startState.state} msg=${startState.message} date=${startDate != null}")
             val scheduleState = awaitLiveData(
                 easService.getScheduleStructure(term, isUndergraduate, token),
                 6
             )
+            Log.i("EASImport", "schedule state=${scheduleState.state} msg=${scheduleState.message}")
             val schedule = scheduleState.data ?: TimetablePreferenceSource.getInstance(appContext).getSchedule()
             if (startDate == null) {
+                Log.i("EASImport", "no start date")
                 onResult?.invoke(false)
                 return@Thread
             }
@@ -527,6 +533,7 @@ class EASRepository internal constructor(application: Application) {
             val observer = Observer<DataState<Boolean>> { state ->
                 if (state.state == DataState.STATE.SUCCESS || state.state == DataState.STATE.FETCH_FAILED) {
                     success = state.state == DataState.STATE.SUCCESS
+                    Log.i("EASImport", "result state=${state.state} msg=${state.message}")
                     latch.countDown()
                 }
             }
@@ -535,7 +542,8 @@ class EASRepository internal constructor(application: Application) {
                 importLive.observeForever(observer)
                 startImportTimetableOfTerm(term, startDate, schedule, importLive)
             }
-            latch.await(25, TimeUnit.SECONDS)
+            val done = latch.await(25, TimeUnit.SECONDS)
+            Log.i("EASImport", "await done=$done success=$success")
             mainHandler.post { importLive.removeObserver(observer) }
             onResult?.invoke(success)
         }.start()

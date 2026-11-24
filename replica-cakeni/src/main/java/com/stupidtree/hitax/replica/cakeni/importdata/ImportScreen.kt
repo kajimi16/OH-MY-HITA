@@ -26,14 +26,19 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Login
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,8 +49,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.EasAuthService
 import com.stupidtree.hita.api.EasService
 import com.stupidtree.hitax.replica.cakeni.CakeniDimens
@@ -63,11 +72,13 @@ fun ImportScreen(
     easService: EasService?,
     onImport: () -> Unit,
     onWebLogin: () -> Unit,
+    onApiLoginSuccess: () -> Unit,
     onOpenMarket: () -> Unit,
 ) {
-    var loggedIn by remember(easAuth) { mutableStateOf(easAuth?.isLogin() == true) }
+    var apiReady by remember(easAuth) { mutableStateOf(easAuth?.hasApiToken() == true) }
     var accountName by remember(easAuth) { mutableStateOf(easAuth?.accountName()) }
     var accountSubtitle by remember(easAuth) { mutableStateOf(easAuth?.accountSubtitle()) }
+    var showApiLogin by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -91,13 +102,14 @@ fun ImportScreen(
         Spacer(Modifier.height(20.dp))
 
         AcademicAccountCard(
-            loggedIn = loggedIn,
             accountName = accountName,
             accountSubtitle = accountSubtitle,
+            apiReady = apiReady,
             canLogin = easAuth != null,
-            canImport = easService != null && loggedIn,
+            canImport = easService != null && apiReady,
             onImport = onImport,
             onWebLogin = onWebLogin,
+            onApiLogin = { showApiLogin = true },
         )
 
         Spacer(Modifier.height(22.dp))
@@ -114,19 +126,33 @@ fun ImportScreen(
         ImportTipCard()
     }
 
-
+    if (showApiLogin && easAuth != null) {
+        ApiLoginDialog(
+            auth = easAuth,
+            onDismiss = { showApiLogin = false },
+            onSuccess = {
+                showApiLogin = false
+                apiReady = true
+                accountName = easAuth.accountName()
+                accountSubtitle = easAuth.accountSubtitle()
+                onApiLoginSuccess()
+            },
+        )
+    }
 }
 
 @Composable
 private fun AcademicAccountCard(
-    loggedIn: Boolean,
+    apiReady: Boolean,
     accountName: String?,
     accountSubtitle: String?,
     canLogin: Boolean,
     canImport: Boolean,
     onImport: () -> Unit,
     onWebLogin: () -> Unit,
+    onApiLogin: () -> Unit,
 ) {
+    val loggedIn = canLogin && (apiReady || accountName != null)
     Surface(
         modifier = Modifier.fillMaxWidth().heightIn(min = 170.dp),
         shape = RoundedCornerShape(24.dp),
@@ -152,8 +178,9 @@ private fun AcademicAccountCard(
                     Text(
                         text = when {
                             !canLogin -> "教务服务未安装"
-                            loggedIn -> accountName?.takeIf { it.isNotBlank() } ?: "已登录"
-                            else -> "API 登录后可直接导入课表"
+                            !apiReady && accountName != null -> "网页会话已连接，导入需账号密码登录"
+                            apiReady -> accountName?.takeIf { it.isNotBlank() } ?: "已登录"
+                            else -> "账号密码登录后可直接导入课表"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.76f),
@@ -174,7 +201,7 @@ private fun AcademicAccountCard(
                     else MaterialTheme.colorScheme.onPrimaryContainer,
                 ) {
                     Text(
-                        text = if (loggedIn) "已登录" else "未登录",
+                        text = if (apiReady) "已登录" else "未登录",
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                         style = MaterialTheme.typography.labelSmall,
                     )
@@ -182,7 +209,7 @@ private fun AcademicAccountCard(
             }
             Spacer(Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                if (loggedIn) {
+                if (apiReady) {
                     Button(
                         onClick = onImport,
                         enabled = canImport,
@@ -194,26 +221,26 @@ private fun AcademicAccountCard(
                         Text("导入课表")
                     }
                     OutlinedButton(
-                        onClick = onWebLogin,
+                        onClick = onApiLogin,
                         enabled = canLogin,
                         shape = RoundedCornerShape(14.dp),
                     ) { Text("重新登录") }
                 } else {
                     Button(
-                        onClick = onWebLogin,
+                        onClick = onApiLogin,
                         enabled = canLogin,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(14.dp),
                     ) {
                         Icon(Icons.Outlined.Login, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.size(7.dp))
-                        Text("登录教务")
+                        Text("账号密码登录")
                     }
                     OutlinedButton(
-                        onClick = onImport,
-                        enabled = canImport,
+                        onClick = onWebLogin,
+                        enabled = canLogin,
                         shape = RoundedCornerShape(14.dp),
-                    ) { Text("导入课表") }
+                    ) { Text("网页登录") }
                 }
             }
         }
@@ -381,4 +408,72 @@ private fun IconBadge(
     ) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(iconSize), tint = tint)
     }
+}
+
+
+@Composable
+private fun ApiLoginDialog(
+    auth: EasAuthService,
+    onDismiss: () -> Unit,
+    onSuccess: () -> Unit,
+) {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var loading by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var request by remember { mutableStateOf<LiveData<DataState<Boolean>>?>(null) }
+    val fallback = remember { MutableLiveData<DataState<Boolean>>() }
+    val result by (request ?: fallback).observeAsState()
+    LaunchedEffect(result) {
+        val state = result ?: return@LaunchedEffect
+        if (state.state == DataState.STATE.SUCCESS && state.data == true) {
+            onSuccess()
+        } else {
+            error = state.message?.takeIf { it.isNotBlank() } ?: "登录失败，请检查账号密码"
+            loading = false
+        }
+    }
+    AlertDialog(
+        onDismissRequest = { if (!loading) onDismiss() },
+        title = { Text("账号密码登录") },
+        text = {
+            Column {
+                Text("网页会话只能用于网页接口，导入课表需要教务 API 登录。")
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = { Text("学号") },
+                    singleLine = true,
+                    enabled = !loading,
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("密码") },
+                    singleLine = true,
+                    enabled = !loading,
+                    visualTransformation = PasswordVisualTransformation(),
+                )
+                error?.let {
+                    Spacer(Modifier.height(8.dp))
+                    Text(it, color = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    loading = true
+                    error = null
+                    request = auth.login(username.trim(), password)
+                },
+                enabled = !loading && username.isNotBlank() && password.isNotBlank(),
+            ) { Text(if (loading) "登录中…" else "登录") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !loading) { Text("取消") }
+        },
+    )
 }

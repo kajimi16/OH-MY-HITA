@@ -37,6 +37,7 @@ private class EasAuthImpl(private val application: Application) : EasAuthService
     private val repo get() = EASRepository.getInstance(application)
 
     override fun isLogin(): Boolean = repo.getEasToken().isLogin()
+    override fun hasApiToken(): Boolean = !repo.getEasToken().accessToken.isNullOrBlank()
     override fun accountName(): String? = repo.getEasToken().name?.ifBlank { repo.getEasToken().username }
     override fun accountSubtitle(): String? = repo.getEasToken().stuId?.ifBlank { repo.getEasToken().username }
 

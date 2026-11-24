@@ -9,6 +9,10 @@ import com.stupidtree.component.data.DataState
  */
 interface EasAuthService {
     fun isLogin(): Boolean
+
+    /** 是否持有教务 API bearer token；WebView cookie 会话不算。 */
+    fun hasApiToken(): Boolean
+
     fun accountName(): String?
     fun accountSubtitle(): String?
 
