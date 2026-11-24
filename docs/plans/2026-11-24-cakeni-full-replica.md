@@ -170,3 +170,11 @@ replica-cakeni/
 - 通过 DOM 状态机识别“账号 → 短信 → 成功”，每一步只在用户显式点击后提交。
 - 成功后 `EasAuthService.loginWithWebSession(cookies, base)`。
 - 必须有本地 mock 页面测试，再对真实门户验证；禁止自动点击发送验证码/提交。
+
+### 无头桥接的安全约束（若未来实现）
+
+- 只做 fill-only relay：外部输入后只填字段/点“发送验证码”，不自动提交；页面提交只由用户显式点击触发。
+- 密码与验证码通过 `JSONObject.quote` 作为参数传入 JS，不拼字符串、不写日志、不落盘。
+- DOM 探测只读取结构字段（tag/type/name/id/placeholder），禁止读取或记录 `value`。
+- 选择器必须用真实页面实时确认；先可见 WebView 验证，再考虑离屏/无头。
+- 不复制其他项目的注入脚本；脚本按本站点 DOM 编写，并有本地 mock 页面测试。
