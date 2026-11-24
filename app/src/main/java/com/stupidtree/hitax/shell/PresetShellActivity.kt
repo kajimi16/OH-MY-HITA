@@ -258,6 +258,8 @@ private data class ShellTab(
     val iconRes: Int,
     val target: ShellTarget,
     val pluginTab: com.stupidtree.hita.api.MainTabSpec? = null,
+    /** 提供该 tab 的 UI 插件 id；多 tab 插件不能拿 tab id 当插件 id。 */
+    val pluginId: String? = null,
 )
 
 private fun defaultShellTabs(): List<ShellTab> = listOf(
@@ -310,6 +312,7 @@ private fun loadShellTabs(context: android.content.Context): List<ShellTab> {
                 ?: fallbackIcon,
             target = target,
             pluginTab = pluginTab?.spec,
+            pluginId = pluginTab?.plugin?.id,
         )
     }
 }
@@ -465,7 +468,7 @@ private fun HitaAndroidShell(
                         onOpenDrawer = { drawerOpen = true },
                     )
                     ShellTarget.PLUGIN -> tab.pluginTab?.let {
-                        RuntimeUiTabPage(tab.id, it, tab.title)
+                        RuntimeUiTabPage(tab.pluginId ?: tab.id, it, tab.title)
                     } ?: UnavailableShellPage(tab.title)
                     ShellTarget.UNAVAILABLE -> UnavailableShellPage(tab.title)
                     null -> Unit
