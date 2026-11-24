@@ -588,11 +588,19 @@ class PluginMarketViewModel(application: Application) : AndroidViewModel(applica
 
             // 准备阶段只下载/校验/落 staging；任何必选失败都在 reconcile 之前中止。
             val artifacts = mutableMapOf<CompositionTarget, PreparedArtifact>()
+            val prepareTotal = CompositionReconciler.actions(plan, state)
+                .filterIsInstance<CompositionAction.Install>()
+                .count { it.kind != CompositionKind.BUILTIN }
+            var prepareIndex = 0
             val materializer = object : CompositionMaterializer {
                 override fun prepare(
                     kind: CompositionKind,
                     id: String,
                 ): Result<PreparedArtifact> = runCatching {
+                    prepareIndex += 1
+                    applyProgress.postValue(
+                        SwitchProgress(35, "正在下载/校验插件 $prepareIndex/$prepareTotal：$id…"),
+                    )
                     when (kind) {
                         CompositionKind.UI -> {
                             val entry = ui[id] ?: error("索引缺失")

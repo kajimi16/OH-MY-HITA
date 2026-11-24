@@ -7,18 +7,29 @@ import java.net.URL
 /** 把索引里的插件地址落到本地文件：远端走 HTTP，本地索引直接复制。 */
 object PluginFetch {
 
+    private const val CONNECT_TIMEOUT_MS = 15_000
+    private const val READ_TIMEOUT_MS = 30_000
+    private const val TOTAL_TIMEOUT_MS = 90_000L
+    private const val MAX_ATTEMPTS = 3
+
     fun download(rawUrl: String, indexBase: String?, target: File) {
         val absolute = PluginUrls.resolve(rawUrl, indexBase)
         if (PluginUrls.isRemote(absolute)) {
             var last: Throwable? = null
-            repeat(3) { attempt ->
+            val deadline = System.nanoTime() + TOTAL_TIMEOUT_MS * 1_000_000L
+            for (attempt in 0 until MAX_ATTEMPTS) {
+                if (deadline <= System.nanoTime()) break
+                val remainingMs = ((deadline - System.nanoTime()) / 1_000_000L)
+                    .coerceAtLeast(1L)
+                    .coerceAtMost(Int.MAX_VALUE.toLong())
+                    .toInt()
                 try {
                     target.delete()
                     target.parentFile?.mkdirs()
                     val conn = URL(absolute).openConnection() as HttpURLConnection
                     conn.instanceFollowRedirects = true
-                    conn.connectTimeout = 30_000
-                    conn.readTimeout = 120_000
+                    conn.connectTimeout = minOf(CONNECT_TIMEOUT_MS, remainingMs)
+                    conn.readTimeout = minOf(READ_TIMEOUT_MS, remainingMs)
                     try {
                         conn.inputStream.use { input -> target.outputStream().use { input.copyTo(it) } }
                     } finally {
@@ -28,7 +39,9 @@ object PluginFetch {
                     last = IllegalStateException("下载为空")
                 } catch (t: Throwable) {
                     last = t
-                    if (attempt < 2) Thread.sleep(1_000L)
+                    if (attempt < MAX_ATTEMPTS - 1 && deadline > System.nanoTime()) {
+                        Thread.sleep(500L)
+                    }
                 }
             }
             target.delete()
