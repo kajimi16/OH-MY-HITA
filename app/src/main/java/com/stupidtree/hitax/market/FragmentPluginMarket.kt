@@ -368,16 +368,21 @@ class FragmentPluginMarket :
 
     private fun openPendingPlugin(items: List<MarketItem>, pluginId: String) {
         if (pendingPluginId != pluginId) return
-        val item = items.filterIsInstance<MarketItem.Ui>()
-            .firstOrNull { it.plugin.id == pluginId }
-            ?: return
-        pendingPluginId = null
         val autoInstall = pendingAutoInstall
-        pendingAutoInstall = false
-        if (autoInstall && item.installed == null) {
-            installUi(item.plugin)
-        } else {
-            showUiDetail(item)
+        val ui = items.filterIsInstance<MarketItem.Ui>()
+            .firstOrNull { it.plugin.id == pluginId }
+        if (ui != null) {
+            pendingPluginId = null
+            pendingAutoInstall = false
+            if (autoInstall && ui.installed == null) installUi(ui.plugin) else showUiDetail(ui)
+            return
+        }
+        val dex = items.filterIsInstance<MarketItem.Dex>()
+            .firstOrNull { it.item.entry.id == pluginId }
+        if (dex != null) {
+            pendingPluginId = null
+            pendingAutoInstall = false
+            if (autoInstall && !dex.item.installed) installDex(dex.item.entry) else showDexDetail(dex)
         }
     }
 
