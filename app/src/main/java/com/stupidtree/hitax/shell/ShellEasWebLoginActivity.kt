@@ -208,7 +208,7 @@ class ShellEasWebLoginActivity : AppCompatActivity() {
             (function(){
               function n(v){return String(v||'').replace(/\s+/g,'');}
               function visible(e){if(!e||typeof e.click!=='function')return false;var s=getComputedStyle?getComputedStyle(e):null;if(s&&(s.display==='none'||s.visibility==='hidden'))return false;var r=e.getBoundingClientRect?e.getBoundingClientRect():null;return !r||(r.width>0&&r.height>0);}
-              function label(e){return n(e.innerText||e.textContent||e.value||e.getAttribute('aria-label')||e.getAttribute('title')||'');}
+              function label(e){return n(e.innerText||e.textContent||e.getAttribute('aria-label')||e.getAttribute('title')||'');}
               function clickable(e){var n=e;for(var i=0;i<6&&n;i++){if(n.click&&(n.tagName==='A'||n.tagName==='BUTTON'||n.getAttribute('onclick')||n.getAttribute('role')==='button'||n.tagName==='INPUT'))return n;n=n.parentElement;}return e;}
               function walk(doc){
                 try{
