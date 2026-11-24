@@ -105,6 +105,8 @@ jobs:
           :api:testDebugUnitTest :kernel:testDebugUnitTest :app:testDebugUnitTest
           :plugin-hita:testDebugUnitTest :plugin-eas:testDebugUnitTest
           :plugin-resource:testDebugUnitTest :theta:testDebugUnitTest
+          :plugin-campus:testDebugUnitTest :plugin-todo:testDebugUnitTest
+          :plugin-campus-ui:testDebugUnitTest :plugin-todo-ui:testDebugUnitTest
           :component:testDebugUnitTest :style:testDebugUnitTest :user:testDebugUnitTest
           :app:lintDebug
 
