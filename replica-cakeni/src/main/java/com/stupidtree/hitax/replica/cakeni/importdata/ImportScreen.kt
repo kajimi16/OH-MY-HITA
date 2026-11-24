@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -25,29 +24,19 @@ import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Login
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,14 +44,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.EasAuthService
 import com.stupidtree.hita.api.EasService
 import com.stupidtree.hitax.replica.cakeni.CakeniDimens
@@ -85,7 +68,6 @@ fun ImportScreen(
     var loggedIn by remember(easAuth) { mutableStateOf(easAuth?.isLogin() == true) }
     var accountName by remember(easAuth) { mutableStateOf(easAuth?.accountName()) }
     var accountSubtitle by remember(easAuth) { mutableStateOf(easAuth?.accountSubtitle()) }
-    var showLogin by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -114,7 +96,6 @@ fun ImportScreen(
             accountSubtitle = accountSubtitle,
             canLogin = easAuth != null,
             canImport = easService != null && loggedIn,
-            onLogin = { showLogin = true },
             onImport = onImport,
             onWebLogin = onWebLogin,
         )
@@ -133,22 +114,7 @@ fun ImportScreen(
         ImportTipCard()
     }
 
-    if (showLogin) {
-        AcademicLoginSheet(
-            auth = easAuth,
-            onDismiss = { showLogin = false },
-            onWebLogin = {
-                showLogin = false
-                onWebLogin()
-            },
-            onSuccess = {
-                loggedIn = easAuth?.isLogin() == true
-                accountName = easAuth?.accountName()
-                accountSubtitle = easAuth?.accountSubtitle()
-                showLogin = false
-            },
-        )
-    }
+
 }
 
 @Composable
@@ -158,7 +124,6 @@ private fun AcademicAccountCard(
     accountSubtitle: String?,
     canLogin: Boolean,
     canImport: Boolean,
-    onLogin: () -> Unit,
     onImport: () -> Unit,
     onWebLogin: () -> Unit,
 ) {
@@ -229,13 +194,13 @@ private fun AcademicAccountCard(
                         Text("导入课表")
                     }
                     OutlinedButton(
-                        onClick = onLogin,
+                        onClick = onWebLogin,
                         enabled = canLogin,
                         shape = RoundedCornerShape(14.dp),
                     ) { Text("重新登录") }
                 } else {
                     Button(
-                        onClick = onLogin,
+                        onClick = onWebLogin,
                         enabled = canLogin,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(14.dp),
@@ -250,113 +215,6 @@ private fun AcademicAccountCard(
                         shape = RoundedCornerShape(14.dp),
                     ) { Text("导入课表") }
                 }
-            }
-            TextButton(
-                onClick = onWebLogin,
-                modifier = Modifier.align(Alignment.End),
-            ) { Text("使用网页登录（短信验证码）") }
-            // keep the account card's action row closed; the text button is the fallback path.
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AcademicLoginSheet(
-    auth: EasAuthService?,
-    onDismiss: () -> Unit,
-    onWebLogin: () -> Unit,
-    onSuccess: () -> Unit,
-) {
-    var username by rememberSaveable { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var call by remember { mutableStateOf<LiveData<DataState<Boolean>>?>(null) }
-    val empty = remember { MutableLiveData<DataState<Boolean>>() }
-    val state by (call ?: empty).observeAsState()
-    val busy = call != null && (state == null || state?.state == DataState.STATE.NOTHING)
-
-    LaunchedEffect(state) {
-        if (state?.state == DataState.STATE.SUCCESS && state?.data == true) {
-            password = ""
-            onSuccess()
-        }
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
-    ) {
-        Column(
-            Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = "登录教务",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = "使用学校教务账号登录。密码只用于本次 API 登录，不会保存到本页。",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("学号 / 账号") },
-                leadingIcon = { Icon(Icons.Outlined.Person, contentDescription = null) },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                shape = RoundedCornerShape(14.dp),
-            )
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("密码") },
-                leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done,
-                ),
-                shape = RoundedCornerShape(14.dp),
-            )
-            state?.takeIf { it.state == DataState.STATE.FETCH_FAILED }?.message?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-            Button(
-                onClick = {
-                    if (auth != null && username.isNotBlank() && password.isNotBlank()) {
-                        call = auth.login(username.trim(), password)
-                    }
-                },
-                enabled = auth != null && !busy && username.isNotBlank() && password.isNotBlank(),
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(14.dp),
-            ) {
-                if (busy) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                    Spacer(Modifier.size(8.dp))
-                }
-                Text(if (busy) "登录中…" else "登录")
-            }
-            TextButton(
-                onClick = onWebLogin,
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text("使用网页登录（短信验证码）") }
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                Text("取消")
             }
         }
     }

@@ -41,8 +41,10 @@ cakeni/CourseSchedule 为 MIT。允许参考和改写其代码，但必须保留
 
 ### 导入
 - 页面顶部是「教务账号」卡：未登录显示「登录教务」主按钮，导入按钮禁用；已登录显示账号、主按钮「导入课表」和「重新登录」。
-- 「登录教务」打开 cakeni 风格 `ModalBottomSheet`，使用 `EasAuthService.login(username, password)`；密码只保存在 `remember`，不进 SavedState、不写 SharedPreferences。
+- 「登录教务」启动 `ShellEasWebLoginActivity`，在官方统一身份认证页面完成账号与短信验证码；应用只接收会话 cookie，不接触密码/验证码。
+- 登录成功后 `EasAuthService.loginWithWebSession` 建立 T1 会话；cakeni Activity 重建并刷新账号状态。
 - 「导入课表」调用 `EasService.openImportTimetable(activity, autoImport = true)`，不重写解析器。
+- 原生 `EasAuthService.login(username,password)` 没有验证码参数，暂不作为登录入口。
 - ICS/文件导入继续走宿主导入入口；插件市场入口保留。
 
 ### 设置
