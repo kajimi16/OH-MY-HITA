@@ -47,6 +47,8 @@ class FragmentPluginMarket :
     private var latestStats: Map<String, MarketStat> = emptyMap()
     private var latestPendingUpdates = 0
     private var latestActivePresetId: String? = null
+    private var pendingPluginId: String? = null
+    private var pendingAutoInstall = false
 
     override fun getViewModelClass(): Class<PluginMarketViewModel> = PluginMarketViewModel::class.java
 
@@ -55,6 +57,8 @@ class FragmentPluginMarket :
 
     override fun initViews(view: View) {
         bindingRef = binding ?: return
+        pendingPluginId = arguments?.getString(PluginMarketActivity.ARG_PLUGIN_ID)
+        pendingAutoInstall = arguments?.getBoolean(PluginMarketActivity.ARG_AUTO_INSTALL, false) == true
         val prefs = requireContext().getSharedPreferences(UI_PREFS, android.content.Context.MODE_PRIVATE)
         selectedTab = when (prefs.getInt(KEY_TAB_V2, 0)) {
             1 -> MarketTab.INSTALLED
@@ -214,6 +218,10 @@ class FragmentPluginMarket :
         val items = MarketListBuilder.build(selectedTab, filters, query, state)
         adapter.indexBase = viewModel.indexBase()
         adapter.submitList(items)
+        val pendingId = pendingPluginId
+        if (pendingId != null) {
+            bindingRef.list.post { openPendingPlugin(items, pendingId) }
+        }
 
         val hasContent = items.any { it !is MarketItem.Section }
         b.filterButton.isVisible = selectedTab != MarketTab.UPDATES
@@ -357,6 +365,21 @@ class FragmentPluginMarket :
     }
 
     // ---- 详情 ----
+
+    private fun openPendingPlugin(items: List<MarketItem>, pluginId: String) {
+        if (pendingPluginId != pluginId) return
+        val item = items.filterIsInstance<MarketItem.Ui>()
+            .firstOrNull { it.plugin.id == pluginId }
+            ?: return
+        pendingPluginId = null
+        val autoInstall = pendingAutoInstall
+        pendingAutoInstall = false
+        if (autoInstall && item.installed == null) {
+            installUi(item.plugin)
+        } else {
+            showUiDetail(item)
+        }
+    }
 
     private fun showUiDetail(item: MarketItem.Ui) {
         val plugin = item.plugin

@@ -74,11 +74,29 @@ class RuntimeUiTabFragment : Fragment() {
         }
     }
 
-    private fun message(context: Context, text: String): View =
-        TextView(context).apply {
-            this.text = text
+    private fun message(context: Context, text: String): View {
+        val layout = android.widget.LinearLayout(context).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
             setPadding(48, 96, 48, 48)
         }
+        layout.addView(TextView(context).apply { this.text = text })
+        val id = pluginId
+        if (id != null) {
+            layout.addView(android.widget.Button(context).apply {
+                setText("安装插件")
+                setOnClickListener {
+                    context.startActivity(
+                        com.stupidtree.hitax.market.PluginMarketActivity.intent(
+                            context,
+                            id,
+                            autoInstall = true,
+                        ),
+                    )
+                }
+            })
+        }
+        return layout
+    }
 
     override fun onDestroy() {
         runCatching { plugin?.onDestroy() }

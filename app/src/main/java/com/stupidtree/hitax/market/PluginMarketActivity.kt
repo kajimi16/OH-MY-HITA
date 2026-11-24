@@ -1,5 +1,7 @@
 package com.stupidtree.hitax.market
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentContainerView
@@ -26,8 +28,25 @@ class PluginMarketActivity : AppCompatActivity() {
         setContentView(container)
         if (supportFragmentManager.findFragmentById(R.id.market_container) == null) {
             supportFragmentManager.beginTransaction()
-                .replace(R.id.market_container, FragmentPluginMarket())
+                .replace(R.id.market_container, FragmentPluginMarket().apply {
+                    arguments = Bundle().apply {
+                        putString(ARG_PLUGIN_ID, intent.getStringExtra(EXTRA_PLUGIN_ID))
+                        putBoolean(ARG_AUTO_INSTALL, intent.getBooleanExtra(EXTRA_AUTO_INSTALL, false))
+                    }
+                })
                 .commit()
         }
+    }
+
+    companion object {
+        const val EXTRA_PLUGIN_ID = "plugin_id"
+        const val EXTRA_AUTO_INSTALL = "auto_install"
+        const val ARG_PLUGIN_ID = "arg_plugin_id"
+        const val ARG_AUTO_INSTALL = "arg_auto_install"
+
+        fun intent(context: Context, pluginId: String, autoInstall: Boolean = false): Intent =
+            Intent(context, PluginMarketActivity::class.java)
+                .putExtra(EXTRA_PLUGIN_ID, pluginId)
+                .putExtra(EXTRA_AUTO_INSTALL, autoInstall)
     }
 }

@@ -1726,7 +1726,20 @@ private fun MorePage(
             com.stupidtree.hitax.uiplugin.UiPluginManager(context).enabled().any { it.id == id }
         }.getOrDefault(false)
         if (!installed) {
-            android.widget.Toast.makeText(context, "插件未安装：$id", android.widget.Toast.LENGTH_SHORT).show()
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+                .setTitle("插件未安装")
+                .setMessage("$id\n是否前往插件市场安装？")
+                .setPositiveButton("安装") { _, _ ->
+                    context.startActivity(
+                        com.stupidtree.hitax.market.PluginMarketActivity.intent(
+                            context,
+                            id,
+                            autoInstall = true,
+                        ),
+                    )
+                }
+                .setNegativeButton("取消", null)
+                .show()
             return
         }
         runCatching {
