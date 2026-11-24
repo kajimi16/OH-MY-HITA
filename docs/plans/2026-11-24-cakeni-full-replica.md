@@ -152,3 +152,21 @@ replica-cakeni/
 
 - `plugin-hita` 已有 `TimetableEventDedupe`，键包含 name/place/teacher/from/to/fromNumber/lastNumber。
 - 复刻 UI 不做二次去重。当前 fixture 仍会出现两张同名卡，来源(导入/时间戳差异)尚未确认;不在 UI 层掩盖。
+
+## 短信验证码无头 WebView 方案评估
+
+目标：隐藏 WebView 加载统一认证页，用外部 Compose 输入框填写账号/密码/短信码，再通过 JS 注入完成点击与提交，最后捕获 cookie 建立 T1 会话。
+
+调研结论：**暂不可行，未实现**。
+
+证据（模拟器，未输入凭据）：
+- `https://trust.hitsz.edu.cn/portal/...` 页面 DOM 返回 `inputs=[]`、`buttons=[1 个空 A]`、`iframes=[]`、`title="Loading..."`。
+- 页面脚本反复探测 `localhost.sangfor.com.cn:54631/54642/54653` 与 `127.0.0.1:54630/54641/54652`，均失败；疑似 aTrust 客户端检测未通过。
+- WebView 无法进入账号表单，外部输入无 DOM 目标可填，无头套壳无法完成短信步骤。
+
+设计保留（未来若页面暴露标准表单）：
+- 可见/离屏 WebView + 外部输入字段。
+- 只注入 `input`/`change`/`click`,不读取密码；不写日志、不落盘。
+- 通过 DOM 状态机识别“账号 → 短信 → 成功”，每一步只在用户显式点击后提交。
+- 成功后 `EasAuthService.loginWithWebSession(cookies, base)`。
+- 必须有本地 mock 页面测试，再对真实门户验证；禁止自动点击发送验证码/提交。
