@@ -138,3 +138,9 @@ replica-cakeni/
 - 课程详情不显示完整周次范围（EventItem 无该字段）。
 - 7 天模式课程卡较窄；5 天模式是主推布局。
 - 不复制 cakeni 鸭子 Rive、学校目录、品牌图。
+
+## 数据与发布边界
+
+- UI 层不做事件去重。重复事件若来自导入/数据层,应在 `plugin-hita` 的 `TimetableEventDedupe` 修复;`CakeniModels` 只按服务返回的原始事件渲染。
+- 同一时段的不同课程会分栏;不按课名/节次合并,避免误删真实冲突。
+- `market/index.json` 是本地/构建输入索引,不打进 APK;debug 使用 `app/src/debug/assets/market/index.json`;release fallback `app/src/main/assets/market/index.json` 不包含预览 preset。公开 registry 也未发布。

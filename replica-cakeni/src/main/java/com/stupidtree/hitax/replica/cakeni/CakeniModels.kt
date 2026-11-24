@@ -81,9 +81,6 @@ fun buildCakeniWeek(
         .filter { it.from.time in start until end }
         .map { toCourse(it, start, structure) }
         .filter { it.dayIndex in 0..6 }
-        .distinctBy {
-            listOf(it.name, it.teacher, it.place, it.dayIndex, it.startSlot, it.endSlot)
-        }
         .forEach { byDay[it.dayIndex] += it }
     val safeDayCount = dayCount.coerceIn(5, 7)
     val days = (0 until safeDayCount).map { index ->
