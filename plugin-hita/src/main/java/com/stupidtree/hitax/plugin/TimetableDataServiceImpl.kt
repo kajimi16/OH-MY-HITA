@@ -84,9 +84,21 @@ class TimetableDataServiceImpl(
         timetableDao.getTimetableByEASCodeSync(code)?.toDto()
 
     @WorkerThread
+    override fun timetableByEasCode(code: String, providerId: String): TimetableDto? =
+        timetables.getTimetableByEasCodeSync(code, providerId)?.toDto()
+
+    @WorkerThread
     override fun currentWeek(easCode: String?): Int =
         timetableDao.getTimetableByEASCodeSync(easCode ?: "")
             ?.getWeekNumber(System.currentTimeMillis()) ?: 1
+
+    @WorkerThread
+    override fun currentWeek(easCode: String?, providerId: String): Int {
+        require(providerId.isNotBlank()) { "providerId must not be blank" }
+        val code = easCode?.takeIf { it.isNotBlank() } ?: return 1
+        return timetables.getTimetableByEasCodeSync(code, providerId)
+            ?.getWeekNumber(System.currentTimeMillis()) ?: 1
+    }
 
     @WorkerThread
     override fun recentTimetable(): TimetableDto? =
@@ -235,6 +247,10 @@ class TimetableDataServiceImpl(
     @WorkerThread
     override fun upsertTimetable(timetable: TimetableDto) {
         requireValidId(timetable.id, "timetable")
+        val providerId = timetable.providerId
+        require(providerId == null || providerId.isNotBlank()) {
+            "providerId must not be blank"
+        }
         timetableDao.saveTimetableSync(timetable.toEntity())
         StupidSync.putHistorySync("timetable", History.ACTION.REQUIRE, listOf(timetable.id))
     }

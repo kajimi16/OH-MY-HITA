@@ -17,7 +17,7 @@ import com.stupidtree.stupiduser.data.source.dao.UserProfileDao
 
 @Database(
     entities = [EventItem::class, TermSubject::class, Timetable::class],
-    version = 2
+    version = 3
 )
 @androidx.room.TypeConverters(TypeConverters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -37,7 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
                         INSTANCE = Room.databaseBuilder(
                             context.applicationContext,
                             AppDatabase::class.java, "hita"
-                        ).addMigrations(MIGRATION_1_2).build()
+                        ).addMigrations(*MIGRATIONS).build()
                     }
                 }
             }
@@ -59,5 +59,20 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE subject ADD COLUMN nature TEXT")
             }
         }
+
+        /**
+         * v2 → v3：课表增加来源分区列。
+         *
+         * 旧行 providerId 为 NULL，首次按来源命中时由 DAO 就地补写；
+         * 迁移本身只加列，不改写、不删除任何旧行。
+         */
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE timetable ADD COLUMN providerId TEXT")
+            }
+        }
+
+        /** 迁移链；供 Room 构建与迁移测试共用。 */
+        internal val MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
     }
 }

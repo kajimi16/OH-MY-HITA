@@ -49,6 +49,8 @@ data class TimetableDto(
     @SerializedName("endTime") val endTime: Long = 0L,
     @SerializedName("createdAt") val createdAt: Long = 0L,
     @SerializedName("periods") val periods: List<TimePeriodDto> = emptyList(),
+    /** 数据来源标识；null 表示迁移前的旧行。放在末位以保持既有位置参数调用语义。 */
+    @SerializedName("providerId") val providerId: String? = null,
 )
 
 data class TimePeriodDto(

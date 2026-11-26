@@ -9,13 +9,30 @@ interface TimetableDao {
 
 
     /**
-     * 根据教务代码查找课表
+     * 根据教务代码查找课表。
+     *
+     * 旧接口忽略来源：同一 code 有多个来源时优先返回迁移前的旧行（providerId 为 NULL），
+     * 否则返回最近开始时间的行。新代码需要精确来源时用 [getTimetableByEasCodeAndProviderSync]。
      */
-    @Query("SELECT * FROM timetable WHERE code is :easCode")
+    @Query(
+        "SELECT * FROM timetable WHERE code is :easCode " +
+            "ORDER BY (providerId IS NULL) DESC, -startTime LIMIT 1"
+    )
     fun getTimetableByEASCodeSync(easCode: String): Timetable?
 
-    @Query("SELECT * FROM timetable WHERE code is :easCode")
+    @Query(
+        "SELECT * FROM timetable WHERE code is :easCode " +
+            "ORDER BY (providerId IS NULL) DESC, -startTime LIMIT 1"
+    )
     fun getTimetableByEASCode(easCode: String): LiveData<Timetable?>
+
+    /** 按 (教务代码, 来源) 精确查找课表。 */
+    @Query("SELECT * FROM timetable WHERE code is :easCode AND providerId is :providerId LIMIT 1")
+    fun getTimetableByEasCodeAndProviderSync(easCode: String, providerId: String): Timetable?
+
+    /** 查找同教务代码下尚未标注来源的旧行。 */
+    @Query("SELECT * FROM timetable WHERE code is :easCode AND providerId is null ORDER BY -startTime LIMIT 1")
+    fun getLegacyTimetableByEasCodeSync(easCode: String): Timetable?
 
     @Query("SELECT * FROM timetable order by -startTime")
     fun getTimetables(): LiveData<List<Timetable>>

@@ -20,6 +20,8 @@ import com.stupidtree.hitax.data.source.preference.EasPreferenceSource
 import com.stupidtree.hitax.data.source.preference.TimetablePreferenceSource
 import com.stupidtree.hitax.data.source.web.eas.EASource
 import com.stupidtree.hitax.data.source.web.service.EASService
+import com.stupidtree.hitax.eas.EasProvider
+import com.stupidtree.hitax.eas.EasRuntime
 import com.stupidtree.hitax.ui.eas.classroom.BuildingItem
 import com.stupidtree.hitax.ui.eas.classroom.ClassroomItem
 import com.stupidtree.hitax.utils.LiveDataUtils
@@ -276,7 +278,10 @@ class EASRepository internal constructor(application: Application) {
                             } ?: 0
                             val safeSchedule = buildSafeSchedule(schedule, maxPeriod)
                             //更新timetable信息
-                            var timetable = timetableService.getTimetableByEasCodeSync(term.getCode())
+                            //按 (学期 code, 来源) 查；旧版课表核心没有分区能力时退回按 code 查询。
+                            var timetable = EasRuntime.timetableProvider
+                                ?.getTimetableByEasCodeSync(term.getCode(), EasProvider.ID)
+                                ?: timetableService.getTimetableByEasCodeSync(term.getCode())
                             if (timetable == null) {
                                 timetable = Timetable()
                             } else {
@@ -396,6 +401,7 @@ class EASRepository internal constructor(application: Application) {
                             timetable.startTime = Timestamp(startDate.timeInMillis)
                             timetable.endTime = Timestamp(maxTs)
                             timetable.code = term.getCode()
+                            timetable.providerId = EasProvider.ID
                             timetable.scheduleStructure = safeSchedule
                             timetableService.saveTimetable(timetable)
 

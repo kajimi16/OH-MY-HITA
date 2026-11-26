@@ -38,6 +38,7 @@ class EntityMappersTest {
             id = "t1"
             name = "2026 春"
             code = "2026-1"
+            providerId = "hit.shenzhen"
             startTime = Timestamp(1_744_000_000_123L)
             endTime = Timestamp(1_746_000_000_456L)
             createdAt = Timestamp(1_743_000_000_789L)
@@ -56,6 +57,7 @@ class EntityMappersTest {
         assertEquals("t1", back.id)
         assertEquals("2026 春", back.name)
         assertEquals("2026-1", back.code)
+        assertEquals("hit.shenzhen", back.providerId)
         assertEquals(1_744_000_000_123L, back.startTime.time)
         assertEquals(1_746_000_000_456L, back.endTime.time)
         assertEquals(1_743_000_000_789L, back.createdAt.time)

@@ -2,6 +2,7 @@ package com.stupidtree.hitax.plugin
 
 import androidx.lifecycle.LiveData
 import com.stupidtree.component.data.DataState
+import com.stupidtree.hita.api.TimetableProviderService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.data.model.timetable.IcsImportResult
@@ -13,12 +14,12 @@ import com.stupidtree.hitax.data.repository.SubjectRepository
 import com.stupidtree.hitax.data.repository.TimetableRepository
 import java.io.InputStream
 
-/** [TimetableService] 的实现：纯转发到两个仓库。 */
+/** [TimetableService] 的实现：纯转发到两个仓库。`TimetableProviderService` 是可选的分区能力。 */
 class TimetableServiceImpl(
     private val timetables: TimetableRepository,
     private val subjects: SubjectRepository,
     private val database: com.stupidtree.hitax.data.AppDatabase,
-) : TimetableService {
+) : TimetableService, TimetableProviderService {
 
     private val timetableDao get() = database.timetableDao()
     private val subjectDao get() = database.subjectDao()
@@ -26,6 +27,9 @@ class TimetableServiceImpl(
 
     override fun getTimetableByEasCodeSync(easCode: String): Timetable? =
         timetableDao.getTimetableByEASCodeSync(easCode)
+
+    override fun getTimetableByEasCodeSync(easCode: String, providerId: String): Timetable? =
+        timetables.getTimetableByEasCodeSync(easCode, providerId)
 
     override fun getEventIdsOfTimetables(timetableIds: List<String>): List<String> =
         eventDao.getEventIdsFromTimetablesSync(timetableIds)

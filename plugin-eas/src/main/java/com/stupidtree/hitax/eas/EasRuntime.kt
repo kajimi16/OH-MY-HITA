@@ -2,6 +2,7 @@ package com.stupidtree.hitax.eas
 
 import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.PluginContext
+import com.stupidtree.hita.api.TimetableProviderService
 import com.stupidtree.hita.api.TimetableService
 
 /**
@@ -14,6 +15,8 @@ object EasRuntime {
     var ctx: PluginContext? = null
 
     val timetable: TimetableService? get() = ctx?.service(TimetableService.KEY)
+    /** 旧版课表核心没有该能力；取不到时退回 [timetable] 的按 code 查询。 */
+    val timetableProvider: TimetableProviderService? get() = ctx?.service(TimetableProviderService.KEY)
     val hostUi: HostUiService? get() = ctx?.service(HostUiService.KEY)
 
     fun timetableOrThrow(): TimetableService =

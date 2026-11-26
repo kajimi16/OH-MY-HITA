@@ -14,6 +14,7 @@ import com.stupidtree.hitax.data.model.timetable.TimeMath
 import com.stupidtree.hitax.data.model.timetable.WEEK_MILLS
 import com.stupidtree.hitax.data.model.timetable.IcsImportResult
 import com.stupidtree.hitax.data.model.timetable.Timetable
+import com.stupidtree.hitax.data.source.dao.TimetableDao
 import com.stupidtree.sync.StupidSync
 import com.stupidtree.sync.data.model.History
 import java.lang.NumberFormatException
@@ -133,6 +134,18 @@ class TimetableRepository(val application: Application) {
     fun getTimetableByEasCode(code: String): LiveData<Timetable?> {
         return timetableDao.getTimetableByEASCode(code)
     }
+
+    /**
+     * 按 (教务代码, 来源) 精确查找课表。
+     *
+     * 前置条件：[providerId] 非空白。
+     * 后置条件：返回行的 providerId 等于 [providerId]，或返回 null。
+     * 不变式：命中迁移前的旧行（providerId 为 NULL）时就地补写来源，不会回退到其他来源的行。
+     * 违约处理：空白 providerId 抛出 IllegalArgumentException。
+     */
+    @WorkerThread
+    fun getTimetableByEasCodeSync(code: String, providerId: String): Timetable? =
+        timetableDao.resolveByEasCodeAndProvider(code, providerId)
 
     /**
      * 获得某学期（本地可能没有）的当前周数
@@ -440,3 +453,23 @@ class TimetableRepository(val application: Application) {
 
 /** 新建课表的默认名字。原先取自 app 的 R.string，移入插件后固定为同一文案。 */
 private const val DEFAULT_TIMETABLE_NAME = "新建课表"
+
+/**
+ * 按 (code, providerId) 查课表；命中旧行时就地补写 providerId。
+ *
+ * 前置条件：[easCode] 与 [providerId] 均非空白。
+ * 后置条件：返回行的 providerId == [providerId]；库中没有匹配行时返回 null。
+ * 不变式：不返回其他来源的行；补写只发生在同 code 且 providerId 为 NULL 的行上。
+ * 违约处理：空白参数抛出 IllegalArgumentException，不静默查全表。
+ * 并发：两个来源同时命中同一旧行时以最后一次写入为准。
+ */
+@WorkerThread
+internal fun TimetableDao.resolveByEasCodeAndProvider(easCode: String, providerId: String): Timetable? {
+    require(easCode.isNotBlank()) { "easCode must not be blank" }
+    require(providerId.isNotBlank()) { "providerId must not be blank" }
+    getTimetableByEasCodeAndProviderSync(easCode, providerId)?.let { return it }
+    val legacy = getLegacyTimetableByEasCodeSync(easCode) ?: return null
+    legacy.providerId = providerId
+    saveTimetableSync(legacy)
+    return legacy
+}

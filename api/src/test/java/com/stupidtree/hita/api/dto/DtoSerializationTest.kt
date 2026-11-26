@@ -34,6 +34,7 @@ class DtoSerializationTest {
             id = "t1",
             name = "2026 春",
             code = "2026-1",
+            providerId = "hit.shenzhen",
             startTime = 1_744_000_000_123L,
             endTime = 1_746_000_000_456L,
             createdAt = 1_743_000_000_789L,
@@ -41,6 +42,7 @@ class DtoSerializationTest {
         )
         val back = DtoJson.fromJson(DtoJson.toJson(dto), TimetableDto::class.java)
         assertEquals(dto, back)
+        assertEquals("hit.shenzhen", back.providerId)
         assertEquals(12, back.periods.size)
     }
 

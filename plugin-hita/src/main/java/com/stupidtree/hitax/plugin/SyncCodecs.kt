@@ -27,7 +27,15 @@ internal class TimetableCodec(private val dao: TimetableDao) : SyncCodec {
         val byId = data
             .map { GsonBuilderUtil.create().fromJson(it, Timetable::class.java) }
             .associateBy { it.id }
-        dao.saveTimetablesSync(ids.mapNotNull { byId[it] })
+        val existed = dao.getTimetablesInIdsSync(ids).associateBy { it.id }
+        dao.saveTimetablesSync(
+            ids.mapNotNull { id ->
+                byId[id]?.also { incoming ->
+                    // 旧客户端不上传 providerId；未携带时保留本机已有来源。
+                    if (incoming.providerId == null) incoming.providerId = existed[id]?.providerId
+                }
+            }
+        )
     }
 
     override fun delete(ids: List<String>) = dao.deleteTimetablesInIdsSync(ids)

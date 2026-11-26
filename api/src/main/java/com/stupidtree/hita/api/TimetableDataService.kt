@@ -36,8 +36,25 @@ interface TimetableDataService {
     @WorkerThread
     fun timetableByEasCode(code: String): TimetableDto?
 
+    /**
+     * 按 (教务代码, 来源) 精确查找课表。
+     *
+     * 旧行（无来源）首次命中时补写 [providerId]；不返回其他来源的行。
+     * 空白 [code] 或 [providerId] 抛出 IllegalArgumentException。
+     */
+    @WorkerThread
+    fun timetableByEasCode(code: String, providerId: String): TimetableDto?
+
     @WorkerThread
     fun currentWeek(easCode: String?): Int
+
+    /**
+     * 按 (教务代码, 来源) 取当前周数；[easCode] 为空或无匹配时返回 1。
+     *
+     * 空白 [providerId] 抛出 IllegalArgumentException。
+     */
+    @WorkerThread
+    fun currentWeek(easCode: String?, providerId: String): Int
 
     @WorkerThread
     fun recentTimetable(): TimetableDto?

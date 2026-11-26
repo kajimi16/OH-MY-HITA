@@ -5,6 +5,7 @@ import com.stupidtree.hita.api.Plugin
 import com.stupidtree.hita.api.PluginContext
 import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.TimetableDataService
+import com.stupidtree.hita.api.TimetableProviderService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hita.api.TabContribution
 import com.stupidtree.hita.api.TimetableUiService
@@ -64,6 +65,7 @@ class HitaPlugin(private val application: Application) : Plugin {
             database = database,
         )
         ctx.provide(TimetableService.KEY, service)
+        ctx.provide(TimetableProviderService.KEY, service)
         ctx.provide(
             TimetableDataService.KEY,
             TimetableDataServiceImpl(

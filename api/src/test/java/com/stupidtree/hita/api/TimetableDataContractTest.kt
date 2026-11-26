@@ -10,6 +10,7 @@ class TimetableDataContractTest {
     fun keysRemainStable() {
         assertEquals("hita.timetable", TimetableService.KEY.name)
         assertEquals("hita.timetable.data", TimetableDataService.KEY.name)
+        assertEquals("hita.timetable.provider", TimetableProviderService.KEY.name)
     }
 
     @Test
@@ -23,7 +24,8 @@ class TimetableDataContractTest {
             "android.content.",
             "androidx.fragment.",
         )
-        val methods = TimetableDataService::class.java.methods
+        val methods = (TimetableDataService::class.java.methods +
+            TimetableProviderService::class.java.methods)
             .filterNot { it.declaringClass == Any::class.java }
         methods.forEach { method ->
             val types = listOf(method.returnType) + method.parameterTypes

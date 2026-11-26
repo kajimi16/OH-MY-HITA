@@ -14,6 +14,13 @@ class Timetable {
             : String? = null
     var code //适配教务的课表code
             : String? = null
+    /**
+     * 课表数据来源标识，例如 `hit.shenzhen`。
+     *
+     * 同一 [code] 可能来自不同教务源；为 null 表示迁移前的旧行，来源未知。
+     * 旧行在首次按来源命中时由数据层就地补齐。
+     */
+    var providerId: String? = null
     var startTime //开始时间
             : Timestamp = Timestamp(0)
     var endTime //结束时间

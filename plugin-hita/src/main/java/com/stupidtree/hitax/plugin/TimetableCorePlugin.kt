@@ -17,7 +17,7 @@ class TimetableCorePlugin : Plugin {
 
     override val id = "com.stupidtree.hitax.timetable"
 
-    override val requiresApi = 11
+    override val requiresApi = 14
 
     override val displayName = "课表"
 
