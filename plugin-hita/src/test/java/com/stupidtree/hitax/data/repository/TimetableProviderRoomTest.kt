@@ -20,7 +20,8 @@ import org.robolectric.annotation.Config
 /**
  * provider 分区在真实 SQLite 上的行为。
  *
- * 覆盖三件事：v2→v3 迁移保留旧行、同 code 多来源互不覆盖、旧接口仍能读到课表。
+ * 覆盖四件事：v2→v3 给教务旧行写来源且手工课表保持 NULL、provider 查询不认领 NULL、
+ * 同 code 多来源互不覆盖、旧接口仍能读到课表。
  * 运行：`./gradlew :plugin-hita:testDebugUnitTest --tests '*TimetableProviderRoomTest'`
  */
 @RunWith(RobolectricTestRunner::class)
@@ -46,7 +47,7 @@ class TimetableProviderRoomTest {
     }
 
     @Test
-    fun v2ToV3KeepsOldRowsAndLeavesProviderNull() {
+    fun v2ToV3AssignsLegacyEasRowsAndKeepsManualNull() {
         writeV2Database()
 
         val migrated = Room.databaseBuilder(context, AppDatabase::class.java, migrationDbName)
@@ -54,11 +55,17 @@ class TimetableProviderRoomTest {
             .allowMainThreadQueries()
             .build()
         try {
-            val row = migrated.timetableDao().getTimetableByIdSync("t-old")
-            assertNotNull(row)
-            assertEquals("旧课表", row!!.name)
-            assertEquals("2025-1", row.code)
-            assertNull(row.providerId)
+            val dao = migrated.timetableDao()
+            val eas = dao.getTimetableByIdSync("t-old")
+            assertNotNull(eas)
+            assertEquals("旧课表", eas!!.name)
+            assertEquals("2025-1", eas.code)
+            assertEquals("hit.shenzhen", eas.providerId)
+
+            val manual = dao.getTimetableByIdSync("t-manual")
+            assertNotNull(manual)
+            assertNull(manual!!.code)
+            assertNull(manual.providerId)
         } finally {
             migrated.close()
         }
@@ -95,29 +102,26 @@ class TimetableProviderRoomTest {
     }
 
     @Test
-    fun legacyRowIsClaimedOnFirstProviderHit() {
+    fun providerLookupNeverClaimsNullRows() {
         val dao = database.timetableDao()
-        dao.saveTimetableSync(timetable("t-legacy", null, startTime = 100))
+        dao.saveTimetableSync(timetable("t-unassigned", null, startTime = 100))
 
-        val claimed = dao.resolveByEasCodeAndProvider("2025-1", "hit.shenzhen")
-        assertEquals("t-legacy", claimed?.id)
-        assertEquals("hit.shenzhen", claimed?.providerId)
+        // provider 查询只认精确来源；NULL 行不命中，也不被写库。
+        assertNull(dao.findByEasCodeAndProvider("2025-1", "hit.shenzhen"))
+        assertNull(dao.findByEasCodeAndProvider("2025-1", "hit.harbin"))
+        assertNull(dao.getTimetableByEasCodeAndProviderSync("2025-1", "hit.shenzhen"))
 
-        // 认领后其他来源不得再命中同一行。
-        assertNull(dao.resolveByEasCodeAndProvider("2025-1", "hit.harbin"))
-        assertEquals(
-            "hit.shenzhen",
-            dao.getTimetablesInIdsSync(listOf("t-legacy")).single().providerId,
-        )
-        // 旧接口仍可读到已认领的行。
-        assertEquals("t-legacy", dao.getTimetableByEASCodeSync("2025-1")?.id)
+        val stored = dao.getTimetablesInIdsSync(listOf("t-unassigned")).single()
+        assertNull(stored.providerId)
+        // 旧接口仍可读到该行。
+        assertEquals("t-unassigned", dao.getTimetableByEASCodeSync("2025-1")?.id)
     }
 
     @Test
     fun blankProviderIsExplicitError() {
         val dao = database.timetableDao()
         try {
-            dao.resolveByEasCodeAndProvider("2025-1", "  ")
+            dao.findByEasCodeAndProvider("2025-1", "  ")
             throw AssertionError("空白 providerId 必须抛出 IllegalArgumentException")
         } catch (expected: IllegalArgumentException) {
             assertEquals("providerId must not be blank", expected.message)
@@ -141,6 +145,11 @@ class TimetableProviderRoomTest {
                 "INSERT INTO timetable " +
                     "(id, name, code, startTime, endTime, createdAt, scheduleStructure) " +
                     "VALUES ('t-old', '旧课表', '2025-1', 100, 200, 50, '[]')"
+            )
+            db.execSQL(
+                "INSERT INTO timetable " +
+                    "(id, name, code, startTime, endTime, createdAt, scheduleStructure) " +
+                    "VALUES ('t-manual', '手工课表', NULL, 100, 200, 50, '[]')"
             )
             db.version = 2
         }

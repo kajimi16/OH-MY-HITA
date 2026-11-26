@@ -61,14 +61,20 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         /**
-         * v2 → v3：课表增加来源分区列。
+         * v2 → v3：课表增加来源分区列，并把已有的教务课表归到深圳教务。
          *
-         * 旧行 providerId 为 NULL，首次按来源命中时由 DAO 就地补写；
-         * 迁移本身只加列，不改写、不删除任何旧行。
+         * 判定依据是 code：非空且去空白后仍非空的课表来自教务导入，归 `hit.shenzhen`；
+         * 手工课表 code 为空，保持 providerId 为 NULL。迁移是唯一写来源的时机，
+         * 读取路径不再认领或补写来源。
          */
         private val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE timetable ADD COLUMN providerId TEXT")
+                db.execSQL(
+                    "UPDATE timetable SET providerId = 'hit.shenzhen' " +
+                        "WHERE providerId IS NULL AND code IS NOT NULL " +
+                        "AND length(trim(code)) > 0"
+                )
             }
         }
 

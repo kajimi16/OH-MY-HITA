@@ -39,7 +39,8 @@ interface TimetableDataService {
     /**
      * 按 (教务代码, 来源) 精确查找课表。
      *
-     * 旧行（无来源）首次命中时补写 [providerId]；不返回其他来源的行。
+     * 只返回 providerId 等于 [providerId] 的行；providerId 为 NULL 的行不命中。
+     * 旧教务课表的来源由数据库迁移写入，读取不写库。
      * 空白 [code] 或 [providerId] 抛出 IllegalArgumentException。
      */
     @WorkerThread
