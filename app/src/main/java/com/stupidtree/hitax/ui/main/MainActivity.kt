@@ -29,6 +29,7 @@ import com.stupidtree.hitax.R
 import com.stupidtree.hitax.databinding.ActivityMainBinding
 import com.stupidtree.hitax.market.PluginMarketViewModel
 import com.stupidtree.hitax.plugin.EasContracts
+import com.stupidtree.hitax.plugin.PluginLabelResolver
 import com.stupidtree.hitax.ui.about.ActivityAbout
 import com.stupidtree.hitax.ui.about.UserAgreementDialog
 import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
@@ -84,7 +85,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         host.nav.entries().forEach { entry ->
             val itemId = PLUGIN_MENU_ID_BASE + index
             pluginMenuIds[itemId] = entry
-            val title = if (entry.titleRes != 0) getString(entry.titleRes) else entry.id
+            val title = PluginLabelResolver.navLabel(this, entry)
             val item = menu.add(Menu.NONE, itemId, 100 + index, title)
             item.setIcon(if (entry.iconRes != 0) entry.iconRes else R.drawable.ic_nav_plugin)
             index++
@@ -92,7 +93,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         host.nav.textEntries().forEach { entry ->
             val itemId = PLUGIN_MENU_ID_BASE + index
             pluginTextMenuIds[itemId] = entry
-            val item = menu.add(Menu.NONE, itemId, 100 + index, entry.title)
+            val item = menu.add(Menu.NONE, itemId, 100 + index, PluginLabelResolver.textNavLabel(this, entry))
             val icon = entry.icon
             if (icon != null) item.icon = icon
             else item.setIcon(R.drawable.ic_nav_plugin)
@@ -626,7 +627,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
             .forEach { tab ->
                 result += Page(
                     1000 + result.size,
-                    if (tab.titleRes != 0) getString(tab.titleRes) else tab.id,
+                    PluginLabelResolver.tabLabel(this, tab),
                     if (tab.iconRes != 0) tab.iconRes else R.drawable.ic_nav_plugin,
                     create = tab.create,
                 )

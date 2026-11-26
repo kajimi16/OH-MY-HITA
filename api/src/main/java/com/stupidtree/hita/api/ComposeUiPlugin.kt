@@ -26,6 +26,12 @@ interface ComposeUiPlugin {
     val requiresApi: Int get() = 1
 
     /**
+     * 可本地化的显示名。默认回退 [displayName]；
+     * 旧 APK 不实现也不会崩（JVM default method）。
+     */
+    fun localizedDisplayName(context: Context): String = displayName
+
+    /**
      * 创建插件界面。宿主负责把它放进容器并处理生命周期。
      * 实现方可以内部使用 ComposeView.setContent。
      */

@@ -13,6 +13,7 @@ import com.stupidtree.hitax.market.CompositionKind
 import com.stupidtree.hitax.market.CompositionStore
 import com.stupidtree.hitax.market.CompositionTarget
 import com.stupidtree.hitax.plugin.PluginExemptions
+import com.stupidtree.hitax.plugin.PluginLabelResolver
 import dalvik.system.DexClassLoader
 import java.io.File
 import java.security.MessageDigest
@@ -295,7 +296,7 @@ class UiPluginManager(private val context: Context) {
 
             val installed = InstalledUiPlugin(
                 id = meta.id,
-                name = plugin.displayName,
+                name = PluginLabelResolver.composePluginLabel(context, plugin),
                 version = meta.version,
                 entryClass = meta.entryClass,
                 apkPath = apk.absolutePath,
@@ -309,7 +310,7 @@ class UiPluginManager(private val context: Context) {
                         listOf(
                             com.stupidtree.hita.api.MainTabSpec(
                                 id = meta.id,
-                                title = plugin.displayName,
+                                title = PluginLabelResolver.composePluginLabel(context, plugin),
                             )
                         )
                     } else {

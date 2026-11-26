@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.stupidtree.hita.api.SearchTab
 import com.stupidtree.hita.api.SearchTabIds
+import com.stupidtree.hitax.plugin.PluginLabelResolver
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.databinding.ActivitySearchBinding
@@ -121,7 +122,7 @@ class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
         val fragmentPages = host.searchTabs.entries().map { tab ->
             SearchPage(
                 id = tab.id,
-                title = getString(tab.titleRes),
+                title = PluginLabelResolver.searchTabLabel(this, tab),
                 order = tab.order,
                 create = tab.create,
             )
@@ -129,7 +130,7 @@ class SearchActivity : BaseActivity<SearchViewModel, ActivitySearchBinding>(),
         val viewPages = host.searchTabs.viewEntries().map { tab ->
             SearchPage(
                 id = tab.id,
-                title = tab.title,
+                title = PluginLabelResolver.viewSearchTabLabel(this, tab),
                 order = tab.order,
                 create = { RuntimeSearchTabFragment.newInstance(tab.id) },
             )

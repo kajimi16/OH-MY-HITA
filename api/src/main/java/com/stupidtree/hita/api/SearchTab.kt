@@ -17,6 +17,9 @@ class SearchTab(
     val textTitle: String? = null,
     val create: () -> Fragment,
 ) {
+    /** 可选本地化标题；为空时回退 [textTitle] / [titleRes] / [id]。 */
+    var titleProvider: ((Context) -> String)? = null
+
     /** 兼容 API 4 及之前编译的插件。 */
     constructor(
         id: String,
@@ -24,6 +27,18 @@ class SearchTab(
         order: Int,
         create: () -> Fragment,
     ) : this(id, titleRes, order, null, create)
+
+    /** 新增本地化入口；旧构造器保持不变。 */
+    constructor(
+        id: String,
+        titleRes: Int,
+        order: Int,
+        textTitle: String?,
+        create: () -> Fragment,
+        titleProvider: ((Context) -> String)?,
+    ) : this(id, titleRes, order, textTitle, create) {
+        this.titleProvider = titleProvider
+    }
 }
 
 /**
@@ -39,7 +54,22 @@ class ViewSearchTab(
     val createView: (Context) -> View,
     /** 搜索框内容变化；插件可据此触发自己的查询。 */
     val onQuery: (String) -> Unit = {},
-)
+) {
+    /** 可选本地化标题；为空时回退 [title]。 */
+    var titleProvider: ((Context) -> String)? = null
+
+    /** 新增本地化入口；旧主构造器保持不变。 */
+    constructor(
+        id: String,
+        title: String,
+        order: Int,
+        createView: (Context) -> View,
+        onQuery: (String) -> Unit,
+        titleProvider: ((Context) -> String)?,
+    ) : this(id, title, order, createView, onQuery) {
+        this.titleProvider = titleProvider
+    }
+}
 
 interface SearchTabRegistry {
     fun register(tab: SearchTab)

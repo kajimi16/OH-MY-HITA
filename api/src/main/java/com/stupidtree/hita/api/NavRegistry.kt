@@ -24,6 +24,12 @@ class NavEntry(
      */
     val createIntent: (Context) -> Intent?,
 ) {
+    /**
+     * 可选本地化标题。为空时宿主回退 [textTitle] / [titleRes] / [id]。
+     * 用可变属性而不是改主构造器，保持旧 7 参数构造器的 JVM descriptor。
+     */
+    var titleProvider: ((Context) -> String)? = null
+
     /** 兼容 API 4 及之前编译的插件。 */
     constructor(
         id: String,
@@ -32,6 +38,20 @@ class NavEntry(
         order: Int,
         createIntent: (Context) -> Intent?,
     ) : this(id, titleRes, iconRes, order, null, null, createIntent)
+
+    /** 新增本地化入口；旧构造器保持不变。 */
+    constructor(
+        id: String,
+        titleRes: Int,
+        iconRes: Int,
+        order: Int,
+        textTitle: String?,
+        icon: Drawable?,
+        createIntent: (Context) -> Intent?,
+        titleProvider: ((Context) -> String)?,
+    ) : this(id, titleRes, iconRes, order, textTitle, icon, createIntent) {
+        this.titleProvider = titleProvider
+    }
 }
 
 /**
@@ -46,7 +66,22 @@ class TextNavEntry(
     val order: Int = 100,
     val icon: Drawable? = null,
     val createIntent: (Context) -> Intent?,
-)
+) {
+    /** 可选本地化标题；为空时回退 [title]。 */
+    var titleProvider: ((Context) -> String)? = null
+
+    /** 新增本地化入口；旧主构造器保持不变。 */
+    constructor(
+        id: String,
+        title: String,
+        order: Int,
+        icon: Drawable?,
+        createIntent: (Context) -> Intent?,
+        titleProvider: ((Context) -> String)?,
+    ) : this(id, title, order, icon, createIntent) {
+        this.titleProvider = titleProvider
+    }
+}
 
 interface NavRegistry {
     fun register(entry: NavEntry)
