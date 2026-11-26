@@ -113,7 +113,7 @@ jobs:
 
       - name: Build APK
         run: |
-          ./gradlew --parallel --build-cache :app:assembleRelease \
+          ./gradlew --parallel --build-cache --max-workers=2 :app:assembleRelease \
             -PappVersionName="${{ steps.ver.outputs.version }}" \
             -PappVersionCode=${{ steps.ver.outputs.code }} \
             -PpluginIndexUrl="https://raw.githubusercontent.com/oh-my-hita/registry/main/registry/index.json" \
