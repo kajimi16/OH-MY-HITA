@@ -5,6 +5,7 @@ import android.content.ContextWrapper
 import android.view.View
 import androidx.fragment.app.Fragment
 import com.stupidtree.hita.api.ComposeUiPlugin
+import com.stupidtree.hita.api.LocalizedComposeUiPlugin
 import com.stupidtree.hita.api.NavEntry
 import com.stupidtree.hita.api.PluginUiHost
 import com.stupidtree.hita.api.SearchTab
@@ -80,5 +81,28 @@ class PluginLabelResolverTest {
             override fun createView(context: Context, host: PluginUiHost): View = error("unused")
         }
         assertEquals("旧插件", PluginLabelResolver.composePluginLabel(context, plugin))
+    }
+
+    @Test
+    fun oldPluginOverridingComposeDefaultWithoutMarkerIsIgnored() {
+        // 旧 APK 即使因其他原因有同名方法，只要没实现可选接口，宿主就不调用它。
+        val plugin = object : ComposeUiPlugin {
+            override val id = "old.plugin"
+            override val displayName = "旧插件"
+            override fun createView(context: Context, host: PluginUiHost): View = error("unused")
+            override fun localizedDisplayName(context: Context): String = "不应被调用"
+        }
+        assertEquals("旧插件", PluginLabelResolver.composePluginLabel(context, plugin))
+    }
+
+    @Test
+    fun markedLocalizedPluginUsesOptionalInterface() {
+        val plugin = object : ComposeUiPlugin, LocalizedComposeUiPlugin {
+            override val id = "new.plugin"
+            override val displayName = "旧名称"
+            override fun createView(context: Context, host: PluginUiHost): View = error("unused")
+            override fun localizedDisplayName(context: Context): String = "本地化名称"
+        }
+        assertEquals("本地化名称", PluginLabelResolver.composePluginLabel(context, plugin))
     }
 }

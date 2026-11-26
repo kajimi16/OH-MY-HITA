@@ -4,8 +4,10 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.view.View
 import androidx.fragment.app.Fragment
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -87,10 +89,25 @@ class PluginLabelBinaryCompatTest {
             override fun createView(context: Context, host: PluginUiHost): View = error("unused")
         }
         assertNotNull(oldPlugin)
+        assertFalse(oldPlugin is LocalizedComposeUiPlugin)
         assertTrue(
             ComposeUiPlugin::class.java
                 .getMethod("localizedDisplayName", Context::class.java)
                 .isDefault
         )
     }
+
+    @Test
+    fun optionalLocalizedInterfaceIsSeparateFromOldComposeContract() {
+        val newPlugin = object : ComposeUiPlugin, LocalizedComposeUiPlugin {
+            override val id = "new.plugin"
+            override val displayName = "旧名称"
+            override fun createView(context: Context, host: PluginUiHost): View = error("unused")
+            override fun localizedDisplayName(context: Context): String = "本地化名称"
+        }
+        assertTrue(newPlugin is LocalizedComposeUiPlugin)
+        assertEquals("本地化名称", newPlugin.localizedDisplayName(mockContext()))
+    }
+
+    private fun mockContext(): Context = android.content.ContextWrapper(null)
 }

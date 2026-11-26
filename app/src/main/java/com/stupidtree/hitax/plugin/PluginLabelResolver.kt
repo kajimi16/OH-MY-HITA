@@ -2,6 +2,7 @@ package com.stupidtree.hitax.plugin
 
 import android.content.Context
 import com.stupidtree.hita.api.ComposeUiPlugin
+import com.stupidtree.hita.api.LocalizedComposeUiPlugin
 import com.stupidtree.hita.api.NavEntry
 import com.stupidtree.hita.api.SearchTab
 import com.stupidtree.hita.api.TabContribution
@@ -42,10 +43,16 @@ object PluginLabelResolver {
             ?: tab.id
 
     fun composePluginLabel(context: Context, plugin: ComposeUiPlugin): String {
-        val localized = try {
-            plugin.localizedDisplayName(context).takeIf { it.isNotBlank() }
-        } catch (t: Throwable) {
-            if (t is VirtualMachineError) throw t
+        // 只调用可选接口；不直接调用 ComposeUiPlugin.localizedDisplayName，
+        // 因为该 default 方法在 DEX 中可能退化为 abstract（旧 APK 无 bridge）。
+        val localized = if (plugin is LocalizedComposeUiPlugin) {
+            try {
+                plugin.localizedDisplayName(context).takeIf { it.isNotBlank() }
+            } catch (t: Throwable) {
+                if (t is VirtualMachineError) throw t
+                null
+            }
+        } else {
             null
         }
         return localized ?: plugin.displayName
