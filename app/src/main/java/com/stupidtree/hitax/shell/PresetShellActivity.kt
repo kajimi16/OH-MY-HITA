@@ -154,6 +154,7 @@ import com.stupidtree.hita.api.MotionEasing
 import com.stupidtree.hita.api.MotionTokens
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hitax.HApplication
+import com.stupidtree.hitax.campus.CampusCatalog
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.model.timetable.EventItem
 import com.stupidtree.hitax.shell.homework.HomeworkRepository
@@ -2148,7 +2149,8 @@ private fun EasLoginDialog(
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var campus by remember { mutableStateOf("深圳") }
+    var campusId by remember { mutableStateOf(CampusCatalog.default.id) }
+    val campus = CampusCatalog.byId(campusId) ?: CampusCatalog.default
     var agreed by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -2192,7 +2194,7 @@ private fun EasLoginDialog(
                         error = null
                         request = auth.login(username.trim(), password)
                     },
-                    enabled = !loading && agreed && campus == "深圳" &&
+                    enabled = !loading && agreed && campus.supportsApiLogin &&
                         username.isNotBlank() && password.isNotBlank(),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.height(36.dp),
@@ -2201,25 +2203,25 @@ private fun EasLoginDialog(
                 }
             }
             Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                listOf("深圳", "本部", "威海").forEachIndexed { index, label ->
+                CampusCatalog.all.forEachIndexed { index, provider ->
                     if (index > 0) Spacer(Modifier.width(12.dp))
                     androidx.compose.material3.RadioButton(
-                        selected = campus == label,
-                        onClick = { campus = label },
+                        selected = campus.id == provider.id,
+                        onClick = { campusId = provider.id },
                         enabled = !loading,
                     )
-                    Text(label, fontSize = 14.sp, modifier = Modifier.padding(start = 2.dp))
+                    Text(provider.displayName, fontSize = 14.sp, modifier = Modifier.padding(start = 2.dp))
                 }
             }
-            if (campus != "深圳") {
+            campus.unavailableNote?.let {
                 Text(
-                    "当前宿主仅支持深圳 API 登录，请使用网页登录",
+                    it,
                     fontSize = 12.sp,
                     color = shellSecondary(),
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
-            if (campus == "深圳") {
+            if (campus.supportsApiLogin) {
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
