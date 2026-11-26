@@ -30,9 +30,14 @@ class EasUiServiceImplTest {
     }
 
     @Test
-    fun alreadyLoggedInCompletesSynchronouslyWithoutPrompt() {
+    fun apiTokenCompletesSynchronouslyWithoutPrompt() {
         val account = FakeAccountService(
-            EasAccountDto(loggedIn = true, studentId = "20230001", displayName = "张三")
+            EasAccountDto(
+                loggedIn = true,
+                hasApiToken = true,
+                studentId = "20230001",
+                displayName = "张三",
+            )
         )
         val launcher = FakeLauncher()
         val results = mutableListOf<EasLoginResultDto>()
@@ -46,6 +51,33 @@ class EasUiServiceImplTest {
         assertTrue(results.single().success)
         assertEquals("20230001", results.single().account?.studentId)
         assertEquals(0, launcher.shown)
+    }
+
+    @Test
+    fun webOnlySessionMustShowLoginInsteadOfEarlySuccess() {
+        val account = FakeAccountService(
+            EasAccountDto(loggedIn = true, hasApiToken = false, studentId = "20230001")
+        )
+        val launcher = FakeLauncher()
+        val results = mutableListOf<EasLoginResultDto>()
+        var shown = 0
+
+        EasUiServiceImpl(account, launcher).ensureLoginCore(
+            showLogin = { onResult ->
+                shown++
+                account.dto = EasAccountDto(
+                    loggedIn = true,
+                    hasApiToken = true,
+                    studentId = "20230001",
+                )
+                onResult(true)
+            },
+            callback = { results += it },
+        )
+
+        assertEquals("Web-only 会话必须弹登录窗", 1, shown)
+        assertEquals(1, results.size)
+        assertTrue(results.single().success)
     }
 
     @Test
@@ -76,7 +108,11 @@ class EasUiServiceImplTest {
 
         EasUiServiceImpl(account, launcher).ensureLoginCore(
             showLogin = { onResult ->
-                account.dto = EasAccountDto(loggedIn = true, studentId = "20230001")
+                account.dto = EasAccountDto(
+                    loggedIn = true,
+                    hasApiToken = true,
+                    studentId = "20230001",
+                )
                 onResult(true)
             },
             callback = { results += it },
@@ -103,12 +139,13 @@ class EasUiServiceImplTest {
     }
 
     @Test
-    fun openAccountWhenLoggedInDoesNotShowOrNavigate() {
-        val account = FakeAccountService(EasAccountDto(loggedIn = true))
+    fun openAccountWithWebOnlySessionDoesNotShowOrNavigate() {
+        // openAccount 保持旧语义：任意登录态即可，不要求 API token。
+        val account = FakeAccountService(EasAccountDto(loggedIn = true, hasApiToken = false))
         val launcher = FakeLauncher()
 
         EasUiServiceImpl(account, launcher).openAccountCore {
-            error("已登录时不应再弹登录窗")
+            error("已有 Web 会话时不应再弹登录窗")
         }
 
         assertTrue(launcher.opened.isEmpty())

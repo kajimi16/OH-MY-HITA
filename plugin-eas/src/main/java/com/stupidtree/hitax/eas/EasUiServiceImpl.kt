@@ -58,7 +58,7 @@ internal class AndroidEasUiLauncher : EasUiLauncher {
 }
 
 /**
- * 页面入口实现。行为与旧 `EasServiceImpl` 一致：已登录直接执行；未登录先弹登录窗。
+ * 页面入口实现。API 页面以 `hasApiToken` 为门槛；`openAccount` 只要求任意登录态。
  */
 internal class EasUiServiceImpl(
     private val accountService: EasAccountService,
@@ -70,7 +70,11 @@ internal class EasUiServiceImpl(
         request: EasLoginRequestDto,
         callback: (EasLoginResultDto) -> Unit,
     ) {
-        ensureLoginCore({ onResult -> launcher.showLogin(activity, onResult) }, callback)
+        ensureLoginCore(
+            requireApiToken = true,
+            showLogin = { onResult -> launcher.showLogin(activity, onResult) },
+            callback = callback,
+        )
     }
 
     override fun openAccount(activity: FragmentActivity) {
@@ -82,7 +86,8 @@ internal class EasUiServiceImpl(
      * 只确保登录，不打开任何账号页。这里保持同语义，并抽成无 Activity 的核心便于测试。
      */
     internal fun openAccountCore(showLogin: (onResult: (Boolean) -> Unit) -> Unit) {
-        ensureLoginCore(showLogin) { }
+        // 旧 openAccount 只调用 ensureLogin(onSuccess={}, onFailed={})，不要求 API token。
+        ensureLoginCore(requireApiToken = false, showLogin = showLogin) { }
     }
 
     override fun openImportTimetable(activity: FragmentActivity, options: EasImportOptionsDto) {
@@ -111,14 +116,17 @@ internal class EasUiServiceImpl(
 
     /**
      * 无 Activity 的登录决策核心，便于纯 JVM 测试。
-     * 已登录同步回调；未登录把 `showLogin` 的结果去重后回调一次。
+     * `requireApiToken=true` 时只有 `hasApiToken` 才提前成功；否则只要求 `loggedIn`。
+     * 未就绪时把 `showLogin` 的结果去重后回调一次。
      */
     internal fun ensureLoginCore(
+        requireApiToken: Boolean = true,
         showLogin: (onResult: (Boolean) -> Unit) -> Unit,
         callback: (EasLoginResultDto) -> Unit,
     ) {
         val account = accountService.account()
-        if (account.loggedIn) {
+        val ready = if (requireApiToken) account.hasApiToken else account.loggedIn
+        if (ready) {
             callback(EasLoginResultDto(success = true, account = account))
             return
         }
