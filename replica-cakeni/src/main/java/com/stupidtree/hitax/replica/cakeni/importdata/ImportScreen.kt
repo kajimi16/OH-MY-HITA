@@ -56,20 +56,20 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.EasAuthService
-import com.stupidtree.hita.api.EasService
+import com.stupidtree.hita.api.EasSessionService
 import com.stupidtree.hitax.replica.cakeni.CakeniDimens
 
 /**
  * 导入页：教务账号、API 登录、导入课表、文件导入说明、插件市场。
  *
- * 前置条件：easAuth/easService 可为空；回调由宿主 Shell 提供。
- * 后置条件：登录只调用 EasAuthService，不保存密码；导入调用宿主 EasService。
+ * 前置条件：easAuth/easSession 可为空；回调由宿主 Shell 提供。
+ * 后置条件：登录只调用 EasAuthService，不保存密码；导入由宿主通过 EasSessionService 触发。
  * 不变式：本页不直接发网络请求，不写课表数据库。
  */
 @Composable
 fun ImportScreen(
     easAuth: EasAuthService?,
-    easService: EasService?,
+    easSession: EasSessionService?,
     onImport: () -> Unit,
     onWebLogin: () -> Unit,
     onApiLoginSuccess: () -> Unit,
@@ -106,7 +106,7 @@ fun ImportScreen(
             accountSubtitle = accountSubtitle,
             apiReady = apiReady,
             canLogin = easAuth != null,
-            canImport = easService != null && apiReady,
+            canImport = easSession != null && apiReady,
             onImport = onImport,
             onWebLogin = onWebLogin,
             onApiLogin = { showApiLogin = true },

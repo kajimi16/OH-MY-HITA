@@ -9,11 +9,11 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.stupidtree.stupiduser.data.repository.LocalUserRepository
 import com.stupidtree.sync.StupidSync
-import com.stupidtree.hita.api.EasService
 import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.ThemeController
 import com.stupidtree.hita.kernel.PluginHost
 import com.stupidtree.hitax.market.CompositionExecutor
+import com.stupidtree.hitax.plugin.EasContracts
 import com.stupidtree.hitax.market.CompositionKind
 import com.stupidtree.hitax.market.CompositionState
 import com.stupidtree.hitax.market.CompositionStore
@@ -168,7 +168,7 @@ class HApplication : Application() {
 
             override fun openImportTimetable(context: android.content.Context) {
                 (context as? androidx.fragment.app.FragmentActivity)?.let { activity ->
-                    pluginHost.service(EasService.KEY)?.openImportTimetable(activity)
+                    EasContracts.ui(context)?.openImportTimetable(activity)
                 }
             }
 
@@ -227,7 +227,9 @@ class HApplication : Application() {
             }
 
             override fun startAutoReimport(callback: (Boolean) -> Unit) {
-                pluginHost.service(EasService.KEY)?.startAutoReimport(callback) ?: callback(false)
+                EasContracts.session(this@HApplication)?.startAutoReimport { result ->
+                    callback(result.success)
+                } ?: callback(false)
             }
 
             override fun openUserProfile(context: android.content.Context, userId: String?) {

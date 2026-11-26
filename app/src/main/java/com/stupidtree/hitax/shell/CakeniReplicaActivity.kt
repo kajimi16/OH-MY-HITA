@@ -6,12 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.stupidtree.hita.api.EasAuthService
-import com.stupidtree.hita.api.EasService
 import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hita.api.TodoService
 import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.market.PluginMarketActivity
+import com.stupidtree.hitax.plugin.EasContracts
 import com.stupidtree.hitax.replica.cakeni.CakeniReplicaRoot
 
 class CakeniReplicaActivity : AppCompatActivity() {
@@ -26,17 +26,17 @@ class CakeniReplicaActivity : AppCompatActivity() {
         val todo = host?.service(TodoService.KEY)
         val hostUi = host?.service(HostUiService.KEY)
         val easAuth = host?.service(EasAuthService.KEY)
-        val easService = host?.service(EasService.KEY)
+        val easSession = EasContracts.session(this)
         setContent {
             CakeniReplicaRoot(
                 timetableService = timetable,
                 todoService = todo,
                 hostUi = hostUi,
                 easAuth = easAuth,
-                easService = easService,
+                easSession = easSession,
                 onOpenMarket = { startActivity(Intent(this, PluginMarketActivity::class.java)) },
                 onImport = {
-                    val service = easService
+                    val service = easSession
                     if (service == null) {
                         android.widget.Toast.makeText(
                             this,
@@ -49,8 +49,9 @@ class CakeniReplicaActivity : AppCompatActivity() {
                             "正在导入本学期课表…",
                             android.widget.Toast.LENGTH_SHORT,
                         ).show()
-                        // 数据导入走 EasService，不启动插件 Activity（运行时 dex 无法注册 Activity）。
-                        service.startAutoReimport { ok ->
+                        // 数据导入走 EasSessionService，不启动插件 Activity（运行时 dex 无法注册 Activity）。
+                        service.startAutoReimport { result ->
+                            val ok = result.success
                             android.util.Log.i("CakeniImport", "startAutoReimport result=$ok")
                             runOnUiThread {
                                 android.widget.Toast.makeText(

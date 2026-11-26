@@ -62,25 +62,26 @@ class LiteEmptyClassroomActivity :
     }
 
     private fun startLoginThenLoad() {
-        val eas = LiteHostBridge.eas
-        if (eas == null) {
+        val account = LiteHostBridge.easAccount
+        val ui = LiteHostBridge.easUi
+        if (account == null || ui == null) {
             binding.refresh.isRefreshing = true
             viewModel.startRefresh()
             return
         }
-        if (eas.isLogin()) {
+        if (account.account().loggedIn) {
             binding.refresh.isRefreshing = true
             viewModel.startRefresh()
             return
         }
-        eas.ensureLogin(
-            this,
-            onSuccess = {
+        ui.ensureLogin(this) { result ->
+            if (result.success) {
                 binding.refresh.isRefreshing = true
                 viewModel.startRefresh()
-            },
-            onFailed = { finish() }
-        )
+            } else {
+                finish()
+            }
+        }
     }
 
     private fun bindLiveData() {

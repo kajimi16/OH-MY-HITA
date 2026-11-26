@@ -154,6 +154,7 @@ import com.stupidtree.hita.api.MotionEasing
 import com.stupidtree.hita.api.MotionTokens
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hitax.HApplication
+import com.stupidtree.hitax.plugin.EasContracts
 import com.stupidtree.hitax.campus.CampusCatalog
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.data.model.timetable.EventItem
@@ -652,17 +653,13 @@ private fun ShellDrawerOverlay(
     onClose: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val eas = remember {
-        (context.applicationContext as? HApplication)?.pluginHost?.service(
-            com.stupidtree.hita.api.EasService.KEY,
-        )
-    }
-    val userName = eas?.accountName()
+    val easAccount = EasContracts.account(context)
+    val userName = easAccount.displayName
     val accountPrefs = remember {
         context.getSharedPreferences("local_eas_token", android.content.Context.MODE_PRIVATE)
     }
     val userSubtitle = run {
-        val id = eas?.accountSubtitle()?.takeIf { it.isNotBlank() }
+        val id = easAccount.subtitle?.takeIf { it.isNotBlank() }
             ?: accountPrefs.getString("stuId", null)?.takeIf { it.isNotBlank() }
         val grade = accountPrefs.getString("grade", null)?.takeIf(String::isNotBlank)
             ?: id?.take(4)?.takeIf { it.length == 4 }?.plus("级")
@@ -781,8 +778,9 @@ private fun ShellDrawerOverlay(
                         Modifier.fillMaxWidth()
                             .clickable {
                                 val activity = context as? androidx.fragment.app.FragmentActivity
-                                if (activity != null && eas != null) {
-                                    eas.openAccount(activity)
+                                val ui = EasContracts.ui(context)
+                                if (activity != null && ui != null) {
+                                    ui.openAccount(activity)
                                 } else {
                                     launch("com.stupidtree.hitax.ui.eas.login.ShenzhenWebLoginActivity")
                                 }
@@ -1705,10 +1703,9 @@ private fun MorePage(
             )
         }
     }
-    fun withEas(action: (com.stupidtree.hita.api.EasService, androidx.fragment.app.FragmentActivity) -> Unit) {
+    fun withEas(action: (com.stupidtree.hita.api.EasUiService, androidx.fragment.app.FragmentActivity) -> Unit) {
         val activity = context as? androidx.fragment.app.FragmentActivity
-        val eas = (context.applicationContext as? HApplication)?.pluginHost
-            ?.service(com.stupidtree.hita.api.EasService.KEY)
+        val eas = EasContracts.ui(context)
         if (activity != null && eas != null) {
             action(eas, activity)
         } else {
@@ -1717,8 +1714,7 @@ private fun MorePage(
     }
     fun openAccount() {
         val activity = context as? androidx.fragment.app.FragmentActivity
-        val eas = (context.applicationContext as? HApplication)?.pluginHost
-            ?.service(com.stupidtree.hita.api.EasService.KEY)
+        val eas = EasContracts.ui(context)
         when {
             easAuth != null -> showEasLogin = true
             activity != null && eas != null -> eas.openAccount(activity)

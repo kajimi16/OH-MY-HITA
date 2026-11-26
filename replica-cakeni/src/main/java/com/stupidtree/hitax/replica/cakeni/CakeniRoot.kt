@@ -47,7 +47,7 @@ import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 import androidx.lifecycle.MutableLiveData
 import com.stupidtree.hita.api.EasAuthService
-import com.stupidtree.hita.api.EasService
+import com.stupidtree.hita.api.EasSessionService
 import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hita.api.TodoService
@@ -79,7 +79,7 @@ fun CakeniReplicaRoot(
     todoService: TodoService?,
     hostUi: HostUiService?,
     easAuth: EasAuthService?,
-    easService: EasService?,
+    easSession: EasSessionService?,
     onOpenMarket: () -> Unit,
     onImport: () -> Unit,
     onWebLogin: () -> Unit,
@@ -140,7 +140,7 @@ fun CakeniReplicaRoot(
                         CakeniTab.Todo -> TodoScreen(todoService, onOpenMarket)
                         CakeniTab.Import -> ImportScreen(
                             easAuth = easAuth,
-                            easService = easService,
+                            easSession = easSession,
                             onImport = onImport,
                             onWebLogin = onWebLogin,
                             onApiLoginSuccess = onApiLoginSuccess,

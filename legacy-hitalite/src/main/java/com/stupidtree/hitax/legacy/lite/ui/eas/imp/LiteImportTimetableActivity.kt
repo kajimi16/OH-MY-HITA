@@ -60,9 +60,9 @@ class LiteImportTimetableActivity :
             })
         binding.cardName.isEnabled = false
         binding.buttonImport.setOnClickListener {
-            val eas = LiteHostBridge.eas ?: return@setOnClickListener
+            val ui = LiteHostBridge.easUi ?: return@setOnClickListener
             it.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
-            eas.openImportTimetable(this)
+            ui.openImportTimetable(this)
         }
         binding.cardDate.onCardClickListener = View.OnClickListener {
             PopUpCalendarPicker()

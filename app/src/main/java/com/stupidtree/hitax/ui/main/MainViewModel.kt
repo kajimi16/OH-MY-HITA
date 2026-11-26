@@ -9,6 +9,7 @@ import com.stupidtree.component.data.DataState
 import com.stupidtree.component.data.Trigger
 import com.stupidtree.hitax.BuildConfig
 import com.stupidtree.hitax.data.repository.UpdateRepository
+import com.stupidtree.hitax.plugin.EasContracts
 import com.stupidtree.hitax.utils.LiveDataUtils
 import com.stupidtree.stupiduser.data.model.CheckUpdateResult
 import com.stupidtree.stupiduser.data.model.UserLocal
@@ -49,8 +50,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return@switchMap managerRepository.checkUpdate(
                 localUserRepository.getLoggedInUser().token!!,
                 it,
-                ((application as com.stupidtree.hitax.HApplication).pluginHost
-                    .service(com.stupidtree.hita.api.EasService.KEY)?.currentStuId() ?: "")
+                EasContracts.account(application).studentId ?: ""
             )
         } else {
             return@switchMap LiveDataUtils.getMutableLiveData(DataState(DataState.STATE.NOT_LOGGED_IN))

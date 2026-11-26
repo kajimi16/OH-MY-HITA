@@ -13,18 +13,18 @@ import java.util.Calendar
  *
  * 前置条件：宿主 TimetableService 已注入；缺失时页面只读且拒绝写入。
  * 后置条件：页面展示当前课表的开始时间与课时结构，修改提交给宿主课表服务；
- * 教务导入本身由宿主 EasService 完成，本模块不接触网络、会话与 EAS 仓库。
+ * 教务导入本身由宿主 EasUiService / EasSessionService 完成，本模块不接触网络、会话与 EAS 仓库。
  */
 class LiteImportTimetableViewModel : ViewModel() {
 
     private val timetableService = LiteHostBridge.timetable
-    private val easService = LiteHostBridge.eas
+    private val easUi = LiteHostBridge.easUi
 
     val timetableLiveData: LiveData<Timetable?> =
         timetableService?.getRecentTimetable() ?: MutableLiveData<Timetable?>(null)
 
     /** 宿主是否提供教务导入入口。 */
-    fun hasEas(): Boolean = easService != null
+    fun hasEas(): Boolean = easUi != null
 
     /** 当前课表结构快照。 */
     fun currentStructure(): List<TimePeriodInDay> =

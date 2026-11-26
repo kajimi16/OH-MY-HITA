@@ -28,6 +28,7 @@ import com.stupidtree.hitax.HApplication
 import com.stupidtree.hitax.R
 import com.stupidtree.hitax.databinding.ActivityMainBinding
 import com.stupidtree.hitax.market.PluginMarketViewModel
+import com.stupidtree.hitax.plugin.EasContracts
 import com.stupidtree.hitax.ui.about.ActivityAbout
 import com.stupidtree.hitax.ui.about.UserAgreementDialog
 import com.stupidtree.hitax.ui.main.navigation.NavigationFragment
@@ -333,7 +334,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
         if (autoReimportAttempted) return
         autoReimportAttempted = true
         // 间隔与登录判断都在插件内完成
-        pluginHost().service(com.stupidtree.hita.api.EasService.KEY)?.autoReimportIfDue()
+        EasContracts.session(this)?.autoReimportIfDue()
     }
 
 
@@ -446,17 +447,17 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(),
                 }
             } else {
                 //未登录的信息显示
-                val eas = pluginHost().service(com.stupidtree.hita.api.EasService.KEY)
-                val easName = eas?.accountName()
+                val eas = EasContracts.account(this)
+                val easName = eas.displayName
                 if (easName != null) {
                     drawerUsername?.text = easName
-                    drawerNickname?.text = eas.accountSubtitle()
+                    drawerNickname?.text = eas.subtitle
                 } else {
                     drawerUsername?.setText(R.string.eas_account_not_logged_in_title)
                     drawerNickname?.setText(R.string.eas_account_not_logged_in_subtitle)
                 }
                 drawerAvatar?.setImageResource(R.drawable.place_holder_avatar)
-                drawerHeader?.setOnClickListener { eas?.openAccount(getThis()) }
+                drawerHeader?.setOnClickListener { EasContracts.ui(this)?.openAccount(getThis()) }
             }
         }
     }

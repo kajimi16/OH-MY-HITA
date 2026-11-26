@@ -64,9 +64,16 @@ class LiteScoreInquiryActivity :
     }
 
     private fun loadAfterLogin() {
-        val eas = LiteHostBridge.eas
-        if (eas != null && !eas.isLogin()) {
-            eas.ensureLogin(this, { refresh() }, {})
+        val account = LiteHostBridge.easAccount
+        val ui = LiteHostBridge.easUi
+        if (account == null || ui == null) {
+            refresh()
+            return
+        }
+        if (!account.account().loggedIn) {
+            ui.ensureLogin(this) { result ->
+                if (result.success) refresh()
+            }
             return
         }
         refresh()

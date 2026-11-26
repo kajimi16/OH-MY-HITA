@@ -73,7 +73,7 @@ class LiteTimetableManagerActivity :
         listAdapter.setOnAddClickListener(object : LiteTimetableListAdapter.OnAddClickListener {
             override fun onAddClick(source: LiteTimetableListAdapter.SOURCE) {
                 if (source == LiteTimetableListAdapter.SOURCE.EAS) {
-                    LiteHostBridge.eas?.openImportTimetable(this@LiteTimetableManagerActivity)
+                    LiteHostBridge.easUi?.openImportTimetable(this@LiteTimetableManagerActivity)
                 } else {
                     viewModel.startNewTimetable()
                 }

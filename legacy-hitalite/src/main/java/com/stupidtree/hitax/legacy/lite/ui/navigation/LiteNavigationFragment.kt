@@ -77,10 +77,10 @@ class LiteNavigationFragment :
     }
 
     private fun refreshAccountEntry() {
-        val eas = LiteHostBridge.eas
-        if (eas?.isLogin() == true) {
-            val accountName = eas.accountSubtitle()?.takeIf { it.isNotBlank() }
-                ?: eas.accountName()
+        val account = LiteHostBridge.easAccount?.account()
+        if (account?.loggedIn == true) {
+            val accountName = account.subtitle?.takeIf { it.isNotBlank() }
+                ?: account.displayName
             binding?.nickname?.setText(R.string.lite_nav_jw_login_connected_title)
             binding?.username?.text = accountName?.let {
                 getString(R.string.lite_nav_jw_login_status_with_student_id, it)
@@ -88,7 +88,7 @@ class LiteNavigationFragment :
             binding?.avatar?.setImageResource(R.drawable.lite_place_holder_avatar)
             binding?.userStatusDot?.visibility = View.VISIBLE
             binding?.userActionIcon?.setOnClickListener {
-                eas.logout()
+                LiteHostBridge.easSession?.logout()
                 refreshAccountEntry()
             }
             binding?.userCard?.setOnClickListener(null)
@@ -113,9 +113,9 @@ class LiteNavigationFragment :
                 LiteEasLoginDialog().show(parentFragmentManager, TAG_EAS_LOGIN)
             }
         } else {
-            val eas = LiteHostBridge.eas
-            if (eas != null) {
-                eas.openAccount(activity)
+            val ui = LiteHostBridge.easUi
+            if (ui != null) {
+                ui.openAccount(activity)
             } else {
                 android.widget.Toast.makeText(
                     activity,

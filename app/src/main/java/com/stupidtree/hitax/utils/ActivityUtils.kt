@@ -11,7 +11,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import com.stupidtree.hitax.R
+import com.stupidtree.hita.api.dto.EasImportOptionsDto
 import com.stupidtree.hitax.ui.news.NewsDetailActivity
+import com.stupidtree.hitax.plugin.EasContracts
 import com.stupidtree.hitax.ui.search.SearchActivity
 import com.stupidtree.stupiduser.data.model.CheckUpdateResult
 import com.stupidtree.style.base.BaseActivity
@@ -46,17 +48,16 @@ object ActivityUtils {
     }
     fun startImportTimetableActivity(from: Context, autoImport: Boolean = false) {
         (from as? androidx.fragment.app.FragmentActivity)?.let { activity ->
-            (activity.application as com.stupidtree.hitax.HApplication).pluginHost
-                .service(com.stupidtree.hita.api.EasService.KEY)
-                ?.openImportTimetable(activity, autoImport)
+            EasContracts.ui(activity)?.openImportTimetable(
+                activity,
+                EasImportOptionsDto(autoImport = autoImport),
+            )
         }
     }
 
     fun startWelcomeActivity(from: Context) {
         if (from is BaseActivity<*, *>) {
-            (from.application as com.stupidtree.hitax.HApplication).pluginHost
-                .service(com.stupidtree.hita.api.EasService.KEY)
-                ?.openAccount(from)
+            EasContracts.ui(from)?.openAccount(from)
         } else {
             Toast.makeText(from, R.string.eas_login_prompt, Toast.LENGTH_SHORT).show()
         }

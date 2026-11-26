@@ -1,7 +1,10 @@
 package com.stupidtree.hitax.legacy.lite
 
+import com.stupidtree.hita.api.EasAccountService
 import com.stupidtree.hita.api.EasAuthService
 import com.stupidtree.hita.api.EasService
+import com.stupidtree.hita.api.EasSessionService
+import com.stupidtree.hita.api.EasUiService
 import com.stupidtree.hita.api.EmptyClassroomService
 import com.stupidtree.hita.api.ExamService
 import com.stupidtree.hita.api.ResourceUiService
@@ -22,6 +25,9 @@ object LiteHostBridge {
     @Volatile var timetableUi: TimetableUiService? = null
     @Volatile var teacher: TeacherService? = null
     @Volatile var eas: EasService? = null
+    @Volatile var easAccount: EasAccountService? = null
+    @Volatile var easSession: EasSessionService? = null
+    @Volatile var easUi: EasUiService? = null
     @Volatile var easAuth: EasAuthService? = null
     @Volatile var scores: ScoreService? = null
     @Volatile var exams: ExamService? = null
@@ -46,6 +52,9 @@ object LiteHostBridge {
         timetableUi = null
         teacher = null
         eas = null
+        easAccount = null
+        easSession = null
+        easUi = null
         easAuth = null
         scores = null
         exams = null

@@ -1,8 +1,6 @@
 package com.stupidtree.hitax.ui.main.navigation
 
 import com.stupidtree.hitax.HitaServices
-import com.stupidtree.hitax.HApplication
-import com.stupidtree.hita.api.EasService
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.res.ColorStateList
@@ -19,6 +17,7 @@ import com.stupidtree.hitax.data.source.preference.CourseReminderStore
 import com.stupidtree.hitax.livecourse.LiveCourseSettings
 import com.stupidtree.hitax.data.work.CourseReminderScheduler
 import com.stupidtree.hitax.utils.IcsImportUtils
+import com.stupidtree.hitax.plugin.EasContracts
 import android.content.Intent
 import android.net.Uri
 import android.widget.LinearLayout
@@ -28,10 +27,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 
 class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationBinding>() {
 
-    private fun eas(): EasService? =
-        (requireContext().applicationContext as HApplication).pluginHost.service(EasService.KEY)
-
-    
     // ICS 文件选择器
     private val selectIcsLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         uri?.let { importICS(it) }
@@ -66,16 +61,16 @@ class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationB
             }
         }
         binding?.cardImport?.setOnClickListener {
-            eas()?.openImportTimetable(requireActivity())
+            EasContracts.ui(requireContext())?.openImportTimetable(requireActivity())
         }
         binding?.cardEmptyClassroom?.setOnClickListener {
-            eas()?.openClassroom(requireActivity())
+            EasContracts.ui(requireContext())?.openClassroom(requireActivity())
         }
         binding?.cardScores?.setOnClickListener {
-            eas()?.openScores(requireActivity())
+            EasContracts.ui(requireContext())?.openScores(requireActivity())
         }
         binding?.cardSubjects?.setOnClickListener {
-            eas()?.openExam(requireActivity())
+            EasContracts.ui(requireContext())?.openExam(requireActivity())
         }
         binding?.cardWebLogin?.setOnClickListener {
             startActivity(
@@ -211,18 +206,20 @@ class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationB
                 }
             } else {
                 //未登录的信息显示
-                val easService = eas()
-                val easName = easService?.accountName()
+                val easAccount = EasContracts.account(requireContext())
+                val easName = easAccount.displayName
                 if (easName != null) {
                     binding?.username?.text = easName
-                    binding?.nickname?.text = easService.accountSubtitle()
+                    binding?.nickname?.text = easAccount.subtitle
                 } else {
                     binding?.username?.setText(R.string.eas_account_not_logged_in_title)
                     binding?.nickname?.setText(R.string.eas_account_not_logged_in_subtitle)
                 }
                 binding?.avatar?.setImageResource(R.drawable.place_holder_avatar)
                 binding?.userCard?.setOnClickListener {
-                    easService?.ensureLogin(requireActivity(), onSuccess = { refreshEasState() })
+                    EasContracts.ui(requireContext())?.ensureLogin(requireActivity()) { result ->
+                        if (result.success) refreshEasState()
+                    }
                 }
             }
         }
@@ -230,16 +227,16 @@ class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationB
     }
 
     private fun refreshEasState() {
-        val easService = eas() ?: return
-        val name = easService.accountName()
+        val easAccount = EasContracts.account(requireContext())
+        val name = easAccount.displayName
         if (name != null) {
             binding?.easTitle?.text = "教务登录为 $name"
             binding?.easDot?.imageTintList = ColorStateList.valueOf(getColorPrimary())
-            binding?.easAvatar?.let { ImageUtils.loadEASPictureInto(easService.accountAvatarUrl() ?: "", it) }
+            binding?.easAvatar?.let { ImageUtils.loadEASPictureInto(easAccount.avatarUrl ?: "", it) }
             binding?.easActionIcon?.setOnClickListener {
                 PopUpText().setTitle(R.string.menu_logout_jw).setOnConfirmListener(object : PopUpText.OnConfirmListener {
                     override fun OnConfirm() {
-                        easService.logout()
+                        EasContracts.session(requireContext())?.logout()
                         refreshEasState()
                     }
                 }).show(parentFragmentManager, "logout")
@@ -252,7 +249,9 @@ class NavigationFragment : BaseFragment<NavigationViewModel, FragmentNavigationB
             binding?.easActionIcon?.visibility = View.INVISIBLE
             binding?.easLayout?.isClickable = true
             binding?.easLayout?.setOnClickListener {
-                easService.ensureLogin(requireActivity(), onSuccess = { refreshEasState() })
+                EasContracts.ui(requireContext())?.ensureLogin(requireActivity()) { result ->
+                    if (result.success) refreshEasState()
+                }
             }
         }
     }

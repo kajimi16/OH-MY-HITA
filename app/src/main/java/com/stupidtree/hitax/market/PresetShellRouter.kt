@@ -13,6 +13,7 @@ import com.stupidtree.hita.api.TimetableUiService
 import com.stupidtree.hita.api.TeacherService
 import com.stupidtree.hita.api.UserProfileService
 import com.stupidtree.hitax.HApplication
+import com.stupidtree.hitax.plugin.EasContracts
 import com.stupidtree.hitax.legacy.lite.HitaLiteActivity
 import com.stupidtree.hitax.legacy.lite.LiteHostBridge
 import com.stupidtree.hitax.shell.PresetShellActivity
@@ -50,6 +51,9 @@ object PresetShellRouter {
         LiteHostBridge.timetableUi = host.service(TimetableUiService.KEY)
         LiteHostBridge.teacher = host.service(TeacherService.KEY)
         LiteHostBridge.eas = host.service(EasService.KEY)
+        LiteHostBridge.easAccount = EasContracts.accountService(context)
+        LiteHostBridge.easSession = EasContracts.session(context)
+        LiteHostBridge.easUi = EasContracts.ui(context)
         LiteHostBridge.easAuth = host.service(EasAuthService.KEY)
         LiteHostBridge.scores = host.service(ScoreService.KEY)
         LiteHostBridge.exams = host.service(ExamService.KEY)
