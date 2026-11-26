@@ -8,6 +8,7 @@ android {
         minSdkVersion 23
         targetSdk 33
         compileSdk 35
+        consumerProguardFiles 'consumer-rules.pro'
     }
 
     buildTypes {
@@ -40,6 +41,45 @@ dependencies {
     // SyncCodec 的契约里出现 JsonObject。
     api 'com.google.code.gson:gson:2.8.9'
 }
+
+// 防止 DTO 包被 Room / LiveData / Android 平台类型污染。
+tasks.register('verifyDtoPurity') {
+    group = 'verification'
+    description = 'Fail if api dto sources import Room, LiveData, Android or platform time/stream types.'
+    def dtoDir = file('src/main/java/com/stupidtree/hita/api/dto')
+    inputs.dir(dtoDir)
+    doLast {
+        if (!dtoDir.exists()) return
+        def forbidden = [
+            'androidx.room.',
+            'androidx.lifecycle.',
+            'androidx.fragment.',
+            'android.',
+            'java.sql.',
+            'java.util.Calendar',
+            'java.io.InputStream',
+        ]
+        def violations = []
+        dtoDir.eachFileRecurse { f ->
+            if (!f.name.endsWith('.kt')) return
+            f.eachLine { line, number ->
+                def trimmed = line.trim()
+                if (trimmed.startsWith('import ')) {
+                    forbidden.each { token ->
+                        if (trimmed.contains(token)) {
+                            violations << "${f.name}:${number}: ${trimmed}"
+                        }
+                    }
+                }
+            }
+        }
+        if (!violations.isEmpty()) {
+            throw new GradleException("DTO purity violation:\n" + violations.join('\n'))
+        }
+    }
+}
+
+tasks.matching { it.name == 'check' }.configureEach { dependsOn 'verifyDtoPurity' }
 
 // 生成 :api 的公开 ABI 指纹。插件发布时把该值写入索引的 apiAbi 字段，
 // 宿主启动时与 BuildConfig.API_ABI 比对，捕获“版本号没变但签名变了”的破坏性变更。
