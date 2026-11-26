@@ -20,6 +20,9 @@ interface TimetableDao {
     @Query("SELECT * FROM timetable order by -startTime")
     fun getTimetables(): LiveData<List<Timetable>>
 
+    @Query("SELECT * FROM timetable order by -startTime")
+    fun getTimetablesSync(): List<Timetable>
+
     @Query("SELECT * FROM timetable WHERE id is :id")
     fun getTimetableById(id: String): LiveData<Timetable>
 
@@ -45,8 +48,14 @@ interface TimetableDao {
     @Query("select count(*) from timetable")
     fun geeTimetableCount(): LiveData<Int>
 
+    @Query("select count(*) from timetable")
+    fun getTimetableCountSync(): Int
+
     @Query("select DISTINCT place from events where place like :string ")
     fun searchLocation(string: String): LiveData<List<String>>
+
+    @Query("select DISTINCT place from events where place like :string ")
+    fun searchLocationSync(string: String): List<String>
 
 
     /**

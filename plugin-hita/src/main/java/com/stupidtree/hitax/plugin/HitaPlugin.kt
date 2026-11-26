@@ -4,6 +4,7 @@ import android.app.Application
 import com.stupidtree.hita.api.Plugin
 import com.stupidtree.hita.api.PluginContext
 import com.stupidtree.hita.api.HostUiService
+import com.stupidtree.hita.api.TimetableDataService
 import com.stupidtree.hita.api.TimetableService
 import com.stupidtree.hita.api.TabContribution
 import com.stupidtree.hita.api.TimetableUiService
@@ -63,6 +64,14 @@ class HitaPlugin(private val application: Application) : Plugin {
             database = database,
         )
         ctx.provide(TimetableService.KEY, service)
+        ctx.provide(
+            TimetableDataService.KEY,
+            TimetableDataServiceImpl(
+                application = application,
+                timetables = TimetableRepository.getInstance(application),
+                database = database,
+            ),
+        )
         ctx.provide(TimetableUiService.KEY, TimetableUiImpl())
         ctx.provide(com.stupidtree.hita.api.TimetableAppearanceService.KEY, com.stupidtree.hitax.ui.main.timetable.TimetableAppearanceStore.get(application))
 

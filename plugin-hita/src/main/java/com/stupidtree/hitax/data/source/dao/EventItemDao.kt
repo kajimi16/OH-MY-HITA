@@ -23,6 +23,9 @@ interface EventItemDao {
     @Query("SELECT * FROM events WHERE `from` >= :fromT order by `from` asc LIMIT :limit")
     fun getEventsAfter(fromT: Long, limit: Int): LiveData<List<EventItem>>
 
+    @Query("SELECT * FROM events WHERE `from` >= :fromT order by `from` asc LIMIT :limit")
+    fun getEventsAfterSync(fromT: Long, limit: Int): List<EventItem>
+
     @Query("SELECT * FROM events WHERE `from` >= :fromT AND `from` <= :toT AND `to` >= :fromT AND `to` <= :toT")
     fun getEventsDuringSync(fromT: Long, toT: Long): List<EventItem>
 
@@ -41,15 +44,27 @@ interface EventItemDao {
     @Query("SELECT DISTINCT teacher,subject.name FROM events,subject WHERE events.timetableId is:timetableId  AND subject.timetableId is:timetableId  AND events.subjectId is subject.id AND events.teacher is NOT NULL")
     fun getTeachersOfTimetable(timetableId: String): LiveData<MutableList<TeacherInfo>>
 
+    @Query("SELECT DISTINCT teacher,subject.name FROM events,subject WHERE events.timetableId is:timetableId  AND subject.timetableId is:timetableId  AND events.subjectId is subject.id AND events.teacher is NOT NULL")
+    fun getTeachersOfTimetableSync(timetableId: String): List<TeacherInfo>
+
     @Query("SELECT DISTINCT teacher FROM events WHERE subjectId is :subjectId AND timetableId is :timetableId AND  teacher is NOT NULL")
     fun getTeachersOfSubject(timetableId: String, subjectId: String): LiveData<List<String>>
+
+    @Query("SELECT DISTINCT teacher FROM events WHERE subjectId is :subjectId AND timetableId is :timetableId AND  teacher is NOT NULL")
+    fun getTeachersOfSubjectSync(timetableId: String, subjectId: String): List<String>
 
 
     @Query("SELECT count(*) from events where subjectId is :subjectId")
     fun countClassesOfSubject(subjectId: String): LiveData<Int>
 
+    @Query("SELECT count(*) from events where subjectId is :subjectId")
+    fun countClassesOfSubjectSync(subjectId: String): Int
+
     @Query("SELECT count(*) from events where subjectId is :subjectId and `to` < :ts")
     fun countClassesBeforeTimeOfSubject(subjectId: String, ts: Long): LiveData<Int>
+
+    @Query("SELECT count(*) from events where subjectId is :subjectId and `to` < :ts")
+    fun countClassesBeforeTimeOfSubjectSync(subjectId: String, ts: Long): Int
 
 
     @Query("DELETE from events where timetableId in (:ids)")
