@@ -1,7 +1,10 @@
 package com.stupidtree.hitax.eas
 
 import android.app.Application
+import com.stupidtree.hita.api.EasAccountService
 import com.stupidtree.hita.api.EasService
+import com.stupidtree.hita.api.EasSessionService
+import com.stupidtree.hita.api.EasUiService
 import com.stupidtree.hita.api.HostUiService
 import com.stupidtree.hita.api.Plugin
 import com.stupidtree.hita.api.PluginContext
@@ -13,6 +16,8 @@ class EasPlugin(private val application: Application) : Plugin {
     override val id = "com.stupidtree.hitax.eas"
 
     override val displayName = "教务"
+
+    override val requiresApi = 14
 
     /** 用户选择「卸载并清除数据」：教务凭据、成绩提醒、考试备忘与本插件目录。 */
     override fun purgeData() {
@@ -28,7 +33,13 @@ class EasPlugin(private val application: Application) : Plugin {
 
     override fun install(ctx: PluginContext) {
         EasRuntime.ctx = ctx
-        ctx.provide(EasService.KEY, EasServiceImpl(application))
+        val accountService = EasAccountServiceImpl(application)
+        val sessionService = EasSessionServiceImpl(application)
+        val uiService = EasUiServiceImpl(accountService)
+        ctx.provide(EasAccountService.KEY, accountService)
+        ctx.provide(EasSessionService.KEY, sessionService)
+        ctx.provide(EasUiService.KEY, uiService)
+        ctx.provide(EasService.KEY, EasServiceImpl(accountService, sessionService, uiService))
         ctx.provide(com.stupidtree.hita.api.ScoreService.KEY, ScoreServiceImpl(application))
         ctx.provide(
             com.stupidtree.hita.api.EmptyClassroomService.KEY,

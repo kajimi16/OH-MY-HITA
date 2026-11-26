@@ -7,6 +7,7 @@ package com.stupidtree.hita.api
  * **破坏性**改动都必须递增此值。插件在 [Plugin.requiresApi] 中声明自己依赖的版本。
  *
  * 变更记录：
+ * - 14: 新增 EAS DTO 数据/UI 契约（纯加法）
  * - 12: 新增 `CampusService`、`TodoService`（加法；新的数据插件要求宿主 12）
  * - 11: 新增 `HostEnvironmentService`，T1 插件可获取 applicationContext（加法）
  * - 9: 新增动效 `MotionController` 与音效/触感 `FeedbackService`（加法，不破坏旧插件）
@@ -18,7 +19,7 @@ package com.stupidtree.hita.api
  * - 2: 移除 `PluginContext.appContext`；新增 `PluginContext.sync`（SyncRegistry）
  * - 1: 首个版本
  */
-const val HITA_API_VERSION = 13
+const val HITA_API_VERSION = 14
 
 /**
  * 一个插件。

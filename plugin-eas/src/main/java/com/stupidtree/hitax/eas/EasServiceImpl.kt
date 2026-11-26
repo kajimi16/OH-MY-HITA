@@ -1,106 +1,74 @@
 package com.stupidtree.hitax.eas
 
-import android.app.Application
-import android.content.Intent
 import androidx.fragment.app.FragmentActivity
+import com.stupidtree.hita.api.EasAccountService
 import com.stupidtree.hita.api.EasService
-import com.stupidtree.hitax.data.repository.EASRepository
-import com.stupidtree.hitax.data.repository.EasSettingsRepository
-import com.stupidtree.hitax.data.model.eas.EASToken
-import com.stupidtree.hitax.ui.eas.classroom.EmptyClassroomActivity
-import com.stupidtree.hitax.ui.eas.exam.ExamActivity
-import com.stupidtree.hitax.ui.eas.imp.ImportTimetableActivity
-import com.stupidtree.hitax.ui.eas.login.PopUpLoginEAS
-import com.stupidtree.hitax.ui.eas.score.ScoreInquiryActivity
+import com.stupidtree.hita.api.EasSessionService
+import com.stupidtree.hita.api.EasUiService
+import com.stupidtree.hita.api.dto.EasImportOptionsDto
+import com.stupidtree.hita.api.dto.EasLoginRequestDto
 
-class EasServiceImpl(private val application: Application) : EasService {
+/**
+ * 旧 `EasService` 兼容门面。方法签名与行为保持不变，内部委托到三个新实现。
+ *
+ * 新代码应使用 [EasAccountService] / [EasSessionService] / [EasUiService]；
+ * 本类只负责旧 key 的二进制兼容。
+ */
+class EasServiceImpl(
+    private val accountService: EasAccountService,
+    private val sessionService: EasSessionService,
+    private val uiService: EasUiService,
+) : EasService {
 
-    private val repo get() = EASRepository.getInstance(application)
-    private val settings get() = EasSettingsRepository.getInstance(application)
-    private val token: EASToken get() = repo.getEasToken()
-
-    override fun isLogin(): Boolean = token.isLogin()
+    override fun isLogin(): Boolean = accountService.account().loggedIn
 
     override fun accountName(): String? {
-        if (!isLogin()) return null
-        return token.name?.ifBlank { token.username } ?: token.username
+        val account = accountService.account()
+        return if (account.loggedIn) account.displayName else null
     }
 
     override fun accountSubtitle(): String? {
-        if (!isLogin()) return ""
-        return token.stuId?.ifBlank { token.username } ?: ""
+        val account = accountService.account()
+        return if (account.loggedIn) account.subtitle ?: "" else ""
     }
 
-    override fun currentStuId(): String? = if (isLogin()) token.stuId else null
-
-    override fun accountAvatarUrl(): String? = if (isLogin()) token.picture else null
-
-    override fun logout() {
-        repo.logout()
+    override fun currentStuId(): String? {
+        val account = accountService.account()
+        return if (account.loggedIn) account.studentId else null
     }
 
-    override fun ensureLogin(activity: FragmentActivity, onSuccess: () -> Unit, onFailed: () -> Unit) {
-        if (isLogin()) {
-            onSuccess()
-            return
-        }
-        val window = PopUpLoginEAS()
-        window.onResponseListener = object : PopUpLoginEAS.OnResponseListener {
-            override fun onSuccess(window: PopUpLoginEAS) {
-                window.dismiss()
-                onSuccess()
-            }
+    override fun accountAvatarUrl(): String? {
+        val account = accountService.account()
+        return if (account.loggedIn) account.avatarUrl else null
+    }
 
-            override fun onFailed(window: PopUpLoginEAS) {
-                onFailed()
-            }
+    override fun logout() = sessionService.logout()
+
+    override fun ensureLogin(
+        activity: FragmentActivity,
+        onSuccess: () -> Unit,
+        onFailed: () -> Unit,
+    ) {
+        uiService.ensureLogin(activity, EasLoginRequestDto()) { result ->
+            if (result.success) onSuccess() else onFailed()
         }
-        window.show(activity.supportFragmentManager, "verify")
     }
 
     override fun openImportTimetable(activity: FragmentActivity, autoImport: Boolean) {
-        ensureLogin(activity, onSuccess = {
-            activity.startActivity(
-                Intent(activity, ImportTimetableActivity::class.java).putExtra("autoImport", autoImport)
-            )
-        }, onFailed = {})
+        uiService.openImportTimetable(activity, EasImportOptionsDto(autoImport = autoImport))
     }
 
-    override fun openScores(activity: FragmentActivity) =
-        ensureLogin(activity, onSuccess = { activity.startActivity(Intent(activity, ScoreInquiryActivity::class.java)) }, onFailed = {})
+    override fun openScores(activity: FragmentActivity) = uiService.openScores(activity)
 
-    override fun openClassroom(activity: FragmentActivity) =
-        ensureLogin(activity, onSuccess = { activity.startActivity(Intent(activity, EmptyClassroomActivity::class.java)) }, onFailed = {})
+    override fun openClassroom(activity: FragmentActivity) = uiService.openClassroom(activity)
 
-    override fun openExam(activity: FragmentActivity) =
-        ensureLogin(activity, onSuccess = { activity.startActivity(Intent(activity, ExamActivity::class.java)) }, onFailed = {})
+    override fun openExam(activity: FragmentActivity) = uiService.openExam(activity)
 
+    override fun openAccount(activity: FragmentActivity) = uiService.openAccount(activity)
 
-    override fun openAccount(activity: FragmentActivity) = ensureLogin(activity, onSuccess = {}, onFailed = {})
-
-    override fun autoReimportIfDue() {
-        if (!settings.isAutoReimportEnabled()) return
-        if (!isLogin()) return
-        val now = System.currentTimeMillis()
-        if (now - settings.getLastAutoReimportTs() < INTERVAL_MS) return
-        startAutoReimport { success ->
-            if (success) settings.setLastAutoReimportTs(System.currentTimeMillis())
-        }
-    }
+    override fun autoReimportIfDue() = sessionService.autoReimportIfDue()
 
     override fun startAutoReimport(callback: (Boolean) -> Unit) {
-        if (!isLogin()) {
-            callback(false)
-            return
-        }
-        val isUndergrad = token.stutype == EASToken.TYPE.UNDERGRAD
-        repo.startAutoImportCurrentTimetable(isUndergrad) { success ->
-            if (success) settings.setLastAutoReimportTs(System.currentTimeMillis())
-            callback(success)
-        }
-    }
-
-    companion object {
-        private const val INTERVAL_MS = 12 * 60 * 60 * 1000L
+        sessionService.startAutoReimport { result -> callback(result.success) }
     }
 }
