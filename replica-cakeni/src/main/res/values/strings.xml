@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- cakeni 复刻页：底栏与页面标题 -->
+    <string name="cakeni_tab_schedule">课表</string>
+    <string name="cakeni_tab_todo">待办</string>
+    <string name="cakeni_tab_import">导入</string>
+    <string name="cakeni_tab_settings">设置</string>
+    <string name="cakeni_import_title">导入课程</string>
+    <string name="cakeni_settings_title">设置</string>
+</resources>

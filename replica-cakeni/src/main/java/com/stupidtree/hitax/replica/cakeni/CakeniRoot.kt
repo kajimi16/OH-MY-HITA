@@ -1,6 +1,7 @@
 package com.stupidtree.hitax.replica.cakeni
 
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -40,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -60,11 +62,11 @@ import com.stupidtree.hitax.replica.cakeni.todo.TodoScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private enum class CakeniTab(val title: String, val icon: ImageVector) {
-    Schedule("课表", Icons.Outlined.CalendarMonth),
-    Todo("待办", Icons.Outlined.Checklist),
-    Import("导入", Icons.Outlined.UploadFile),
-    Settings("设置", Icons.Outlined.Settings),
+private enum class CakeniTab(@StringRes val titleRes: Int, val icon: ImageVector) {
+    Schedule(R.string.cakeni_tab_schedule, Icons.Outlined.CalendarMonth),
+    Todo(R.string.cakeni_tab_todo, Icons.Outlined.Checklist),
+    Import(R.string.cakeni_tab_import, Icons.Outlined.UploadFile),
+    Settings(R.string.cakeni_tab_settings, Icons.Outlined.Settings),
 }
 
 /**
@@ -223,6 +225,7 @@ private fun CakeniBottomBar(
         ) {
             for (item in CakeniTab.entries) {
                 val active = item == current
+                val label = stringResource(item.titleRes)
                 Column(
                     Modifier
                         .weight(1f)
@@ -237,14 +240,14 @@ private fun CakeniBottomBar(
                     ) {
                         Icon(
                             item.icon,
-                            contentDescription = item.title,
+                            contentDescription = label,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp).size(22.dp),
                             tint = if (active) MaterialTheme.colorScheme.onPrimary
                             else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     Text(
-                        item.title,
+                        label,
                         style = MaterialTheme.typography.labelSmall,
                         color = if (active) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant,

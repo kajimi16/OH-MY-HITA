@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +59,7 @@ import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.EasAuthService
 import com.stupidtree.hita.api.EasSessionService
 import com.stupidtree.hitax.replica.cakeni.CakeniDimens
+import com.stupidtree.hitax.replica.cakeni.R
 
 /**
  * 导入页：教务账号、API 登录、导入课表、文件导入说明、插件市场。
@@ -88,7 +90,7 @@ fun ImportScreen(
             .padding(top = CakeniDimens.page, bottom = 24.dp),
     ) {
         Text(
-            text = "导入课程",
+            text = stringResource(R.string.cakeni_import_title),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,

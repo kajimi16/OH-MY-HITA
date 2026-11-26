@@ -35,9 +35,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.stupidtree.hitax.replica.cakeni.CakeniDimens
+import com.stupidtree.hitax.replica.cakeni.R
 
 private const val REPO_URL = "github.com/cakeni/CourseSchedule"
 
@@ -74,7 +76,7 @@ fun SettingsScreen(
             .padding(horizontal = CakeniDimens.page, vertical = 8.dp),
     ) {
         Text(
-            "设置",
+            stringResource(R.string.cakeni_settings_title),
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
