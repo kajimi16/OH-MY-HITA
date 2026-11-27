@@ -157,11 +157,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="v${{ steps.ver.outputs.version }}"
+          ASSET="oh-my-hita-${{ steps.ver.outputs.version }}.apk"
+          # 已存在的 release 不覆盖：tag 触发与手工发布可能同时到达同一 tag，
+          # 覆盖会把手动上传并验证过的资产换成 CI 包（versionCode 不同）。
+          # 因此只补缺失的同名资产，不改正文。
           if gh release view "$TAG" > /dev/null 2>&1; then
-            gh release upload "$TAG" "oh-my-hita-${{ steps.ver.outputs.version }}.apk" --clobber
-            gh release edit "$TAG" --notes-file release-notes.md
+            if gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fxq "$ASSET"; then
+              echo "资产 $ASSET 已存在，不覆盖"
+            else
+              gh release upload "$TAG" "$ASSET"
+            fi
           else
-            gh release create "$TAG" "oh-my-hita-${{ steps.ver.outputs.version }}.apk" \
+            gh release create "$TAG" "$ASSET" \
               --title "OH-MY-HITA ${{ steps.ver.outputs.version }}" \
               --notes-file release-notes.md
           fi
